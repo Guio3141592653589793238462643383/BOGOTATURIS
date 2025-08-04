@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial de Consultas</title>
+    <link rel="stylesheet" href="../static/css/historial.css">
+<body>
+    
+    <h2>Historial</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Pregunta</th>
+                <th>Respuesta</th>
+                <th>Modelo</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in registros %}
+            <tr>
+                <td>{{ item.pregunta}}</td>
+                <td>{{ item.respuesta }}</td>
+                <td>{{ item.modelo}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

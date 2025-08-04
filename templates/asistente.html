@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chat Turístico Bogotá</title>
+  <link rel="stylesheet" href="../static/css/styles.css">
+</head>
+<body>
+  <header>
+    <h1>Chat Turístico Bogotá</h1>
+    <nav>
+      <ul>
+        <li><a href="/">Inicio</a></li>
+        <li><a href="/historial">Historial de Consultas</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <div id="chat-box">
+      <p>¡Bienvenido! Soy tu asistente virtual para explorar lugares turísticos de Bogotá.
+</p>
+    </div>
+
+    <div id="input-container">
+      <input id="mensaje"
+        type="text"
+        placeholder="Escribe tu pregunta..."
+        pattern="^[A-Za-zÁÉÍÓÚáéíóúÑñ¿?., ]{3,200}$"
+        autofocus />
+      <button onclick="enviarMensaje()">Enviar</button>
+    </div>
+
+    <div id="typing" style="display: none;">Escribiendo...</div>
+  </main>
+
+  <footer></footer>
+
+  <script src="/static/js/script.js"></script>
+</body>
+</html>
