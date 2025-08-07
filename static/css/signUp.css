@@ -1,60 +1,61 @@
 body {
-      font-family: "Edu SA Hand", cursive;
-      margin: 0;
-      padding: 0;
-      background: linear-gradient(135deg, #466180 0%, #ABD0E1 100%);
-      min-height: 100vh;
-    }
+    font-family: "Edu SA Hand", cursive;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(135deg, #4661808d 0%, #ABD0E1 100%);
+    min-height: 100vh;
+}
 
-    .navbar {
-      background-color: #fddad284;
-      padding: 0.9rem 0;
-      width: 100%;
-    }
+.navbar {
+    background: linear-gradient(90deg, #b0d8f5, #fcc0e5);
+    padding: 0.9rem 0;
+    width: 100%;
+}
 
-    .container1 {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+.container1 {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
-    .logo img {
-      max-height: 100px;
-      margin-left: -100px;
-    }
+.logo img {
+    max-height: 100px;
+    margin-left: -100px;
+}
 
-    .nav-links {
-      list-style: none;
-      display: flex;
-      gap: 2rem;
-    }
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 2rem;
+}
 
-    .nav-links a {
-      color: #0879e9;
-      text-decoration: none;
-      transition: color 0.3s ease;
-    }
+.nav-links a {
+    color: #0879e9;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
 
-    .nav-links a.active,
-    .nav-links a:hover {
-      color: #003366;
-    }
+.nav-links a.active,
+.nav-links a:hover {
+    color: #003366;
+}
 
-    .container {
-      max-width: 700px;
-      margin: 2rem auto;
-      padding: 20px;
-    }
+.container {
+    max-width: 700px;
+    margin: 2rem auto;
+    padding: 20px;
+}
 
-.container{
+.container {
     background-color: white;
     padding: 50px;
     border-radius: 5px;
-    box-shadow: 0  10px 30px rgba(0, 0, 0, 0.2);
-} 
-.Progreso-formulario{
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.Progreso-formulario {
     width: 100%;
     height: 6px;
     background-color: #e1e5e9;
@@ -62,31 +63,38 @@ body {
     margin-bottom: 30px;
     overflow: hidden;
 }
-.barra-progreso{
+
+.barra-progreso {
     height: 100%;
     background: linear-gradient(90deg, #667eea, #764ba2);
     width: 0%;
     transition: width 0.5s ease;
     border-radius: 3px;
 }
-.form-group{
+
+.form-group {
     margin-bottom: 25px;
     position: relative;
 }
+
 h1 {
     color: #333;
     text-align: center;
     margin-bottom: 30px;
     font-size: 2rem;
 }
-label{
+
+label {
     display: block;
     margin-bottom: 8 px;
     font-weight: 600;
     color: #555;
     font-size: 0.95rem;
 }
-input,select,textarea {
+
+input,
+select,
+textarea {
     width: 100%;
     padding: 12px 15px;
     border: 2px solid #e1e5e9;
@@ -97,7 +105,7 @@ input,select,textarea {
 }
 
 /*Estados de validacion visual */
-input.valido, 
+input.valido,
 selec.valido,
 textarea.valido {
     border-color: #28a745;
@@ -143,7 +151,7 @@ textarea:focus {
         transform: translateY(-10px);
     }
 
-    to{
+    to {
         opacity: 1;
         transform: translateY(0);
     }
@@ -166,10 +174,12 @@ textarea:focus {
     background-color: #ffc107;
     width: 50%;
 }
+
 .strength.strong {
     background-color: #28a745;
     width: 75%;
 }
+
 .strength-very-strong {
     background-color: #20c997;
     width: 100%;
@@ -198,24 +208,20 @@ button:disabled {
     background: #ccc;
     cursor: not-allowed;
 }
+
 /* Estilos para seleccionar tus intereses  */
 .intereses {
     display: flex;
-    flex-wrap: wrap; 
-    gap: 15px; 
+    flex-wrap: wrap;
+    gap: 15px;
 }
 
 .intereses label {
     display: flex;
-    align-items: center; 
-    margin-bottom: 0; 
+    align-items: center;
+    margin-bottom: 0;
 }
 
 .intereses input[type="checkbox"] {
-    margin-left: 5px; 
+    margin-left: 5px;
 }
-
-
-
-
-
