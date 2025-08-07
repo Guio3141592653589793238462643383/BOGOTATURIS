@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Edu+SA+Hand:wght@400..700&family=Edu+VIC+WA+NT+Hand+Pre:wght@400..700&display=swap"
+        rel="stylesheet" />
+    <title>Sign Up de BogotaTuris</title>
+    <link rel="stylesheet" href="../static/css/signUp.css" />
+</head>
+
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="container1">
+                <a href="../static/img/Logo.png" class="logo">
+                    <img src="../static/img/Logo.png" alt="BogotaTuris Logo">
+                </a>
+                <ul class="nav-links">
+                    <li><a href="../index.html" class="active">Inicio</a></li>
+                    <li><a href="#">Iniciar Sesión</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+    <!--Container -->
+    <div class="container">
+        <h1>✍Registrarte </h1>
+
+        <!--Barra de Proceso-->
+        <div class="Progreso-formulario">
+            <div class="barra-progreso" id="barraProgreso"></div>
+        </div>
+        <p style="text-align: center; color: #666; margin-bottom: 30px;">
+            Proceso:<span id="porcentajeProgreso">0%</span>
+        </p>
+
+        <!--Form-->
+        <form id="formularioAvanzado" novalidate>
+            <!--Nombre con validacion en el tiempo real-->
+            <div class="form-group">
+                <h4>Nombres</h4>
+                <label for="nombreCompleto">Nombre Completo *</label>
+                <input type="text" id="nombreCompleto" name="nombreCompleto" required autofocus
+                    placeholder="Mínimo 2 nombres" pattern="[A-Za-zÁÉÍÓÚáéíúóÑñÜü ]{3,40}" />
+                <div class="mensaje-error" id="errorNombre"></div>
+                <div class="mensaje-error" id="errorNombre"></div>
+                <div class="mensaje-exito" id="exitoNombre"></div>
+            </div>
+            <!-- Email con validación personalizada-->
+            <div class="form-group">
+                <label for="corre">Correo Electrónico *</label>
+                <input type="email" id="correo" name="correo" required placeholder="usuario@dominio.com"
+                    pattern="^[\w-\.]+@([\w-]+\.)+[\w-]{5,50}$" />
+                <div class="mensaje-error" id="errorCorreo"></div>
+                <div class="mensaje-exito" id="exitoCorreo"></div>
+            </div>
+
+            <!--Confirmación de Correo electronico -->
+            <div class=" form-group">
+                <label for="confirmarCorreo">Confirmar correo electronico *</label>
+                <input type="email" id="confirmarCorreo" name="confirmarCorreo" required
+                    placeholder="Repite tu correo electronico" />
+                <div class="mensaje-error" id="errorConfirmarCorreo"></div>
+                <div class="mensaje-exito" id="exitoConfirmarCorreo"></div>
+            </div>
+            <!--Contraseña con indicador de fortaleza-->
+            <div class="form-group">
+                <label for="password"> Contraseña *</label>
+                <input type="password" id="password" name="password" required placeholder="Minimo 8 caracteres"
+                    minlength="8" />
+                <div class="password-strength" id="strengthBar"></div>
+                <div class="mensaje-error" id="errorPassword"></div>
+                <div class="mensaje-exito" id="exitoPassword"></div>
+            </div>
+            <!--Confirmación de contraseña-->
+            <div class=" form-group">
+                <label for="confirmarPassword">Confirmar contraseña *</label>
+                <input type="password" id="confirmarPassword" name="confirmarPassword" required
+                    placeholder="Repite tu contraseña" />
+                <div class="mensaje-error" id="errorConfirmar"></div>
+                <div class="mensaje-exito" id="exitoConfirmar"></div>
+            </div>
+
+            <!--Fecha de nacimiento-->
+            <div class="form-group">
+                <label for="fechaNacimiento">Fecha de nacimiento *</label>
+                <input type="date" id="fechaNacimiento" name="fechaNacimiento" required />
+                <div class="mensaje-error" id="errorFecha"></div>
+                <div class="mensaje-exito" id="exitoFecha"></div>
+            </div>
+
+            <!--Intereses con contador -->
+            <div class="form-group">
+                <label for="Intereses">Intereses Turísticos</label>
+                <fieldset class="intereses" id="intereses">
+                    <label for="intereses">Aventureros
+                        <input type="checkbox" name="intereses" id="intereses" value="Aventureros">
+                    </label>
+                    <label for="intereses">Danza
+                        <input type="checkbox" name="intereses" id="intereses" value="danza">
+                    </label>
+                    <label for="intereses">Arte
+                        <input type="checkbox" name="intereses" id="intereses" value="Arte">
+                    </label>
+                    <label for="intereses">Cultura
+                        <input type="checkbox" name="intereses" id="intereses" value="Cultura">
+                    </label>
+                    <label for="intereses">Gastronomía
+                        <input type="checkbox" name="intereses" id="intereses" value="Gastronomía">
+                    </label>
+                    <label for="intereses">Deportes
+                        <input type="checkbox" name="intereses" id="intereses" value="Deportes">
+                    </label>
+                    <label for="intereses">Naturaleza
+                        <input type="checkbox" name="intereses" id="intereses" value="Naturaleza">
+                    </label>
+                    <label for="intereses">Historia
+                        <input type="checkbox" name="intereses" id="intereses" value="Historia">
+                    </label>
+                    <label for="intereses">Conciertos
+                        <input type="checkbox" name="intereses" id="intereses" value="Conciertos">
+                    </label>
+                    <label for="intereses">Festivales
+                        <input type="checkbox" name="intereses" id="intereses" value="festivales">
+                    </label>
+                    <input type="text" id="otroInteres" name="otroInteres" placeholder="Otro interés" />
+                </fieldset>
+                <div class="mensaje-error" id="errorIntereses"></div>
+            </div>
+
+
+            <!--Terminos y condiciones-->
+            <div class="form-group">
+                <input type="checkbox" id="terminos" name="terminos" required />
+                <label for="terminos" style="display: inline; margin-left: 8px;">Acpeto los términos y condiciones *
+                </label>
+                <div class="mensaje-error" id="errorTerminos"></div>
+            </div>
+            <button type="submit" id="btsEnviar">
+                Enviar Formulario &#x1f600;
+            </button>
+        </form>
+
+    </div>
+
+    <!--Scripts-->
+    <script src="../static/js/Validacion.js"></script>
+
+
+</body>
+
+</html>
