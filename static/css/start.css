@@ -1,0 +1,187 @@
+/* Estilos generales para Bogotá Turis */
+
+body {
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+  background-color: #f5f5f5;
+  margin: 0;
+  padding: 0;
+}
+
+.header-container {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  background: linear-gradient(90deg, #b0d8f5, #fcc0e5);
+  color: rgb(0, 0, 0);
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.logo-esquina {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background-color: white;
+  padding: 5px;
+  object-fit: contain;
+}
+
+.titulo-nav {
+  flex: 1;
+}
+
+.titulo-nav h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.titulo-nav p {
+  margin: 0.3rem 0;
+  font-weight: 300;
+}
+
+nav ul {
+  list-style: none;
+  padding: 0;
+  margin-top: 0.8rem;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+nav ul li a {
+  color: #080404;
+  text-decoration: none;
+  font-weight: bold;
+  transition: color 0.3s ease;
+}
+
+nav ul li a:hover {
+  color: #f1e2a5;
+}
+
+
+nav ul {
+  list-style: none;
+  padding: 0;
+  margin-top: 1rem;
+}
+
+nav ul li {
+  display: inline;
+  margin-right: 15px;
+}
+
+nav ul li a {
+  color: #181616;
+  text-decoration: none;
+}
+
+main {
+  padding: 2rem;
+  max-width: 800px;
+  margin: auto;
+  background-color: white;
+  margin-top: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+  color: #fcc0e5;
+}
+
+footer {
+  text-align: center;
+  padding: 1rem;
+  background-color: #eee;
+  margin-top: 30px;
+}
+
+form input, form textarea, form button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 5px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+form button {
+  background-color: #f086d0;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+form button:hover {
+  background-color: #a2ddff;
+}
+/* CARRUSEL */
+.carrusel {
+  margin: 3rem auto;
+  max-width: 800px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+.carrusel-contenedor {
+  position: relative;
+  width: 100%;
+}
+.carrusel-imagenes {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+}
+.carrusel-imagenes img {
+  width: 100%;
+  flex-shrink: 0;
+  height: 400px;
+  object-fit: cover;
+}
+.btn-carrusel {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(130, 203, 255, 0.7);
+  color: white;
+  border: none;
+  font-size: 2rem;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  z-index: 10;
+  border-radius: 5px;
+}
+.btn-carrusel:hover {
+  background-color: #ffacdd;
+}
+.btn-carrusel.prev { left: 10px; }
+.btn-carrusel.next { right: 10px; }
+
+/* REJILLA DE LUGARES */
+.lugares-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin-top: 2rem;
+}
+.lugares-grid article {
+  background-color: #f0f0f0;
+  padding: 1rem;
+  border-radius: 10px;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.lugares-grid article:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+}
+.lugares-grid img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+}
