@@ -1,62 +1,59 @@
-# ChatBot Turístico Bogotá
+# 🏙️ BogotáTuris – Asistente Turístico con IA  
 
-Asistente virtual para explorar lugares turísticos de Bogotá, basado en FastAPI, OpenAI y MongoDB.
+Proyecto de formación desarrollado en el **Servicio Nacional de Aprendizaje – SENA** por **Andrés Felipe Guio Aponte**.  
+Consiste en un asistente virtual para turismo en Bogotá, construido con **FastAPI**, **MongoDB** y la API de **OpenAI**.  
+Permite a los usuarios interactuar con un chatbot para obtener información de lugares turísticos, guardar historial de consultas y visualizar datos desde una base de datos no relacional.  
 
-## Requisitos
+---
 
-- Python 3.10+
-- MongoDB en localhost
-- Clave de API de OpenAI
+## 📌 Características  
+- **Chatbot con IA** usando OpenAI para responder sobre turismo en Bogotá.  
+- **Base de datos NoSQL** (MongoDB) con datos de lugares turísticos en formato GeoJSON.  
+- **Frontend dinámico** con plantillas Jinja2.  
+- **Historial de consultas** almacenado en MongoDB.  
+- **Enrutado modular** con FastAPI y organización por carpetas.  
 
-## Instalación
+---
 
-1. **Clona el repositorio**  
-   ```sh
-   git clone <URL-del-repo>
-   cd chat_Bot
-   ```
+## 📂 Estructura del Proyecto  
+BOGOTATURIS/
+│── backend/
+│ ├── app/
+│ │ ├── api/
+│ │ │ ├── routers_/
+│ │ │ │ ├── chat_router.py
+│ │ │ │ ├── historial_router.py
+│ │ │ ├── schemas_/
+│ │ │ │ ├── chat_Schemas.py
+│ │ │ ├── services_/
+│ │ │ │ ├── chat_Service.py
+│── frontend/
+│ ├── static/
+│ ├── templates/
+│ ├── asistente.html
+│ ├── historial.html
+│ ├── lugares.html
+│ ├── contacto.html
+│ ├── Sign_Up.html
+│── inventario.geojson
+│── importar_geojson.py
+│── main.py
+│── requirements.txt
+│── README.md
+│── .env
 
-2. **Instala las dependencias**  
-   ```sh
-   pip install -r requirements.txt
-   ```
+---
 
-3. **Configura las variables de entorno**  
-   Crea un archivo `.env` con tu clave de OpenAI:
-   ```
-   OPENAI_API_KEY=tu_clave_openai
-   ```
+## ⚙️ Instalación y Ejecución  
 
-4. **Carga los datos iniciales**  
-   Si tienes un archivo `inventario.geojson`, usa el script para importar:
-   ```sh
-   python importar_geojson.py
-   ```
+### 1️⃣ Clonar el repositorio  
+```bash
+git clone https://github.com/tuusuario/BOGOTATURIS.git
+cd BOGOTATURIS
+python -m venv venv
+source venv/bin/activate  # En Linux/Mac
+venv\Scripts\activate     # En Windows
 
-## Uso
-
-1. **Inicia MongoDB**  
-   Asegúrate de que el servicio de MongoDB esté corriendo en tu máquina.
-
-2. **Ejecuta la aplicación**  
-   ```sh
-   uvicorn main:app --reload
-   ```
-
-3. **Abre el navegador**  
-   Ve a [http://localhost:8000](http://localhost:8000) para usar el asistente.
-
-4. **Consulta el historial**  
-   Accede a [http://localhost:8000/historial](http://localhost:8000/historial) para ver el historial de preguntas y respuestas.
-
-## Estructura del proyecto
-
-- `main.py`: Lógica principal de la API y chatbot
-- `importar_geojson.py`: Script para cargar datos a MongoDB
-- `static/`: Archivos estáticos (CSS, JS)
-- `templates/`: Plantillas HTML (`asistente.html`, `historial.html`)
-- `inventario.geojson`: Datos de lugares turísticos
-
-## Créditos
-
-Desarrollado con FastAPI, OpenAI
+pip install -r requirements.txt
+python importar_geojson.py
+uvicorn main:app --reload

@@ -11,4 +11,4 @@ with open("inventario.geojson", "r", encoding="utf-8") as f:
 coleccion.delete_many({})
 coleccion.insert_many(geojson["features"])
 
-print(f"✅ Se importaron {len(geojson['features'])} lugares.")
+print(f" Se importaron {len(geojson['features'])} lugares.")
