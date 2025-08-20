@@ -31,4 +31,4 @@ async def index(request: Request):
 # Incluir routers
 app.include_router(chat_router)
 app.include_router(historial_router)
- 
+    

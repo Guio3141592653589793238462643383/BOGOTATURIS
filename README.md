@@ -16,44 +16,21 @@ Permite a los usuarios interactuar con un chatbot para obtener información de l
 ---
 
 ## 📂 Estructura del Proyecto  
-BOGOTATURIS/
-│── backend/
-│ ├── app/
-│ │ ├── api/
-│ │ │ ├── routers_/
-│ │ │ │ ├── chat_router.py
-│ │ │ │ ├── historial_router.py
-│ │ │ ├── schemas_/
-│ │ │ │ ├── chat_Schemas.py
-│ │ │ ├── services_/
-│ │ │ │ ├── chat_Service.py
-│── frontend/
-│ ├── static/
-│ ├── templates/
-│ ├── asistente.html
-│ ├── historial.html
-│ ├── lugares.html
-│ ├── contacto.html
-│ ├── Sign_Up.html
-│── inventario.geojson
-│── importar_geojson.py
-│── main.py
-│── requirements.txt
-│── README.md
-│── .env
 
----
 
 ## ⚙️ Instalación y Ejecución  
 
 ### 1️⃣ Clonar el repositorio  
 ```bash
-git clone https://github.com/tuusuario/BOGOTATURIS.git
+git clone https://github.com/Guio3141592653589793238462643383/BOGOTATURIS.git
 cd BOGOTATURIS
+cd backend
 python -m venv venv
 source venv/bin/activate  # En Linux/Mac
 venv\Scripts\activate     # En Windows
-
 pip install -r requirements.txt
+cd app/BD/bd_no_Relacional
 python importar_geojson.py
+cd ..
+cd ..
 uvicorn main:app --reload
