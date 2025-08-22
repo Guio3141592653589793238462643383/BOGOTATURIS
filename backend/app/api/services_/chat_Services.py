@@ -1,4 +1,3 @@
-# app/services/chat_service.py
 from pymongo import MongoClient
 from openai import OpenAI
 from fastapi.responses import JSONResponse
