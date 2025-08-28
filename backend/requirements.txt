@@ -3,4 +3,5 @@ uvicorn
 pymongo
 openai
 python-dotenv
+mysql-connector-python
 
