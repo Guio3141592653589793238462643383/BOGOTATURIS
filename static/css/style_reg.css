@@ -73,6 +73,20 @@ body {
     margin-bottom: 25px;
     position: relative;
 }
+.form-group-Intereses {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+.form-group-Intereses > label {
+    font-weight: bold;
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 15px;
+    display: block;
+}
 h1 {
     color: #333;
     text-align: center;
@@ -86,7 +100,7 @@ label{
     color: #555;
     font-size: 0.95rem;
 }
-input,select,textarea {
+input,textarea {
     width: 100%;
     padding: 12px 15px;
     border: 2px solid #e1e5e9;
@@ -95,7 +109,32 @@ input,select,textarea {
     box-sizing: border-box;
     transition: all 0.3s ease;
 }
-
+input.valido {
+    border-color: #28a745;
+    background-color: #f8fff9;
+}
+input.invalido {
+    border-color: #dc3545;
+    background-color: #fff8f8;
+}
+select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e1e5e9;
+    border-radius: 8px;
+    font-size: 15px;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+    background-color: #f1f1f1;
+    padding: 8px;
+    font-family: "Edu SA Hand", cursive;
+    transition: background-color 0.3s ease;
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #555;
+    font-size: 0.95rem;
+}
 /*Estados de validacion visual */
 input.valido, 
 selec.valido,
@@ -117,6 +156,41 @@ textarea:focus {
     outline: none;
     border-color: #667eea;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+/*Estado de validacion visual de nacionalidad */
+select.valido{
+    border-color: #28a745;
+    background-color: #f8fff9;
+}
+select.invalido{
+    border-color: #dc3545;
+    background-color: #fff8f8;
+}
+
+select:focus{
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+/*Estado de validación visual de interes*/
+.form-group-Intereses.valido {
+    border: 2px solid #28a745;
+    background-color: #f8fff9;
+}
+
+.form-group-Intereses.invalido {
+    border: 2px solid #dc3545;
+    background-color: #fff8f8;
+}
+/*Estado de validacion visual de terminos y condiciones */
+input[type="checkbox"].valido {
+    outline: 2px solid #28a745;
+    background-color: #f8fff9;
+}
+
+input[type="checkbox"].invalido {
+    outline: 2px solid #dc3545;
+    background-color: #fff8f8;
 }
 
 /* Mensajes de error */
@@ -198,24 +272,123 @@ button:disabled {
     background: #ccc;
     cursor: not-allowed;
 }
-/* Estilos para seleccionar tus intereses  */
-.intereses {
-    display: flex;
-    flex-wrap: wrap; 
-    gap: 15px; 
-}
+/*Estilos para seleccionar tus nacionalidad*/
+  .dropdown-nacionalidad {
+    font-family: "Edu SA Hand", cursive;
+    position: relative;
+    padding: 8px;
+    transition: background-color 0.3s ease;
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #555;
+    font-size: 0.95rem;
+  }
 
-.intereses label {
-    display: flex;
-    align-items: center; 
-    margin-bottom: 0; 
-}
+  .dropdown-nacionalidad select {
+    width: 200px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 16px;
+    font-family: "Edu SA Hand", cursive;
+    font-size: 16px;
+    color: #333;
+  }
 
-.intereses input[type="checkbox"] {
-    margin-left: 5px; 
-}
+  option {
+    background-color: #f1f1f1;
+    padding: 8px;
+    font-family: "Edu SA Hand", cursive;
+    transition: background-color 0.3s ease;
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #555;
+    font-size: 0.95rem;
+  }
+
+   option:hover {
+    background-color: #e0e0e0;
+  }
 
 
+/*Intereses*/
+        .tablas-container {
+            display: flex;
+            gap: 60px; /* Espacio entre las dos tablas */
+            max-width: 600px;
+            margin-bottom: 30px;
+            font-family: "Edu SA Hand", cursive;
+            position: relative;
+        }
+
+        /* Estilos para las tablas */
+        .tabla-intereses {
+            border-collapse: collapse;
+            margin-bottom: 25px;
+            position: relative;
+            border: none;
+            width: auto;
+
+        }
+
+        .tabla-intereses td {
+            border: none;
+            padding: 8px 12px;
+            vertical-align: middle;
+            transition: background-color 0.2s;
+        }
+
+        .tabla-intereses tr:hover td {
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        /* Columna de checkboxes */
+        .tabla-intereses .checkbox-col {
+            width: 30px;
+            text-align: center;
+            padding-right: 8px;
+        }
+
+        /* Columna de texto */
+        .tabla-intereses .texto-col {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.95rem;
+            font-family: "Edu SA Hand", cursive;
+            text-align: left;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .tabla-intereses input[type="checkbox"] {
+            cursor: pointer;
+            margin: 0;
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Hacer clickeable toda la fila */
+        .tabla-intereses tr {
+            cursor: pointer;
+        }
+
+        /* Responsive: apilar tablas en pantallas pequeñas */
+        @media (max-width: 768px) {
+            .tablas-container {
+                flex-direction: column;
+                gap: 30px;
+            }
+        }
 
 
 
