@@ -5,4 +5,4 @@ openai
 python-dotenv
 mysql-connector-python
 sqlalchemy
-mysqlclient
+werkzeug
