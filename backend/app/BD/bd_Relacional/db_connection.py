@@ -1,5 +1,4 @@
-from xmlrpc.client import DateTime
-from sqlalchemy import Date, Time, create_engine, String, Integer, Column, ForeignKey
+from sqlalchemy import Date, Time, DateTime, create_engine, String, Integer, Column, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, mapped_column
 
 connection_url = 'mysql://root@127.0.0.1:3306/BogotaTuris'
