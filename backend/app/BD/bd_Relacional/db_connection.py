@@ -16,7 +16,7 @@ class Usuario(Base):
     segundo_nombre = mapped_column(String(50), nullable=True)
     primer_apellido = mapped_column(String(50), nullable=False)
     segundo_apellido = mapped_column(String(50), nullable=True)
-    clave = mapped_column(String(50), nullable=False)
+    clave = mapped_column(String(250), nullable=False)
     id_rol = mapped_column(BigInteger, ForeignKey('rol.id_rol'), nullable=False)
     id_correo = mapped_column(BigInteger, ForeignKey('correo.id_correo'), nullable=False)
     id_nac = mapped_column(BigInteger, ForeignKey('nacionalidad.id_nac'), nullable=False)
