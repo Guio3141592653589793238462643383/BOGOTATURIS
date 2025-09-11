@@ -1,4 +1,3 @@
-import React, { useEffect } from 'react';
 import "../assets/css/FormSignUp.css";
 import useFormValidation from "../hooks/useFormValidation";
 import Logo from "../assets/img/BogotaTurisLogo.png";
@@ -100,37 +99,32 @@ const FormSignUp = () => {
   const progreso = calcularProgreso();
 
   // Generar opciones de nacionalidades dinámicamente
-  const renderNacionalidades = () => {
-    if (loadingNacionalidades) {
-      return <option value="">Cargando nacionalidades...</option>;
-    }
-    
-    if (nacionalidades.length === 0) {
-      // Fallback con opciones estáticas si no se cargaron desde el servidor
-      return (
-        <>
-          <option value="" disabled>Selecciona una opción</option>
-          <option value="Colombia">Colombia</option>
-          <option value="Argentina">Argentina</option>
-          <option value="México">México</option>
-          <option value="España">España</option>
-          <option value="Estados Unidos">Estados Unidos</option>
-          {/* Agregar más según tu JSON de nacionalidades */}
-        </>
-      );
-    }
-    
+const renderNacionalidades = () => {
+  if (loadingNacionalidades) {
+    return <option value="">Cargando nacionalidades...</option>;
+  }
+
+  if (nacionalidades.length === 0) {
     return (
-      <>
-        <option value="" disabled>Selecciona una opción</option>
-        {nacionalidades.map((nac) => (
-          <option key={nac.id_nac} value={nac.nacionalidad}>
-            {nac.nacionalidad}
-          </option>
-        ))}
-      </>
+      <option value="" disabled>
+        No se encontraron nacionalidades
+      </option>
     );
-  };
+  }
+
+  return (
+    <>
+      <option value="" disabled>
+        Selecciona una opción
+      </option>
+      {nacionalidades.map((nac) => (
+        <option key={nac.id_nac} value={nac.id_nac}>
+          {nac.nacionalidad}
+        </option>
+      ))}
+    </>
+  );
+};
 
   // Generar intereses dinámicamente desde el servidor
   const renderIntereses = () => {
