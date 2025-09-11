@@ -21,8 +21,7 @@ body {
     }
 
     .logo img {
-      max-height: 10px;
-      margin-left: -100px;
+      max-height: 150px;
     }
 
     .nav-links {
@@ -194,7 +193,6 @@ input[type="checkbox"].invalido {
 
 #terminos {
     width: auto;
-    margin-left: 300px;
     transform: scale(1.2);
     cursor: pointer;
 }

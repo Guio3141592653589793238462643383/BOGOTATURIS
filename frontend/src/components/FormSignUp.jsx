@@ -1,5 +1,7 @@
+import React, { useEffect } from 'react';
 import "../assets/css/FormSignUp.css";
 import useFormValidation from "../hooks/useFormValidation";
+import Logo from "../assets/img/BogotaTurisLogo.png";
 
 const FormSignUp = () => {
   const {
@@ -7,19 +9,29 @@ const FormSignUp = () => {
     validationState,
     messages,
     passwordStrength,
+    nacionalidades,
+    interesesDisponibles,
+    loadingNacionalidades,
+    loadingIntereses,
+    validatingEmail,
+    validatingNacionalidad,
     handleInputChange,
     handleInteresesChange,
     calcularProgreso,
     formularioCompleto,
+    validarTodoElFormulario,
+    resetForm
   } = useFormValidation();
 
-  // Al enviar el formulario
+  // Manejador de envío del formulario (mejorado)
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validar que el formulario esté completo antes de enviar
-    if (!formularioCompleto()) {
-      alert("Por favor completa todos los campos requeridos");
+    // Validar todo el formulario primero
+    const esValido = await validarTodoElFormulario();
+    
+    if (!esValido) {
+      alert("Por favor completa todos los campos requeridos correctamente");
       return;
     }
     
@@ -35,10 +47,8 @@ const FormSignUp = () => {
       terminos: formData.terminos
     };
     
-    console.log("Datos a enviar:", datosFormulario); // Para debugging
-    
     try {
-      const response = await fetch('/api/usuario/registrar', {
+      const response = await fetch('http://localhost:8000/api/usuario/registrar', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -47,47 +57,153 @@ const FormSignUp = () => {
         body: JSON.stringify(datosFormulario)
       });
       
+      const resultado = await response.json();
+      
       if (response.ok) {
-        const resultado = await response.json();
         console.log('Usuario registrado exitosamente:', resultado);
-        
-        // Mostrar mensaje de éxito
         alert(`¡Registro exitoso! Bienvenido ${resultado.primer_nombre}`);
         
-        // Opcional: Limpiar formulario o redirigir
+        // Limpiar formulario después del éxito
+        resetForm();
+        
+        // Opcional: redirigir a otra página
         // window.location.href = '/login';
         
       } else {
-        const errorData = await response.json();
-        console.error('Error del servidor:', errorData);
+        console.error('Error del servidor:', resultado);
         
-        // Manejar errores específicos del backend
-        if (errorData.detail) {
-          if (typeof errorData.detail === 'object' && errorData.detail.detail) {
-            alert(`Error: ${errorData.detail.detail}`);
-          } else if (typeof errorData.detail === 'string') {
-            alert(`Error: ${errorData.detail}`);
-          } else {
-            alert('Error en el registro. Verifica los datos.');
+        // Manejar diferentes tipos de errores del backend
+        let mensajeError = 'Error en el registro. Verifica los datos.';
+        
+        if (resultado.detail) {
+          if (typeof resultado.detail === 'object') {
+            // Error con información de campo específico
+            if (resultado.detail.detail) {
+              mensajeError = resultado.detail.detail;
+            }
+            if (resultado.detail.campo) {
+              mensajeError += ` (Campo: ${resultado.detail.campo})`;
+            }
+          } else if (typeof resultado.detail === 'string') {
+            mensajeError = resultado.detail;
           }
-        } else {
-          alert('Error desconocido. Intenta de nuevo.');
         }
+        
+        alert(`Error: ${mensajeError}`);
       }
     } catch (error) {
       console.error('Error de conexión:', error);
-      alert('Error de conexión. Verifica tu conexión a internet e intenta de nuevo.');
+      alert('Error de conexión. Verifica que el servidor esté ejecutándose en http://localhost:8000');
     }
   };
 
   const progreso = calcularProgreso();
+
+  // Generar opciones de nacionalidades dinámicamente
+  const renderNacionalidades = () => {
+    if (loadingNacionalidades) {
+      return <option value="">Cargando nacionalidades...</option>;
+    }
+    
+    if (nacionalidades.length === 0) {
+      // Fallback con opciones estáticas si no se cargaron desde el servidor
+      return (
+        <>
+          <option value="" disabled>Selecciona una opción</option>
+          <option value="Colombia">Colombia</option>
+          <option value="Argentina">Argentina</option>
+          <option value="México">México</option>
+          <option value="España">España</option>
+          <option value="Estados Unidos">Estados Unidos</option>
+          {/* Agregar más según tu JSON de nacionalidades */}
+        </>
+      );
+    }
+    
+    return (
+      <>
+        <option value="" disabled>Selecciona una opción</option>
+        {nacionalidades.map((nac) => (
+          <option key={nac.id_nac} value={nac.nacionalidad}>
+            {nac.nacionalidad}
+          </option>
+        ))}
+      </>
+    );
+  };
+
+  // Generar intereses dinámicamente desde el servidor
+  const renderIntereses = () => {
+    if (loadingIntereses || interesesDisponibles.length === 0) {
+      // Fallback con intereses estáticos
+      const interesesEstaticos = [
+        "Aventureros", "Arte", "Gastronomía", "Naturaleza", "Conciertos", 
+        "Escalada", "Museos", "Eventos", "Yoga", "Bares", "Danza", 
+        "Cultura", "Deportes", "Historia", "Festivales", "Talleres", 
+        "Cocinar", "Ecoturismo", "Concursos", "Discotecas"
+      ];
+      
+      return interesesEstaticos.map((interes, index) => (
+        <tr key={`static-${index}`}>
+          <td className="checkbox-col">
+            <input
+              type="checkbox"
+              name="intereses"
+              value={interes}
+              checked={formData.intereses?.includes(interes)}
+              onChange={handleInteresesChange}
+            />
+          </td>
+          <td className="texto-col">{interes}</td>
+        </tr>
+      ));
+    }
+    
+    // Dividir intereses en dos columnas
+    const mitad = Math.ceil(interesesDisponibles.length / 2);
+    const primeraColumna = interesesDisponibles.slice(0, mitad);
+    const segundaColumna = interesesDisponibles.slice(mitad);
+    
+    return {
+      primeraColumna: primeraColumna.map((interes) => (
+        <tr key={`col1-${interes.id_inte}`}>
+          <td className="checkbox-col">
+            <input
+              type="checkbox"
+              name="intereses"
+              value={interes.interes}
+              checked={formData.intereses?.includes(interes.interes)}
+              onChange={handleInteresesChange}
+            />
+          </td>
+          <td className="texto-col">{interes.interes}</td>
+        </tr>
+      )),
+      segundaColumna: segundaColumna.map((interes) => (
+        <tr key={`col2-${interes.id_inte}`}>
+          <td className="checkbox-col">
+            <input
+              type="checkbox"
+              name="intereses"
+              value={interes.interes}
+              checked={formData.intereses?.includes(interes.interes)}
+              onChange={handleInteresesChange}
+            />
+          </td>
+          <td className="texto-col">{interes.interes}</td>
+        </tr>
+      ))
+    };
+  };
+
+  const interesesRenderizados = renderIntereses();
 
   return (
     <>
       <nav className="nav">
         <div className="container1">
           <div className="logo">
-            <img src="" alt="BogotaTuris Logo" />
+            <img src={Logo} alt="BogotaTuris Logo" />
           </div>
           <ul className="nav-links">
             <li>
@@ -99,6 +215,7 @@ const FormSignUp = () => {
           </ul>
         </div>
       </nav>
+      
       <div className="container">
         <h1>✍Registro</h1>
         <div className="Progreso-formulario">
@@ -111,6 +228,7 @@ const FormSignUp = () => {
         <p style={{ textAlign: "center", color: "#666", marginBottom: "30px" }}>
           Proceso: <span id="porcentajeProgreso">{progreso}%</span>
         </p>
+        
         <form id="formularioAvanzado" noValidate onSubmit={handleSubmit}>
           <div className="form-group">
             <div className="form-group">
@@ -149,6 +267,7 @@ const FormSignUp = () => {
                 {messages.exitoNombre}
               </div>
             </div>
+            
             <div className="form-group">
               <label htmlFor="apellidoCompleto">Apellido Completo *</label>
               <input
@@ -183,7 +302,8 @@ const FormSignUp = () => {
                 {messages.exitoApellido}
               </div>
             </div>
-            {/* Email con validación personalizada*/}
+            
+            {/* Email con validación mejorada */}
             <div className="form-group">
               <label htmlFor="correo">Correo Electrónico *</label>
               <input
@@ -194,7 +314,7 @@ const FormSignUp = () => {
                 onChange={handleInputChange}
                 required
                 placeholder="usuario@dominio.com"
-                pattern="^[\w-\.]+@([\w-]+\.)+[\w-]{5,50}$"
+                pattern="^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$"
                 className={
                   validationState.correo === true
                     ? "valido"
@@ -203,6 +323,7 @@ const FormSignUp = () => {
                     : ""
                 }
               />
+
               <div
                 className="mensaje-error"
                 id="errorCorreo"
@@ -218,6 +339,7 @@ const FormSignUp = () => {
                 {messages.exitoCorreo}
               </div>
             </div>
+            
             {/*Confirmación de Correo electronico */}
             <div className="form-group">
               <label htmlFor="confirmarCorreo">
@@ -258,6 +380,7 @@ const FormSignUp = () => {
                 {messages.exitoConfirmarCorreo}
               </div>
             </div>
+            
             {/* Contraseña con indicador de fortaleza */}
             <div className="form-group">
               <label htmlFor="password">Clave *</label>
@@ -304,6 +427,7 @@ const FormSignUp = () => {
                 {messages.exitoPassword}
               </div>
             </div>
+            
             {/* Confirmación de clave */}
             <div className="form-group">
               <label htmlFor="confirmarPassword">Confirmar clave *</label>
@@ -342,7 +466,8 @@ const FormSignUp = () => {
                 {messages.exitoConfirmarPassword}
               </div>
             </div>
-            {/* Nacionalidad con seleccionar */}
+            
+            {/* Nacionalidad con seleccionar - DINÁMICO */}
             <div className="form-group">
               <label htmlFor="nacionalidad">
                 Seleccionar tu nacionalidad *
@@ -353,6 +478,7 @@ const FormSignUp = () => {
                 value={formData.nacionalidad}
                 onChange={handleInputChange}
                 required
+                disabled={loadingNacionalidades}
                 className={
                   validationState.nacionalidad === true
                     ? "valido"
@@ -361,218 +487,11 @@ const FormSignUp = () => {
                     : ""
                 }
               >
-                <option value="" disabled>
-                  Selecciona una opción
-                </option>
-                <option value="colombia">Colombia</option>
-                <option value="afganistan">Afganistán</option>
-                <option value="albania">Albania</option>
-                <option value="alemania">Alemania</option>
-                <option value="andorra">Andorra</option>
-                <option value="angola">Angola</option>
-                <option value="antigua_y_barbuda">Antigua y Barbuda</option>
-                <option value="arabia_saudita">Arabia Saudita</option>
-                <option value="argelia">Argelia</option>
-                <option value="argentina">Argentina</option>
-                <option value="armenia">Armenia</option>
-                <option value="australia">Australia</option>
-                <option value="austria">Austria</option>
-                <option value="azerbaiyan">Azerbaiyán</option>
-                <option value="bahamas">Bahamas</option>
-                <option value="banglades">Bangladés</option>
-                <option value="barbados">Barbados</option>
-                <option value="belgica">Bélgica</option>
-                <option value="belice">Belice</option>
-                <option value="benin">Benín</option>
-                <option value="bielorrusia">Bielorrusia</option>
-                <option value="birmania">Birmania</option>
-                <option value="bolivia">Bolivia</option>
-                <option value="bosnia_y_herzegovina">
-                  Bosnia y Herzegovina
-                </option>
-                <option value="botswana">Botswana</option>
-                <option value="brasil">Brasil</option>
-                <option value="brunei">Brunéi</option>
-                <option value="bulgaria">Bulgaria</option>
-                <option value="burkina_faso">Burkina Faso</option>
-                <option value="burundi">Burundi</option>
-                <option value="butan">Bután</option>
-                <option value="cabo_verde">Cabo Verde</option>
-                <option value="camboya">Camboya</option>
-                <option value="camerun">Camerún</option>
-                <option value="canada">Canadá</option>
-                <option value="catar">Catar</option>
-                <option value="chad">Chad</option>
-                <option value="chile">Chile</option>
-                <option value="china">China</option>
-                <option value="chipre">Chipre</option>
-                <option value="comoras">Comoras</option>
-                <option value="corea_del_norte">Corea del Norte</option>
-                <option value="corea_del_sur">Corea del Sur</option>
-                <option value="costa_de_marfil">Costa de Marfil</option>
-                <option value="costa_rica">Costa Rica</option>
-                <option value="croacia">Croacia</option>
-                <option value="cuba">Cuba</option>
-                <option value="dinamarca">Dinamarca</option>
-                <option value="dominica">Dominica</option>
-                <option value="ecuador">Ecuador</option>
-                <option value="egipto">Egipto</option>
-                <option value="el_salvador">El Salvador</option>
-                <option value="emiratos_arabes_unidos">
-                  Emiratos Árabes Unidos
-                </option>
-                <option value="eritrea">Eritrea</option>
-                <option value="eslovaquia">Eslovaquia</option>
-                <option value="eslovenia">Eslovenia</option>
-                <option value="espana">España</option>
-                <option value="estados_unidos">Estados Unidos</option>
-                <option value="estonia">Estonia</option>
-                <option value="etiopia">Etiopía</option>
-                <option value="fiji">Fiyi</option>
-                <option value="filipinas">Filipinas</option>
-                <option value="finlandia">Finlandia</option>
-                <option value="francia">Francia</option>
-                <option value="gabon">Gabón</option>
-                <option value="gambia">Gambia</option>
-                <option value="georgia">Georgia</option>
-                <option value="ghana">Ghana</option>
-                <option value="granada">Granada</option>
-                <option value="grecia">Grecia</option>
-                <option value="guatemala">Guatemala</option>
-                <option value="guinea">Guinea</option>
-                <option value="guinea_ecuatorial">Guinea Ecuatorial</option>
-                <option value="guinea_bissau">Guinea-Bisáu</option>
-                <option value="guyana">Guyana</option>
-                <option value="haiti">Haití</option>
-                <option value="honduras">Honduras</option>
-                <option value="hungria">Hungría</option>
-                <option value="india">India</option>
-                <option value="indonesia">Indonesia</option>
-                <option value="irak">Irak</option>
-                <option value="iran">Irán</option>
-                <option value="irlanda">Irlanda</option>
-                <option value="islandia">Islandia</option>
-                <option value="islas_marshall">Islas Marshall</option>
-                <option value="islas_salomon">Islas Salomón</option>
-                <option value="israel">Israel</option>
-                <option value="italia">Italia</option>
-                <option value="jamaica">Jamaica</option>
-                <option value="japon">Japón</option>
-                <option value="jordania">Jordania</option>
-                <option value="kazajistan">Kazajistán</option>
-                <option value="kenia">Kenia</option>
-                <option value="kirguistan">Kirguistán</option>
-                <option value="kiribati">Kiribati</option>
-                <option value="kosovo">Kosovo</option>
-                <option value="kuwait">Kuwait</option>
-                <option value="laos">Laos</option>
-                <option value="lesoto">Lesoto</option>
-                <option value="letonia">Letonia</option>
-                <option value="libano">Líbano</option>
-                <option value="liberia">Liberia</option>
-                <option value="libia">Libia</option>
-                <option value="liechtenstein">Liechtenstein</option>
-                <option value="lituania">Lituania</option>
-                <option value="luxemburgo">Luxemburgo</option>
-                <option value="macedonia_del_norte">Macedonia del Norte</option>
-                <option value="madagascar">Madagascar</option>
-                <option value="malasia">Malasia</option>
-                <option value="malawi">Malawi</option>
-                <option value="maldivas">Maldivas</option>
-                <option value="mali">Malí</option>
-                <option value="malta">Malta</option>
-                <option value="marruecos">Marruecos</option>
-                <option value="mauricio">Mauricio</option>
-                <option value="mauritania">Mauritania</option>
-                <option value="mexico">México</option>
-                <option value="micronesia">Micronesia</option>
-                <option value="moldavia">Moldavia</option>
-                <option value="monaco">Mónaco</option>
-                <option value="mongolia">Mongolia</option>
-                <option value="montenegro">Montenegro</option>
-                <option value="mozambique">Mozambique</option>
-                <option value="namibia">Namibia</option>
-                <option value="nauru">Nauru</option>
-                <option value="nepal">Nepal</option>
-                <option value="nicaragua">Nicaragua</option>
-                <option value="niger">Níger</option>
-                <option value="nigeria">Nigeria</option>
-                <option value="noruega">Noruega</option>
-                <option value="nueva_zelanda">Nueva Zelanda</option>
-                <option value="oman">Omán</option>
-                <option value="pakistan">Pakistán</option>
-                <option value="palau">Palau</option>
-                <option value="palestina">Palestina</option>
-                <option value="panama">Panamá</option>
-                <option value="papua_nueva_guinea">Papúa Nueva Guinea</option>
-                <option value="paraguay">Paraguay</option>
-                <option value="paises_bajos">Países Bajos</option>
-                <option value="peru">Perú</option>
-                <option value="polonia">Polonia</option>
-                <option value="portugal">Portugal</option>
-                <option value="reino_unido">Reino Unido</option>
-                <option value="republica_centroafricana">
-                  República Centroafricana
-                </option>
-                <option value="republica_checa">República Checa</option>
-                <option value="republica_democratica_del_congo">
-                  República Democrática del Congo
-                </option>
-                <option value="republica_dominicana">
-                  República Dominicana
-                </option>
-                <option value="ruanda">Ruanda</option>
-                <option value="rumania">Rumania</option>
-                <option value="rusia">Rusia</option>
-                <option value="samoa">Samoa</option>
-                <option value="san_cristobal_y_nieves">
-                  San Cristóbal y Nieves
-                </option>
-                <option value="san_marino">San Marino</option>
-                <option value="san_vicente_y_las_granadinas">
-                  San Vicente y las Granadinas
-                </option>
-                <option value="santa_lucia">Santa Lucía</option>
-                <option value="santo_tome_y_principe">
-                  Santo Tomé y Príncipe
-                </option>
-                <option value="senegal">Senegal</option>
-                <option value="serbia">Serbia</option>
-                <option value="seychelles">Seychelles</option>
-                <option value="sierra_leona">Sierra Leona</option>
-                <option value="singapur">Singapur</option>
-                <option value="siria">Siria</option>
-                <option value="somalia">Somalia</option>
-                <option value="sri_lanka">Sri Lanka</option>
-                <option value="sudafrica">Sudáfrica</option>
-                <option value="sudan">Sudán</option>
-                <option value="sudan_del_sur">Sudán del Sur</option>
-                <option value="suecia">Suecia</option>
-                <option value="suiza">Suiza</option>
-                <option value="surinam">Surinam</option>
-                <option value="swazilandia">Swazilandia</option>
-                <option value="tailandia">Tailandia</option>
-                <option value="tanzania">Tanzania</option>
-                <option value="tayikistan">Tayikistán</option>
-                <option value="timor_oriental">Timor Oriental</option>
-                <option value="togo">Togo</option>
-                <option value="tonga">Tonga</option>
-                <option value="trinidad_y_tobago">Trinidad y Tobago</option>
-                <option value="tunez">Túnez</option>
-                <option value="turkmenistan">Turkmenistán</option>
-                <option value="turquia">Turquía</option>
-                <option value="tuvalu">Tuvalu</option>
-                <option value="ucrania">Ucrania</option>
-                <option value="uganda">Uganda</option>
-                <option value="uruguay">Uruguay</option>
-                <option value="uzbekistan">Uzbekistán</option>
-                <option value="vanuatu">Vanuatu</option>
-                <option value="venezuela">Venezuela</option>
-                <option value="vietnam">Vietnam</option>
-                <option value="yemen">Yemen</option>
-                <option value="zambia">Zambia</option>
-                <option value="zimbabwe">Zimbabue</option>
+                {renderNacionalidades()}
               </select>
+              {validatingNacionalidad && (
+                <small style={{ color: '#17a2b8' }}>Verificando nacionalidad...</small>
+              )}
               <div
                 id="errorNacionalidad"
                 className="mensaje-error"
@@ -592,6 +511,8 @@ const FormSignUp = () => {
                 {messages.exitoNacionalidad}
               </div>
             </div>
+            
+            {/* Intereses Turísticos - DINÁMICOS */}
             <div className={`form-group-Intereses ${
               validationState.intereses === true 
                 ? "valido" 
@@ -600,264 +521,32 @@ const FormSignUp = () => {
                 : ""
             }`}>
               <label htmlFor="intereses">Intereses Turísticos *</label>
+              {loadingIntereses && (
+                <p style={{ textAlign: 'center', color: '#666' }}>
+                  Cargando intereses disponibles...
+                </p>
+              )}
 
               <div className="tablas-container" id="contenedor-intereses">
                 {/* TABLA IZQUIERDA */}
                 <table className="tabla-intereses">
                   <tbody>
-                    <tr>
-                      <td className="checkbox-col">
-                        <input
-                          type="checkbox"
-                          name="intereses"
-                          value="Aventureros"
-                          checked={formData.intereses?.includes("Aventureros")}
-                          onChange={handleInteresesChange}
-                        />
-                      </td>
-                      <td className="texto-col">Aventureros</td>
-                    </tr>
-                    <tr>
-                      <td className="checkbox-col">
-                        <input
-                          type="checkbox"
-                          name="intereses"
-                          value="Arte"
-                          checked={formData.intereses?.includes("Arte")}
-                          onChange={handleInteresesChange}
-                        />
-                      </td>
-                      <td className="texto-col">Arte</td>
-                    </tr>
-                    <tr>
-                      <td className="checkbox-col">
-                        <input
-                          type="checkbox"
-                          name="intereses"
-                          value="Gastronomía"
-                          checked={formData.intereses?.includes("Gastronomía")}
-                          onChange={handleInteresesChange}
-                        />
-                      </td>
-                      <td className="texto-col">Gastronomía</td>
-                    </tr>
-                    <tr>
-                      <td className="checkbox-col">
-                        <input
-                          type="checkbox"
-                          name="intereses"
-                          value="Naturaleza"
-                          checked={formData.intereses?.includes("Naturaleza")}
-                          onChange={handleInteresesChange}
-                        />
-                      </td>
-                      <td className="texto-col">Naturaleza</td>
-                    </tr>
-                    <tr>
-                      <td className="checkbox-col">
-                        <input
-                          type="checkbox"
-                          name="intereses"
-                          value="Conciertos"
-                          checked={formData.intereses?.includes("Conciertos")}
-                          onChange={handleInteresesChange}
-                        />
-                      </td>
-                      <td className="texto-col">Conciertos</td>
-                    </tr>
-                    <tr>
-                      <td className="checkbox-col">
-                        <input
-                          type="checkbox"
-                          name="intereses"
-                          value="Escalada"
-                          checked={formData.intereses?.includes("Escalada")}
-                          onChange={handleInteresesChange}
-                        />
-                      </td>
-                      <td className="texto-col">Escalada</td>
-                    </tr>
-                    <tr>
-                      <td className="checkbox-col">
-                        <input
-                          type="checkbox"
-                          name="intereses"
-                          value="Museos"
-                          checked={formData.intereses?.includes("Museos")}
-                          onChange={handleInteresesChange}
-                        />
-                      </td>
-                      <td className="texto-col">Museos</td>
-                    </tr>
-                    <tr>
-                      <td className="checkbox-col">
-                        <input
-                          type="checkbox"
-                          name="intereses"
-                          value="Eventos"
-                          checked={formData.intereses?.includes("Eventos")}
-                          onChange={handleInteresesChange}
-                        />
-                      </td>
-                      <td className="texto-col">Eventos</td>
-                    </tr>
-                    <tr>
-                      <td className="checkbox-col">
-                        <input
-                          type="checkbox"
-                          name="intereses"
-                          value="Yoga"
-                          checked={formData.intereses?.includes("Yoga")}
-                          onChange={handleInteresesChange}
-                        />
-                      </td>
-                      <td className="texto-col">Yoga</td>
-                    </tr>
-                    <tr>
-                      <td className="checkbox-col">
-                        <input
-                          type="checkbox"
-                          name="intereses"
-                          value="Bares"
-                          checked={formData.intereses?.includes("Bares")}
-                          onChange={handleInteresesChange}
-                        />
-                      </td>
-                      <td className="texto-col">Bares</td>
-                    </tr>
+                    {Array.isArray(interesesRenderizados) 
+                      ? interesesRenderizados.slice(0, Math.ceil(interesesRenderizados.length / 2))
+                      : interesesRenderizados.primeraColumna || []}
                   </tbody>
                 </table>
 
                 {/* TABLA DERECHA */}
-                <table
-                  className="tabla-intereses"
-                  id="intereses"
-                  name="intereses"
-                >
+                <table className="tabla-intereses">
                   <tbody>
-                    <tr>
-                      <td className="checkbox-col">
-                        <input
-                          type="checkbox"
-                          name="intereses"
-                          value="Danza"
-                          checked={formData.intereses?.includes("Danza")}
-                          onChange={handleInteresesChange}
-                        />
-                      </td>
-                      <td className="texto-col">Danza</td>
-                    </tr>
-                    <tr>
-                      <td className="checkbox-col">
-                        <input
-                          type="checkbox"
-                          name="intereses"
-                          value="Cultura"
-                          checked={formData.intereses?.includes("Cultura")}
-                          onChange={handleInteresesChange}
-                        />
-                      </td>
-                      <td className="texto-col">Cultura</td>
-                    </tr>
-                    <tr>
-                      <td className="checkbox-col">
-                        <input
-                          type="checkbox"
-                          name="intereses"
-                          value="Deportes"
-                          checked={formData.intereses?.includes("Deportes")}
-                          onChange={handleInteresesChange}
-                        />
-                      </td>
-                      <td className="texto-col">Deportes</td>
-                    </tr>
-                    <tr>
-                      <td className="checkbox-col">
-                        <input
-                          type="checkbox"
-                          name="intereses"
-                          value="Historia"
-                          checked={formData.intereses?.includes("Historia")}
-                          onChange={handleInteresesChange}
-                        />
-                      </td>
-                      <td className="texto-col">Historia</td>
-                    </tr>
-                    <tr>
-                      <td className="checkbox-col">
-                        <input
-                          type="checkbox"
-                          name="intereses"
-                          value="Festivales"
-                          checked={formData.intereses?.includes("Festivales")}
-                          onChange={handleInteresesChange}
-                        />
-                      </td>
-                      <td className="texto-col">Festivales</td>
-                    </tr>
-                    <tr>
-                      <td className="checkbox-col">
-                        <input
-                          type="checkbox"
-                          name="intereses"
-                          value="Talleres"
-                          checked={formData.intereses?.includes("Talleres")}
-                          onChange={handleInteresesChange}
-                        />
-                      </td>
-                      <td className="texto-col">Talleres</td>
-                    </tr>
-                    <tr>
-                      <td className="checkbox-col">
-                        <input
-                          type="checkbox"
-                          name="intereses"
-                          value="Cocinar"
-                          checked={formData.intereses?.includes("Cocinar")}
-                          onChange={handleInteresesChange}
-                        />
-                      </td>
-                      <td className="texto-col">Cocinar</td>
-                    </tr>
-                    <tr>
-                      <td className="checkbox-col">
-                        <input
-                          type="checkbox"
-                          name="intereses"
-                          value="Ecoturismo"
-                          checked={formData.intereses?.includes("Ecoturismo")}
-                          onChange={handleInteresesChange}
-                        />
-                      </td>
-                      <td className="texto-col">Ecoturismo</td>
-                    </tr>
-                    <tr>
-                      <td className="checkbox-col">
-                        <input
-                          type="checkbox"
-                          name="intereses"
-                          value="Concursos"
-                          checked={formData.intereses?.includes("Concursos")}
-                          onChange={handleInteresesChange}
-                        />
-                      </td>
-                      <td className="texto-col">Concursos</td>
-                    </tr>
-                    <tr>
-                      <td className="checkbox-col">
-                        <input 
-                          type="checkbox"
-                          name="intereses"
-                          value="Discotecas"
-                          checked={formData.intereses?.includes("Discotecas")}
-                          onChange={handleInteresesChange}
-                        />
-                      </td>
-                      <td className="texto-col">Discotecas</td>
-                    </tr>
+                    {Array.isArray(interesesRenderizados)
+                      ? interesesRenderizados.slice(Math.ceil(interesesRenderizados.length / 2))
+                      : interesesRenderizados.segundaColumna || []}
                   </tbody>
                 </table>
               </div>
+              
               <div
                 className="mensaje-error"
                 style={{ display: messages.errorIntereses ? "block" : "none" }}
@@ -871,6 +560,8 @@ const FormSignUp = () => {
                 {messages.exitoIntereses}
               </div>
             </div>
+            
+            {/* Términos y condiciones */}
             <div className="form-group">
               <label
                 htmlFor="terminos"
@@ -899,16 +590,23 @@ const FormSignUp = () => {
                 {messages.exitoTerminos}
               </div>
             </div>
+            
+            {/* Botón de envío */}
             <div className="form-group">
               <button
                 type="submit"
                 id="btnEnviar"
-                disabled={!formularioCompleto()}
+                disabled={!formularioCompleto() || validatingEmail || validatingNacionalidad}
                 className={
-                  formularioCompleto() ? "btn-habilitado" : "btn-deshabilitado"
+                  (formularioCompleto() && !validatingEmail && !validatingNacionalidad) 
+                    ? "btn-habilitado" 
+                    : "btn-deshabilitado"
                 }
               >
-                Enviar
+                {(validatingEmail || validatingNacionalidad) 
+                  ? "Validando..." 
+                  : "Registrarse"
+                }
               </button>
             </div>
           </div>

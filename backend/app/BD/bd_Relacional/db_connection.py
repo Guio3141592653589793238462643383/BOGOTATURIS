@@ -1,9 +1,15 @@
 from sqlalchemy import Date, DateTime, Time, create_engine, String, BigInteger, Integer, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, mapped_column, sessionmaker
 
-connection_url = 'mysql://root@127.0.0.1:3306/BogotaTuris'
+# URL de conexión con driver pymysql
+connection_url = 'mysql+pymysql://root@127.0.0.1:3306/BogotaTuris'
 
-engine = create_engine(connection_url)
+try:
+    engine = create_engine(connection_url, echo=True) 
+    print("✓ Database engine created successfully")
+except Exception as e:
+    print(f"✗ Error creating database engine: {e}")
+    raise
 
 class Base(DeclarativeBase):
     pass
@@ -13,9 +19,9 @@ class Usuario(Base):
 
     id_usuario = mapped_column(BigInteger, primary_key=True, autoincrement=True) 
     primer_nombre = mapped_column(String(50), nullable=False)  
-    segundo_nombre = mapped_column(String(50), nullable=True)
-    primer_apellido = mapped_column(String(50), nullable=False)
-    segundo_apellido = mapped_column(String(50), nullable=True)
+    segundo_nombre = mapped_column(String(250), nullable=True)
+    primer_apellido = mapped_column(String(250), nullable=False)
+    segundo_apellido = mapped_column(String(250), nullable=True)
     clave = mapped_column(String(250), nullable=False)
     id_rol = mapped_column(BigInteger, ForeignKey('rol.id_rol'), nullable=False)
     id_correo = mapped_column(BigInteger, ForeignKey('correo.id_correo'), nullable=False)

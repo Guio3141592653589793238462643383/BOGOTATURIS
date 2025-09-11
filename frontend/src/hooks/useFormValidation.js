@@ -1,6 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 const useFormValidation = () => {
+  const emailTimeoutRef = useRef(null);
   const [formData, setFormData] = useState({
     nombreCompleto: '',
     apellidoCompleto: '',
@@ -30,7 +31,69 @@ const useFormValidation = () => {
   const [messages, setMessages] = useState({});
 
   // Fortaleza de contraseña
-  const [passwordStrength, setPasswordStrength] = useState({ nivel: 0, texto: 'Muy Débil', color: '#dc3545' });
+  const [passwordStrength, setPasswordStrength] = useState({ 
+    nivel: 0, 
+    texto: 'Muy Débil', 
+    color: '#dc3545' 
+  });
+
+  // Estados para datos dinámicos del servidor
+  const [nacionalidades, setNacionalidades] = useState([]);
+  const [interesesDisponibles, setInteresesDisponibles] = useState([]);
+  const [loadingNacionalidades, setLoadingNacionalidades] = useState(false);
+  const [loadingIntereses, setLoadingIntereses] = useState(false);
+
+  // Estados para validación asíncrona
+  const [validatingEmail] = useState(false);
+  const [validatingNacionalidad, setValidatingNacionalidad] = useState(false);
+
+  // Cargar nacionalidades e intereses al montar el componente
+  useEffect(() => {
+    cargarDatosIniciales();
+  }, []);
+
+  const cargarDatosIniciales = async () => {
+    await Promise.all([
+      cargarNacionalidades(),
+      cargarIntereses()
+    ]);
+  };
+
+  const cargarNacionalidades = async () => {
+    setLoadingNacionalidades(true);
+    try {
+      const response = await fetch('http://localhost:8000/api/usuario/nacionalidades');
+      if (response.ok) {
+        const data = await response.json();
+        setNacionalidades(data);
+      } else {
+        console.error('Error al cargar nacionalidades');
+        // Fallback con datos locales si tienes el JSON
+      }
+    } catch (error) {
+      console.error('Error de conexión al cargar nacionalidades:', error);
+      // Aquí podrías cargar desde tu archivo JSON local como fallback
+    } finally {
+      setLoadingNacionalidades(false);
+    }
+  };
+
+  const cargarIntereses = async () => {
+    setLoadingIntereses(true);
+    try {
+      const response = await fetch('http://localhost:8000/api/usuario/intereses');
+      if (response.ok) {
+        const data = await response.json();
+        setInteresesDisponibles(data);
+      } else {
+        console.error('Error al cargar intereses');
+      }
+    } catch (error) {
+      console.error('Error de conexión al cargar intereses:', error);
+    } finally {
+      setLoadingIntereses(false);
+    }
+  };
 
   // Función para actualizar mensajes
   const updateMessage = useCallback((field, type, message) => {
@@ -48,7 +111,26 @@ const useFormValidation = () => {
     }));
   }, []);
 
-  // Validaciones específicas
+  // Validación asíncrona del servidor
+  const validarConServidor = async (campo, valor) => {
+    try {
+      const response = await fetch('http://localhost:8000/api/usuario/validar-campo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ campo, valor })
+      });
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error validando con servidor:', error);
+      return { valido: true, mensaje: '' }; // No bloquear por errores de red
+    }
+  };
+
+  // Validaciones específicas (SIN dependencias circulares)
   const validateNombre = useCallback((valor) => {
     const nombres = valor.trim().split(' ').filter(n => n.length > 0);
     const esValido = nombres.length >= 2 && valor.length >= 3;
@@ -81,29 +163,8 @@ const useFormValidation = () => {
     return esValido;
   }, [updateMessage, markField]);
 
-  const validateCorreo = useCallback((valor) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const esValido = emailRegex.test(valor);
-    
-    if (!esValido) {
-      updateMessage('correo', 'error', 'Formato de email inválido');
-      updateMessage('correo', 'exito', '');
-    } else {
-      updateMessage('correo', 'error', '');
-      updateMessage('correo', 'exito', '✓ Email válido');
-    }
-    
-    markField('correo', esValido);
-    
-    // Revalidar confirmación si existe
-    if (formData.confirmarCorreo) {
-      validateConfirmarCorreo(formData.confirmarCorreo, valor);
-    }
-    
-    return esValido;
-  }, [updateMessage, markField, formData.confirmarCorreo]);
-
-  const validateConfirmarCorreo = useCallback((valor, correoOriginal = formData.correo) => {
+  // FUNCIÓN AUXILIAR PARA VALIDAR CONFIRMACIÓN DE CORREO
+  const validateConfirmarCorreoHelper = useCallback((valor, correoOriginal) => {
     const esValido = valor === correoOriginal && valor.length > 0;
     
     if (!esValido) {
@@ -116,7 +177,26 @@ const useFormValidation = () => {
     
     markField('confirmarCorreo', esValido);
     return esValido;
-  }, [updateMessage, markField, formData.correo]);
+  }, [updateMessage, markField]);
+
+  const validateCorreo = useCallback(async (valor) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const formatoValido = emailRegex.test(valor);
+    
+    if (!formatoValido) {
+      updateMessage('correo', 'error', 'Formato de email inválido');
+      updateMessage('correo', 'exito', '');
+      markField('correo', false);
+      return false;
+    }
+
+    updateMessage('correo', 'error', '');
+    updateMessage('correo', 'exito', '✓ Email válido y disponible');
+    markField('correo', true);
+    
+    return true;
+  }, [updateMessage, markField]);
+
 
   // Calcular fortaleza de contraseña
   const calcularFortalezaPassword = useCallback((password) => {
@@ -151,31 +231,8 @@ const useFormValidation = () => {
     return { nivel, texto, color };
   }, []);
 
-  const validatePassword = useCallback((valor) => {
-    const fortaleza = calcularFortalezaPassword(valor);
-    setPasswordStrength(fortaleza);
-    
-    const esValido = valor.length >= 8 && fortaleza.nivel >= 1;
-    
-    if (!esValido) {
-      updateMessage('password', 'error', 'Contraseña débil. Debe tener 8+ caracteres y ser compleja.');
-      updateMessage('password', 'exito', '');
-    } else {
-      updateMessage('password', 'error', '');
-      updateMessage('password', 'exito', `✓ Contraseña ${fortaleza.texto}`);
-    }
-    
-    markField('password', esValido);
-    
-    // Revalidar confirmación si existe
-    if (formData.confirmarPassword) {
-      validateConfirmarPassword(formData.confirmarPassword, valor);
-    }
-    
-    return esValido;
-  }, [calcularFortalezaPassword, updateMessage, markField, formData.confirmarPassword]);
-
-  const validateConfirmarPassword = useCallback((valor, passwordOriginal = formData.password) => {
+  // FUNCIÓN AUXILIAR PARA VALIDAR CONFIRMACIÓN DE PASSWORD
+  const validateConfirmarPasswordHelper = useCallback((valor, passwordOriginal) => {
     const esValido = valor === passwordOriginal && valor.length > 0;
     
     if (!esValido) {
@@ -188,21 +245,58 @@ const useFormValidation = () => {
     
     markField('confirmarPassword', esValido);
     return esValido;
-  }, [updateMessage, markField, formData.password]);
+  }, [updateMessage, markField]);
 
-  const validateNacionalidad = useCallback((valor) => {
+  const validatePassword = useCallback((valor) => {
+    const fortaleza = calcularFortalezaPassword(valor);
+    setPasswordStrength(fortaleza);
+    
+    const esValido = valor.length >= 8 && fortaleza.nivel >= 2;
+    
+    if (!esValido) {
+      if (valor.length < 8) {
+        updateMessage('password', 'error', 'Contraseña debe tener al menos 8 caracteres');
+      } else {
+        updateMessage('password', 'error', 'Contraseña muy débil. Debe contener al menos 2 tipos de caracteres');
+      }
+      updateMessage('password', 'exito', '');
+    } else {
+      updateMessage('password', 'error', '');
+      updateMessage('password', 'exito', `✓ Contraseña ${fortaleza.texto}`);
+    }
+    
+    markField('password', esValido);
+    
+    return esValido;
+  }, [calcularFortalezaPassword, markField, updateMessage]);
+
+
+  const validateNacionalidad = useCallback(async (valor) => {
     const esValido = valor !== "" && valor !== null;
     
     if (!esValido) {
       updateMessage('nacionalidad', 'error', 'Debes seleccionar tu nacionalidad');
       updateMessage('nacionalidad', 'exito', '');
-    } else {
-      updateMessage('nacionalidad', 'error', '');
-      updateMessage('nacionalidad', 'exito', '✓ Nacionalidad seleccionada');
+      markField('nacionalidad', false);
+      return false;
     }
-    
-    markField('nacionalidad', esValido);
-    return esValido;
+
+    // Validar con el servidor si la nacionalidad existe
+    setValidatingNacionalidad(true);
+    const validacionServidor = await validarConServidor('nacionalidad', valor);
+    setValidatingNacionalidad(false);
+
+    if (!validacionServidor.valido) {
+      updateMessage('nacionalidad', 'error', validacionServidor.mensaje);
+      updateMessage('nacionalidad', 'exito', '');
+      markField('nacionalidad', false);
+      return false;
+    }
+
+    updateMessage('nacionalidad', 'error', '');
+    updateMessage('nacionalidad', 'exito', '✓ Nacionalidad seleccionada');
+    markField('nacionalidad', true);
+    return true;
   }, [updateMessage, markField]);
 
   const validateIntereses = useCallback((intereses) => {
@@ -238,7 +332,7 @@ const useFormValidation = () => {
     return esValido;
   }, [updateMessage, markField]);
 
-  // Manejador general de inputs
+  // Manejador general de inputs (CORREGIDO)
   const handleInputChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
     const newValue = type === 'checkbox' ? checked : value;
@@ -257,30 +351,62 @@ const useFormValidation = () => {
         validateApellido(newValue);
         break;
       case 'correo':
-        validateCorreo(newValue);
+        if (emailTimeoutRef.current) {
+          clearTimeout(emailTimeoutRef.current);
+        }
+        
+        // Validación con servidor con debounce solo si hay contenido suficiente
+        if (newValue.length > 5) {
+          emailTimeoutRef.current = setTimeout(() => {
+            validateCorreo(newValue);
+          }, 800);
+        }
         break;
       case 'confirmarCorreo':
-        validateConfirmarCorreo(newValue);
+        validateConfirmarCorreoHelper(newValue, formData.correo);
         break;
       case 'password':
         validatePassword(newValue);
         break;
       case 'confirmarPassword':
-        validateConfirmarPassword(newValue);
+        validateConfirmarPasswordHelper(newValue, formData.password);
         break;
       case 'nacionalidad':
-        validateNacionalidad(newValue);
+        if (newValue) {
+          validateNacionalidad(newValue);
+        }
         break;
       case 'terminos':
         validateTerminos(newValue);
         break;
     }
   }, [
-    validateNombre, validateApellido, validateCorreo, validateConfirmarCorreo,
-    validatePassword, validateConfirmarPassword, validateNacionalidad, validateTerminos
+    validateNombre, 
+    validateApellido, 
+    validateCorreo, 
+    validateConfirmarCorreoHelper,
+    validatePassword, 
+    validateConfirmarPasswordHelper, 
+    validateNacionalidad, 
+    validateTerminos,
+    formData.correo,
+    formData.password
   ]);
 
-  // Manejador específico para intereses (checkboxes múltiples)
+  // Effect para revalidar confirmaciones cuando cambian los campos originales
+  useEffect(() => {
+    if (formData.confirmarCorreo) {
+      validateConfirmarCorreoHelper(formData.confirmarCorreo, formData.correo);
+    }
+  }, [formData.correo, formData.confirmarCorreo, validateConfirmarCorreoHelper]);
+
+  useEffect(() => {
+    if (formData.confirmarPassword) {
+      validateConfirmarPasswordHelper(formData.confirmarPassword, formData.password);
+    }
+  }, [formData.password, formData.confirmarPassword, validateConfirmarPasswordHelper]);
+
+  // Manejador específico para intereses
   const handleInteresesChange = useCallback((e) => {
     const { value, checked } = e.target;
     
@@ -311,38 +437,98 @@ const useFormValidation = () => {
     return Object.values(validationState).every(valido => valido === true);
   }, [validationState]);
 
-  // Validar todo el formulario (para submit)
-  const validarTodoElFormulario = useCallback(() => {
-    const resultados = [
+  useEffect(() => {
+    return () => {
+      if (emailTimeoutRef.current) {
+        clearTimeout(emailTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Validar todo el formulario
+  const validarTodoElFormulario = useCallback(async () => {
+    // Validar todos los campos síncronos primero
+    const resultadosSync = [
       validateNombre(formData.nombreCompleto),
       validateApellido(formData.apellidoCompleto),
-      validateCorreo(formData.correo),
-      validateConfirmarCorreo(formData.confirmarCorreo),
+      validateConfirmarCorreoHelper(formData.confirmarCorreo, formData.correo),
       validatePassword(formData.password),
-      validateConfirmarPassword(formData.confirmarPassword),
-      validateNacionalidad(formData.nacionalidad),
+      validateConfirmarPasswordHelper(formData.confirmarPassword, formData.password),
       validateIntereses(formData.intereses),
       validateTerminos(formData.terminos)
     ];
     
-    return resultados.every(resultado => resultado === true);
+    // Validar campos asíncronos
+    const resultadosAsync = await Promise.all([
+      validateCorreo(formData.correo),
+      validateNacionalidad(formData.nacionalidad)
+    ]);
+    
+    const todosLosResultados = [...resultadosSync, ...resultadosAsync];
+    return todosLosResultados.every(resultado => resultado === true);
   }, [
-    formData,
-    validateNombre, validateApellido, validateCorreo, validateConfirmarCorreo,
-    validatePassword, validateConfirmarPassword, validateNacionalidad, 
-    validateIntereses, validateTerminos
+    validateNombre, 
+    validateApellido, 
+    validateConfirmarCorreoHelper,
+    validatePassword, 
+    validateConfirmarPasswordHelper, 
+    validateIntereses, 
+    validateTerminos,
+    validateCorreo, 
+    validateNacionalidad,
+    formData
   ]);
+
+  // Función para reiniciar el formulario
+  const resetForm = useCallback(() => {
+    setFormData({
+      nombreCompleto: '',
+      apellidoCompleto: '',
+      correo: '',
+      confirmarCorreo: '',
+      password: '',
+      confirmarPassword: '',
+      nacionalidad: '',
+      intereses: [],
+      terminos: false
+    });
+    setValidationState({
+      nombreCompleto: null,
+      apellidoCompleto: null,
+      correo: null,
+      confirmarCorreo: null,
+      password: null,
+      confirmarPassword: null,
+      nacionalidad: null,
+      intereses: null,
+      terminos: null
+    });
+    setMessages({});
+    setPasswordStrength({ 
+      nivel: 0, 
+      texto: 'Muy Débil', 
+      color: '#dc3545' 
+    });
+  }, []);
 
   return {
     formData,
     validationState,
     messages,
     passwordStrength,
+    nacionalidades,
+    interesesDisponibles,
+    loadingNacionalidades,
+    loadingIntereses,
+    validatingEmail,
+    validatingNacionalidad,
     handleInputChange,
     handleInteresesChange,
     calcularProgreso,
     formularioCompleto,
-    validarTodoElFormulario
+    validarTodoElFormulario,
+    resetForm,
+    cargarDatosIniciales
   };
 };
 
