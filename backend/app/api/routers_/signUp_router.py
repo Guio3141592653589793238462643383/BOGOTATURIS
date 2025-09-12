@@ -132,3 +132,18 @@ def obtener_nacionalidades(db: Session = Depends(get_db)):
 @router.get("/intereses")
 def obtener_intereses(db: Session = Depends(get_db)):
     return db.query(Intereses).all()
+@router.post("/validar-campo")
+def validar_campo(data: dict, db: Session = Depends(get_db)):
+    campo = data.get("campo")
+    valor = data.get("valor")
+
+    if campo == "correo":
+        correo_existente = db.query(Correo).filter(Correo.correo.ilike(valor)).first()
+        return {"valido": correo_existente is None}
+    
+    if campo == "nacionalidad":
+        nacionalidad = buscar_nacionalidad(valor, db)
+        return {"valido": nacionalidad is not None}
+
+    return {"valido": True}
+
