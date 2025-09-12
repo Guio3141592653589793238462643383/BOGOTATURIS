@@ -3,6 +3,7 @@ import useFormValidation from "../hooks/useFormValidation";
 import Logo from "../assets/img/BogotaTurisLogo.png";
 
 const FormSignUp = () => {
+
   const {
     formData,
     validationState,
@@ -14,6 +15,10 @@ const FormSignUp = () => {
     loadingIntereses,
     validatingEmail,
     validatingNacionalidad,
+    validatePrimerNombre,
+    validateSegundoNombre,
+    validatePrimerApellido,
+    validateSegundoApellido,
     handleInputChange,
     handleInteresesChange,
     calcularProgreso,
@@ -25,55 +30,57 @@ const FormSignUp = () => {
   // Manejador de envío del formulario (mejorado)
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validar todo el formulario primero
     const esValido = await validarTodoElFormulario();
-    
+
     if (!esValido) {
       alert("Por favor completa todos los campos requeridos correctamente");
       return;
     }
-    
+
     const datosFormulario = {
-      nombreCompleto: formData.nombreCompleto,
-      apellidoCompleto: formData.apellidoCompleto,
+      primer_nombre: formData.primer_nombre,
+      segundo_nombre: formData.segundo_nombre || null,
+      primer_apellido: formData.primer_apellido,
+      segundo_apellido: formData.segundo_apellido || null,
       correo: formData.correo,
-      confirmarCorreo: formData.confirmarCorreo,
-      password: formData.password,
-      confirmarPassword: formData.confirmarPassword,
+      clave: formData.clave,
       nacionalidad: formData.nacionalidad,
-      intereses: Array.isArray(formData.intereses) ? formData.intereses : [], 
+      intereses: Array.isArray(formData.intereses) ? formData.intereses : [],
       terminos: formData.terminos
     };
-    
+
+
+
     try {
-      const response = await fetch('http://localhost:8000/api/usuario/registrar', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+      const response = await fetch("http://localhost:8000/api/usuario/registro", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
         },
-        body: JSON.stringify(datosFormulario)
-      });
-      
+        body: JSON.stringify(datosFormulario),
+      })
+
       const resultado = await response.json();
-      
+
       if (response.ok) {
         console.log('Usuario registrado exitosamente:', resultado);
         alert(`¡Registro exitoso! Bienvenido ${resultado.primer_nombre}`);
-        
+
         // Limpiar formulario después del éxito
         resetForm();
-        
+
         // Opcional: redirigir a otra página
         // window.location.href = '/login';
-        
+
       } else {
         console.error('Error del servidor:', resultado);
-        
+
         // Manejar diferentes tipos de errores del backend
         let mensajeError = 'Error en el registro. Verifica los datos.';
-        
+
         if (resultado.detail) {
           if (typeof resultado.detail === 'object') {
             // Error con información de campo específico
@@ -87,7 +94,7 @@ const FormSignUp = () => {
             mensajeError = resultado.detail;
           }
         }
-        
+
         alert(`Error: ${mensajeError}`);
       }
     } catch (error) {
@@ -99,44 +106,44 @@ const FormSignUp = () => {
   const progreso = calcularProgreso();
 
   // Generar opciones de nacionalidades dinámicamente
-const renderNacionalidades = () => {
-  if (loadingNacionalidades) {
-    return <option value="">Cargando nacionalidades...</option>;
-  }
+  const renderNacionalidades = () => {
+    if (loadingNacionalidades) {
+      return <option value="">Cargando nacionalidades...</option>;
+    }
 
-  if (nacionalidades.length === 0) {
-    return (
-      <option value="" disabled>
-        No se encontraron nacionalidades
-      </option>
-    );
-  }
-
-  return (
-    <>
-      <option value="" disabled>
-        Selecciona una opción
-      </option>
-      {nacionalidades.map((nac) => (
-        <option key={nac.id_nac} value={nac.id_nac}>
-          {nac.nacionalidad}
+    if (nacionalidades.length === 0) {
+      return (
+        <option value="" disabled>
+          No se encontraron nacionalidades
         </option>
-      ))}
-    </>
-  );
-};
+      );
+    }
+
+    return (
+      <>
+        <option value="" disabled>
+          Selecciona una opción
+        </option>
+        {nacionalidades.map((nac) => (
+          <option key={nac.id_nac} value={nac.id_nac}>
+            {nac.nacionalidad}
+          </option>
+        ))}
+      </>
+    );
+  };
 
   // Generar intereses dinámicamente desde el servidor
   const renderIntereses = () => {
     if (loadingIntereses || interesesDisponibles.length === 0) {
       // Fallback con intereses estáticos
       const interesesEstaticos = [
-        "Aventureros", "Arte", "Gastronomía", "Naturaleza", "Conciertos", 
-        "Escalada", "Museos", "Eventos", "Yoga", "Bares", "Danza", 
-        "Cultura", "Deportes", "Historia", "Festivales", "Talleres", 
+        "Aventureros", "Arte", "Gastronomía", "Naturaleza", "Conciertos",
+        "Escalada", "Museos", "Eventos", "Yoga", "Bares", "Danza",
+        "Cultura", "Deportes", "Historia", "Festivales", "Talleres",
         "Cocinar", "Ecoturismo", "Concursos", "Discotecas"
       ];
-      
+
       return interesesEstaticos.map((interes, index) => (
         <tr key={`static-${index}`}>
           <td className="checkbox-col">
@@ -152,12 +159,12 @@ const renderNacionalidades = () => {
         </tr>
       ));
     }
-    
+
     // Dividir intereses en dos columnas
     const mitad = Math.ceil(interesesDisponibles.length / 2);
     const primeraColumna = interesesDisponibles.slice(0, mitad);
     const segundaColumna = interesesDisponibles.slice(mitad);
-    
+
     return {
       primeraColumna: primeraColumna.map((interes) => (
         <tr key={`col1-${interes.id_inte}`}>
@@ -209,7 +216,7 @@ const renderNacionalidades = () => {
           </ul>
         </div>
       </nav>
-      
+
       <div className="container">
         <h1>✍Registro</h1>
         <div className="Progreso-formulario">
@@ -222,81 +229,158 @@ const renderNacionalidades = () => {
         <p style={{ textAlign: "center", color: "#666", marginBottom: "30px" }}>
           Proceso: <span id="porcentajeProgreso">{progreso}%</span>
         </p>
-        
+
         <form id="formularioAvanzado" noValidate onSubmit={handleSubmit}>
           <div className="form-group">
             <div className="form-group">
               <h4>Datos Personales</h4>
-              <label htmlFor="nombreCompleto">Nombre Completo *</label>
-              <input
-                type="text"
-                id="nombreCompleto"
-                name="nombreCompleto"
-                value={formData.nombreCompleto}
-                onChange={handleInputChange}
-                required
-                autoFocus
-                placeholder="Mínimo 2 nombres"
-                pattern="[A-Za-zÁÉÍÓÚáéíúóÑñÜü ]{3,40}"
-                className={
-                  validationState.nombreCompleto === true
-                    ? "valido"
-                    : validationState.nombreCompleto === false
-                    ? "invalido"
-                    : ""
-                }
-              />
-              <div
-                className="mensaje-error"
-                id="errorNombre"
-                style={{ display: messages.errorNombre ? "block" : "none" }}
-              >
-                {messages.errorNombre}
+              {/* Primer Nombre */}
+              <div className="form-group">
+                <label htmlFor="primer_nombre">Primer Nombre *</label>
+                <input
+                  type="text"
+                  id="primer_nombre"
+                  name="primer_nombre"
+                  value={formData.primer_nombre}
+                  onChange={(e) => {
+                    handleInputChange(e);
+                    validatePrimerNombre(e.target.value);
+                  }}
+                  required
+                  placeholder="Ej: Emily"
+                  pattern="[A-Za-zÁÉÍÓÚáéíúóÑñÜü ]{2,40}"
+                  className={
+                    validationState.primer_nombre === true
+                      ? "valido"
+                      : validationState.primer_nombre === false
+                        ? "invalido"
+                        : ""
+                  }
+                />
+                <div
+                  className="mensaje-error"
+                  style={{ display: messages.errorPrimerNombre ? "block" : "none" }}
+                >
+                  {messages.errorPrimerNombre}
+                </div>
+                <div
+                  className="mensaje-exito"
+                  style={{ display: messages.exitoPrimerNombre ? "block" : "none" }}
+                >
+                  {messages.exitoPrimerNombre}
+                </div>
               </div>
-              <div
-                className="mensaje-exito"
-                id="exitoNombre"
-                style={{ display: messages.exitoNombre ? "block" : "none" }}
-              >
-                {messages.exitoNombre}
+
+              {/* Segundo Nombre (opcional) */}
+              <div className="form-group">
+                <label htmlFor="segundo_nombre">Segundo Nombre</label>
+                <input
+                  type="text"
+                  id="segundo_nombre"
+                  name="segundo_nombre"
+                  value={formData.segundo_nombre || ""}
+                  onChange={(e) => {
+                    handleInputChange(e);
+                    validateSegundoNombre(e.target.value);
+                  }}
+                  placeholder="Ej: Andrea"
+                  pattern="[A-Za-zÁÉÍÓÚáéíúóÑñÜü ]{2,40}"
+                  className={
+                    validationState.segundo_nombre === true
+                      ? "valido"
+                      : validationState.segundo_nombre === false
+                        ? "invalido"
+                        : ""
+                  }
+                />
+                <div
+                  className="mensaje-error"
+                  style={{ display: messages.errorSegundoNombre ? "block" : "none" }}
+                >
+                  {messages.errorSegundoNombre}
+                </div>
+                <div
+                  className="mensaje-exito"
+                  style={{ display: messages.exitoSegundoNombre ? "block" : "none" }}
+                >
+                  {messages.exitoSegundoNombre}
+                </div>
+              </div>
+
+              {/* Primer Apellido */}
+              <div className="form-group">
+                <label htmlFor="primer_apellido">Primer Apellido *</label>
+                <input
+                  type="text"
+                  id="primer_apellido"
+                  name="primer_apellido"
+                  value={formData.primer_apellido}
+                  onChange={(e) => {
+                    handleInputChange(e);
+                    validatePrimerApellido(e.target.value);
+                  }}
+                  required
+                  placeholder="Ej: Remicio"
+                  pattern="[A-Za-zÁÉÍÓÚáéíúóÑñÜü ]{2,40}"
+                  className={
+                    validationState.primer_apellido === true
+                      ? "valido"
+                      : validationState.primer_apellido === false
+                        ? "invalido"
+                        : ""
+                  }
+                />
+                <div
+                  className="mensaje-error"
+                  style={{ display: messages.errorPrimerApellido ? "block" : "none" }}
+                >
+                  {messages.errorPrimerApellido}
+                </div>
+                <div
+                  className="mensaje-exito"
+                  style={{ display: messages.exitoPrimerApellido ? "block" : "none" }}
+                >
+                  {messages.exitoPrimerApellido}
+                </div>
+              </div>
+
+              {/* Segundo Apellido (opcional) */}
+              <div className="form-group">
+                <label htmlFor="segundo_apellido">Segundo Apellido</label>
+                <input
+                  type="text"
+                  id="segundo_apellido"
+                  name="segundo_apellido"
+                  value={formData.segundo_apellido || ""}
+                  onChange={(e) => {
+                    handleInputChange(e);
+                    validateSegundoApellido(e.target.value);
+                  }}
+                  placeholder="Ej: López"
+                  pattern="[A-Za-zÁÉÍÓÚáéíúóÑñÜü ]{2,40}"
+                  className={
+                    validationState.segundo_apellido === true
+                      ? "valido"
+                      : validationState.segundo_apellido === false
+                        ? "invalido"
+                        : ""
+                  }
+                />
+                <div
+                  className="mensaje-error"
+                  style={{ display: messages.errorSegundoApellido ? "block" : "none" }}
+                >
+                  {messages.errorSegundoApellido}
+                </div>
+                <div
+                  className="mensaje-exito"
+                  style={{ display: messages.exitoSegundoApellido ? "block" : "none" }}
+                >
+                  {messages.exitoSegundoApellido}
+                </div>
               </div>
             </div>
-            
-            <div className="form-group">
-              <label htmlFor="apellidoCompleto">Apellido Completo *</label>
-              <input
-                type="text"
-                id="apellidoCompleto"
-                name="apellidoCompleto"
-                value={formData.apellidoCompleto}
-                onChange={handleInputChange}
-                required
-                placeholder="Mínimo 2 apellidos"
-                pattern="[A-Za-zÁÉÍÓÚáéíúóÑñÜü ]{3,40}"
-                className={
-                  validationState.apellidoCompleto === true
-                    ? "valido"
-                    : validationState.apellidoCompleto === false
-                    ? "invalido"
-                    : ""
-                }
-              />
-              <div
-                className="mensaje-error"
-                id="errorApellido"
-                style={{ display: messages.errorApellido ? "block" : "none" }}
-              >
-                {messages.errorApellido}
-              </div>
-              <div
-                className="mensaje-exito"
-                id="exitoApellido"
-                style={{ display: messages.exitoApellido ? "block" : "none" }}
-              >
-                {messages.exitoApellido}
-              </div>
-            </div>
-            
+
             {/* Email con validación mejorada */}
             <div className="form-group">
               <label htmlFor="correo">Correo Electrónico *</label>
@@ -313,8 +397,8 @@ const renderNacionalidades = () => {
                   validationState.correo === true
                     ? "valido"
                     : validationState.correo === false
-                    ? "invalido"
-                    : ""
+                      ? "invalido"
+                      : ""
                 }
               />
 
@@ -333,7 +417,7 @@ const renderNacionalidades = () => {
                 {messages.exitoCorreo}
               </div>
             </div>
-            
+
             {/*Confirmación de Correo electronico */}
             <div className="form-group">
               <label htmlFor="confirmarCorreo">
@@ -351,8 +435,8 @@ const renderNacionalidades = () => {
                   validationState.confirmarCorreo === true
                     ? "valido"
                     : validationState.confirmarCorreo === false
-                    ? "invalido"
-                    : ""
+                      ? "invalido"
+                      : ""
                 }
               />
               <div
@@ -374,93 +458,103 @@ const renderNacionalidades = () => {
                 {messages.exitoConfirmarCorreo}
               </div>
             </div>
-            
-            {/* Contraseña con indicador de fortaleza */}
+
+            {/* Clave con indicador de fortaleza */}
             <div className="form-group">
-              <label htmlFor="password">Clave *</label>
+              <label htmlFor="clave">Clave *</label>
               <input
                 type="password"
-                id="password"
-                name="password"
-                value={formData.password}
+                id="clave"
+                name="clave"
+                value={formData.clave}
                 onChange={handleInputChange}
                 required
-                placeholder="Minimo 8 caracteres"
+                placeholder="Mínimo 8 caracteres"
                 minLength="8"
                 className={
-                  validationState.password === true
+                  validationState.clave === true
                     ? "valido"
-                    : validationState.password === false
-                    ? "invalido"
-                    : ""
+                    : validationState.clave === false
+                      ? "invalido"
+                      : ""
                 }
               />
+
               {/* Indicador visual de fortaleza */}
               <div className="password-strength-container">
-                <div 
+                <div
                   className="password-strength-bar"
-                  style={{ 
+                  style={{
                     width: `${(passwordStrength.nivel / 4) * 100}%`,
-                    backgroundColor: passwordStrength.color 
+                    backgroundColor: passwordStrength.color
                   }}
                 ></div>
-                <small style={{ color: passwordStrength.color, marginTop: '2px', display: 'block' }}>
-                  {formData.password.length > 0 && passwordStrength.texto}
+                <small
+                  style={{
+                    color: passwordStrength.color,
+                    marginTop: "2px",
+                    display: "block"
+                  }}
+                >
+                  {formData.clave.length > 0 && passwordStrength.texto}
                 </small>
               </div>
+
               <div
                 className="mensaje-error"
-                style={{ display: messages.errorPassword ? "block" : "none" }}
+                style={{ display: messages.errorClave ? "block" : "none" }}
               >
-                {messages.errorPassword}
+                {messages.errorClave}
               </div>
               <div
                 className="mensaje-exito"
-                style={{ display: messages.exitoPassword ? "block" : "none" }}
+                style={{ display: messages.exitoClave ? "block" : "none" }}
               >
-                {messages.exitoPassword}
+                {messages.exitoClave}
               </div>
             </div>
-            
+
+
             {/* Confirmación de clave */}
             <div className="form-group">
-              <label htmlFor="confirmarPassword">Confirmar clave *</label>
+              <label htmlFor="confirmarClave">Confirmar clave *</label>
               <input
                 type="password"
-                id="confirmarPassword"
-                name="confirmarPassword"
-                value={formData.confirmarPassword}
+                id="confirmarClave"
+                name="confirmarClave"
+                value={formData.confirmarClave}
+
                 onChange={handleInputChange}
                 required
                 placeholder="Repite tu contraseña"
                 className={
-                  validationState.confirmarPassword === true
+                  validationState.ConfirmarClave === true
                     ? "valido"
-                    : validationState.confirmarPassword === false
-                    ? "invalido"
-                    : ""
+                    : validationState.ConfirmarClave === false
+                      ? "invalido"
+                      : ""
                 }
               />
               <div
                 className="mensaje-error"
                 id="errorConfirmar"
                 style={{
-                  display: messages.errorConfirmarPassword ? "block" : "none",
+                  display: messages.errorConfirmarClave ? "block" : "none",
                 }}
               >
-                {messages.errorConfirmarPassword}
+                {messages.errorConfirmarClave}
               </div>
               <div
                 className="mensaje-exito"
                 id="exitoConfirmar"
                 style={{
-                  display: messages.exitoConfirmarPassword ? "block" : "none",
+                  display: messages.exitoConfirmarClave ? "block" : "none",
                 }}
               >
-                {messages.exitoConfirmarPassword}
+                {messages.exitoConfirmarClave}
               </div>
             </div>
-            
+
             {/* Nacionalidad con seleccionar - DINÁMICO */}
             <div className="form-group">
               <label htmlFor="nacionalidad">
@@ -477,8 +571,8 @@ const renderNacionalidades = () => {
                   validationState.nacionalidad === true
                     ? "valido"
                     : validationState.nacionalidad === false
-                    ? "invalido"
-                    : ""
+                      ? "invalido"
+                      : ""
                 }
               >
                 {renderNacionalidades()}
@@ -505,15 +599,14 @@ const renderNacionalidades = () => {
                 {messages.exitoNacionalidad}
               </div>
             </div>
-            
+
             {/* Intereses Turísticos - DINÁMICOS */}
-            <div className={`form-group-Intereses ${
-              validationState.intereses === true 
-                ? "valido" 
-                : validationState.intereses === false 
-                ? "invalido" 
+            <div className={`form-group-Intereses ${validationState.intereses === true
+              ? "valido"
+              : validationState.intereses === false
+                ? "invalido"
                 : ""
-            }`}>
+              }`}>
               <label htmlFor="intereses">Intereses Turísticos *</label>
               {loadingIntereses && (
                 <p style={{ textAlign: 'center', color: '#666' }}>
@@ -525,7 +618,7 @@ const renderNacionalidades = () => {
                 {/* TABLA IZQUIERDA */}
                 <table className="tabla-intereses">
                   <tbody>
-                    {Array.isArray(interesesRenderizados) 
+                    {Array.isArray(interesesRenderizados)
                       ? interesesRenderizados.slice(0, Math.ceil(interesesRenderizados.length / 2))
                       : interesesRenderizados.primeraColumna || []}
                   </tbody>
@@ -540,7 +633,7 @@ const renderNacionalidades = () => {
                   </tbody>
                 </table>
               </div>
-              
+
               <div
                 className="mensaje-error"
                 style={{ display: messages.errorIntereses ? "block" : "none" }}
@@ -554,12 +647,12 @@ const renderNacionalidades = () => {
                 {messages.exitoIntereses}
               </div>
             </div>
-            
+
             {/* Términos y condiciones */}
             <div className="form-group">
               <label
                 htmlFor="terminos"
-                style={{display: 'flex', alignItems: 'center', gap: '8px'}}
+                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
               >
                 <input
                   type="checkbox"
@@ -584,7 +677,7 @@ const renderNacionalidades = () => {
                 {messages.exitoTerminos}
               </div>
             </div>
-            
+
             {/* Botón de envío */}
             <div className="form-group">
               <button
@@ -592,13 +685,13 @@ const renderNacionalidades = () => {
                 id="btnEnviar"
                 disabled={!formularioCompleto() || validatingEmail || validatingNacionalidad}
                 className={
-                  (formularioCompleto() && !validatingEmail && !validatingNacionalidad) 
-                    ? "btn-habilitado" 
+                  (formularioCompleto() && !validatingEmail && !validatingNacionalidad)
+                    ? "btn-habilitado"
                     : "btn-deshabilitado"
                 }
               >
-                {(validatingEmail || validatingNacionalidad) 
-                  ? "Validando..." 
+                {(validatingEmail || validatingNacionalidad)
+                  ? "Validando..."
                   : "Registrarse"
                 }
               </button>

@@ -2,30 +2,35 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 
 const useFormValidation = () => {
   const emailTimeoutRef = useRef(null);
-  const [formData, setFormData] = useState({
-    nombreCompleto: '',
-    apellidoCompleto: '',
-    correo: '',
-    confirmarCorreo: '',
-    password: '',
-    confirmarPassword: '',
-    nacionalidad: '',
-    intereses: [],
-    terminos: false
-  });
+const [formData, setFormData] = useState({
+  primer_nombre: '',
+  segundo_nombre: '',
+  primer_apellido: '',
+  segundo_apellido: '',
+  correo: '',
+  confirmarCorreo: '',
+  clave: '',
+  confirmarClave: '',
+  nacionalidad: '',
+  intereses: [],
+  terminos: false
+});
+
 
   // Estado de validación (true/false/null)
-  const [validationState, setValidationState] = useState({
-    nombreCompleto: null,
-    apellidoCompleto: null,
-    correo: null,
-    confirmarCorreo: null,
-    password: null,
-    confirmarPassword: null,
-    nacionalidad: null,
-    intereses: null,
-    terminos: null
-  });
+const [validationState, setValidationState] = useState({
+  primer_nombre: null,
+  segundo_nombre: null,
+  primer_apellido: null,
+  segundo_apellido: null,
+  correo: null,
+  confirmarCorreo: null,
+  clave: null,
+  confirmarClave: null,
+  nacionalidad: null,
+  intereses: null,
+  terminos: null
+});
 
   // Mensajes de error y éxito
   const [messages, setMessages] = useState({});
@@ -131,37 +136,70 @@ const useFormValidation = () => {
   };
 
   // Validaciones específicas (SIN dependencias circulares)
-  const validateNombre = useCallback((valor) => {
-    const nombres = valor.trim().split(' ').filter(n => n.length > 0);
-    const esValido = nombres.length >= 2 && valor.length >= 3;
-    
-    if (!esValido) {
-      updateMessage('nombre', 'error', 'Ingresa al menos 2 nombres completos');
-      updateMessage('nombre', 'exito', '');
-    } else {
-      updateMessage('nombre', 'error', '');
-      updateMessage('nombre', 'exito', '✓ Nombre completo válido');
-    }
-    
-    markField('nombreCompleto', esValido);
-    return esValido;
-  }, [updateMessage, markField]);
+  // ✅ Validar primer nombre (obligatorio)
+const validatePrimerNombre = useCallback((valor) => {
+  const esValido = valor.trim().length >= 2;
 
-  const validateApellido = useCallback((valor) => {
-    const apellidos = valor.trim().split(' ').filter(a => a.length > 0);
-    const esValido = apellidos.length >= 2 && valor.length >= 3;
-    
-    if (!esValido) {
-      updateMessage('apellido', 'error', 'Ingresa al menos 2 apellidos completos');
-      updateMessage('apellido', 'exito', '');
-    } else {
-      updateMessage('apellido', 'error', '');
-      updateMessage('apellido', 'exito', '✓ Apellido completo válido');
-    }
-    
-    markField('apellidoCompleto', esValido);
-    return esValido;
-  }, [updateMessage, markField]);
+  if (!esValido) {
+    updateMessage('primerNombre', 'error', 'El primer nombre debe tener al menos 2 letras');
+    updateMessage('primerNombre', 'exito', '');
+  } else {
+    updateMessage('primerNombre', 'error', '');
+    updateMessage('primerNombre', 'exito', '✓ Primer nombre válido');
+  }
+
+  markField('primer_nombre', esValido);
+  return esValido;
+}, [updateMessage, markField]);
+
+// ✅ Validar segundo nombre (opcional, si lo pone que sea válido)
+const validateSegundoNombre = useCallback((valor) => {
+  const esValido = valor.trim() === '' || valor.trim().length >= 2;
+
+  if (!esValido) {
+    updateMessage('segundoNombre', 'error', 'El segundo nombre debe tener al menos 2 letras');
+    updateMessage('segundoNombre', 'exito', '');
+  } else {
+    updateMessage('segundoNombre', 'error', '');
+    updateMessage('segundoNombre', 'exito', valor ? '✓ Segundo nombre válido' : '');
+  }
+
+  markField('segundo_nombre', esValido);
+  return esValido;
+}, [updateMessage, markField]);
+
+// ✅ Validar primer apellido (obligatorio)
+const validatePrimerApellido = useCallback((valor) => {
+  const esValido = valor.trim().length >= 2;
+
+  if (!esValido) {
+    updateMessage('primerApellido', 'error', 'El primer apellido debe tener al menos 2 letras');
+    updateMessage('primerApellido', 'exito', '');
+  } else {
+    updateMessage('primerApellido', 'error', '');
+    updateMessage('primerApellido', 'exito', '✓ Primer apellido válido');
+  }
+
+  markField('primer_apellido', esValido);
+  return esValido;
+}, [updateMessage, markField]);
+
+// ✅ Validar segundo apellido (opcional)
+const validateSegundoApellido = useCallback((valor) => {
+  const esValido = valor.trim() === '' || valor.trim().length >= 2;
+
+  if (!esValido) {
+    updateMessage('segundoApellido', 'error', 'El segundo apellido debe tener al menos 2 letras');
+    updateMessage('segundoApellido', 'exito', '');
+  } else {
+    updateMessage('segundoApellido', 'error', '');
+    updateMessage('segundoApellido', 'exito', valor ? '✓ Segundo apellido válido' : '');
+  }
+
+  markField('segundo_apellido', esValido);
+  return esValido;
+}, [updateMessage, markField]);
+
 
   // FUNCIÓN AUXILIAR PARA VALIDAR CONFIRMACIÓN DE CORREO
   const validateConfirmarCorreoHelper = useCallback((valor, correoOriginal) => {
@@ -199,15 +237,15 @@ const useFormValidation = () => {
 
 
   // Calcular fortaleza de contraseña
-  const calcularFortalezaPassword = useCallback((password) => {
+  const calcularFortalezaPassword = useCallback((clave) => {
     let nivel = 0;
     let texto = 'Muy Débil';
     let color = '#dc3545';
     
-    if (/[a-z]/.test(password)) nivel++;
-    if (/[A-Z]/.test(password)) nivel++;
-    if (/[0-9]/.test(password)) nivel++;
-    if (/[^A-Za-z0-9]/.test(password)) nivel++;
+    if (/[a-z]/.test(clave)) nivel++;
+    if (/[A-Z]/.test(clave)) nivel++;
+    if (/[0-9]/.test(clave)) nivel++;
+    if (/[^A-Za-z0-9]/.test(clave)) nivel++;
     
     switch (nivel) {
       case 1:
@@ -232,22 +270,22 @@ const useFormValidation = () => {
   }, []);
 
   // FUNCIÓN AUXILIAR PARA VALIDAR CONFIRMACIÓN DE PASSWORD
-  const validateConfirmarPasswordHelper = useCallback((valor, passwordOriginal) => {
-    const esValido = valor === passwordOriginal && valor.length > 0;
-    
-    if (!esValido) {
-      updateMessage('confirmarPassword', 'error', 'Las contraseñas no coinciden');
-      updateMessage('confirmarPassword', 'exito', '');
-    } else {
-      updateMessage('confirmarPassword', 'error', '');
-      updateMessage('confirmarPassword', 'exito', '✓ Contraseñas coinciden');
-    }
-    
-    markField('confirmarPassword', esValido);
-    return esValido;
-  }, [updateMessage, markField]);
+const validateConfirmarClaveHelper = useCallback((valor, claveOriginal) => {
+  const esValido = valor.length > 0 && valor === claveOriginal;
 
-  const validatePassword = useCallback((valor) => {
+  if (!esValido) {
+    updateMessage('confirmarClave', 'error', 'Las contraseñas no coinciden');
+    updateMessage('confirmarClave', 'exito', '');
+  } else {
+    updateMessage('confirmarClave', 'error', '');
+    updateMessage('confirmarClave', 'exito', '✓ Contraseñas coinciden');
+  }
+
+  markField('confirmarClave', esValido);
+  return esValido;
+}, [updateMessage, markField]);
+
+  const confirmarClave = useCallback((valor) => {
     const fortaleza = calcularFortalezaPassword(valor);
     setPasswordStrength(fortaleza);
     
@@ -255,24 +293,24 @@ const useFormValidation = () => {
     
     if (!esValido) {
       if (valor.length < 8) {
-        updateMessage('password', 'error', 'Contraseña debe tener al menos 8 caracteres');
+        updateMessage('clave', 'error', 'Contraseña debe tener al menos 8 caracteres');
       } else {
-        updateMessage('password', 'error', 'Contraseña muy débil. Debe contener al menos 2 tipos de caracteres');
+        updateMessage('clave', 'error', 'Contraseña muy débil. Debe contener al menos 2 tipos de caracteres');
       }
-      updateMessage('password', 'exito', '');
+      updateMessage('clave', 'exito', '');
     } else {
-      updateMessage('password', 'error', '');
-      updateMessage('password', 'exito', `✓ Contraseña ${fortaleza.texto}`);
+      updateMessage('clave', 'error', '');
+      updateMessage('clave', 'exito', `✓ Contraseña ${fortaleza.texto}`);
     }
     
-    markField('password', esValido);
+    markField('clave', esValido);
     
     return esValido;
   }, [calcularFortalezaPassword, markField, updateMessage]);
 
 
-  const validateNacionalidad = useCallback(async (valor) => {
-    const esValido = valor !== "" && valor !== null;
+const validateNacionalidad = useCallback(async (valor) => {
+    const esValido = valor !== "id_nac" && valor !== null;
     
     if (!esValido) {
       updateMessage('nacionalidad', 'error', 'Debes seleccionar tu nacionalidad');
@@ -281,9 +319,12 @@ const useFormValidation = () => {
       return false;
     }
 
+    // Convertir valor a número para la validación del servidor
+    const valorNumerico = Number(valor);
+
     // Validar con el servidor si la nacionalidad existe
     setValidatingNacionalidad(true);
-    const validacionServidor = await validarConServidor('nacionalidad', valor);
+    const validacionServidor = await validarConServidor('id_nac', valorNumerico);
     setValidatingNacionalidad(false);
 
     if (!validacionServidor.valido) {
@@ -344,11 +385,17 @@ const useFormValidation = () => {
 
     // Validar en tiempo real
     switch (name) {
-      case 'nombreCompleto':
-        validateNombre(newValue);
+      case 'primer_nombre':
+        validatePrimerNombre(newValue);
         break;
-      case 'apellidoCompleto':
-        validateApellido(newValue);
+      case 'segundo_nombre':
+        validateSegundoNombre(newValue);
+        break;
+      case 'primer_apellido':
+        validatePrimerApellido(newValue);
+        break;
+      case 'segundo_apellido':
+        validateSegundoApellido(newValue);
         break;
       case 'correo':
         if (emailTimeoutRef.current) {
@@ -365,11 +412,11 @@ const useFormValidation = () => {
       case 'confirmarCorreo':
         validateConfirmarCorreoHelper(newValue, formData.correo);
         break;
-      case 'password':
-        validatePassword(newValue);
+      case 'clave':
+        confirmarClave(newValue);
         break;
-      case 'confirmarPassword':
-        validateConfirmarPasswordHelper(newValue, formData.password);
+      case 'confirmarClave':
+        validateConfirmarClaveHelper(newValue, formData.clave);
         break;
       case 'nacionalidad':
         if (newValue) {
@@ -381,16 +428,18 @@ const useFormValidation = () => {
         break;
     }
   }, [
-    validateNombre, 
-    validateApellido, 
+    validatePrimerNombre,
+    validateSegundoNombre,
+    validatePrimerApellido,
+    validateSegundoApellido,
     validateCorreo, 
     validateConfirmarCorreoHelper,
-    validatePassword, 
-    validateConfirmarPasswordHelper, 
+    confirmarClave, 
+    validateConfirmarClaveHelper, 
     validateNacionalidad, 
     validateTerminos,
     formData.correo,
-    formData.password
+    formData.clave
   ]);
 
   // Effect para revalidar confirmaciones cuando cambian los campos originales
@@ -401,10 +450,10 @@ const useFormValidation = () => {
   }, [formData.correo, formData.confirmarCorreo, validateConfirmarCorreoHelper]);
 
   useEffect(() => {
-    if (formData.confirmarPassword) {
-      validateConfirmarPasswordHelper(formData.confirmarPassword, formData.password);
+    if (formData.confirmarClave) {
+      validateConfirmarClaveHelper(formData.confirmarClave, formData.clave);
     }
-  }, [formData.password, formData.confirmarPassword, validateConfirmarPasswordHelper]);
+  }, [formData.clave, formData.confirmarClave, validateConfirmarClaveHelper]);
 
   // Manejador específico para intereses
   const handleInteresesChange = useCallback((e) => {
@@ -449,11 +498,13 @@ const useFormValidation = () => {
   const validarTodoElFormulario = useCallback(async () => {
     // Validar todos los campos síncronos primero
     const resultadosSync = [
-      validateNombre(formData.nombreCompleto),
-      validateApellido(formData.apellidoCompleto),
+      validatePrimerNombre(formData.primer_nombre),
+      validateSegundoNombre(formData.segundo_nombre),
+      validatePrimerApellido(formData.primer_apellido),
+      validateSegundoApellido(formData.segundo_apellido),
       validateConfirmarCorreoHelper(formData.confirmarCorreo, formData.correo),
-      validatePassword(formData.password),
-      validateConfirmarPasswordHelper(formData.confirmarPassword, formData.password),
+      confirmarClave(formData.clave),
+      validateConfirmarClaveHelper(formData.confirmarClave, formData.clave),
       validateIntereses(formData.intereses),
       validateTerminos(formData.terminos)
     ];
@@ -467,38 +518,45 @@ const useFormValidation = () => {
     const todosLosResultados = [...resultadosSync, ...resultadosAsync];
     return todosLosResultados.every(resultado => resultado === true);
   }, [
-    validateNombre, 
-    validateApellido, 
+    validatePrimerNombre,
+    validateSegundoNombre,
+    validatePrimerApellido,
+    validateSegundoApellido, 
     validateConfirmarCorreoHelper,
-    validatePassword, 
-    validateConfirmarPasswordHelper, 
+    confirmarClave, 
+    validateConfirmarClaveHelper, 
     validateIntereses, 
     validateTerminos,
     validateCorreo, 
     validateNacionalidad,
     formData
+
   ]);
 
   // Función para reiniciar el formulario
   const resetForm = useCallback(() => {
     setFormData({
-      nombreCompleto: '',
-      apellidoCompleto: '',
+      primer_nombre: '',
+      segundo_nombre: '',
+      primer_apellido: '',
+      segundo_apellido: '',
       correo: '',
       confirmarCorreo: '',
-      password: '',
-      confirmarPassword: '',
+      clave: '',
+      confirmarClave: '',
       nacionalidad: '',
       intereses: [],
       terminos: false
     });
     setValidationState({
-      nombreCompleto: null,
-      apellidoCompleto: null,
+      primer_nombre: null,
+      segundo_nombre: null,
+      primer_apellido: null,
+      segundo_apellido: null,
       correo: null,
       confirmarCorreo: null,
-      password: null,
-      confirmarPassword: null,
+      clave: null,
+      confirmarClave: null,
       nacionalidad: null,
       intereses: null,
       terminos: null
