@@ -1,5 +1,5 @@
 import json
-from sqlalchemy import create_engine, String, Integer, Column, BigInteger, ForeignKey
+from sqlalchemy import create_engine, String, Integer, Column, BigInteger
 from sqlalchemy.orm import DeclarativeBase, mapped_column, sessionmaker
 
 # Tu configuración de base de datos
@@ -9,7 +9,7 @@ engine = create_engine(connection_url)
 class Base(DeclarativeBase):
     pass
 
-# Definir solo las tablas que necesitamos para la importación
+# Definir las tablas que necesitamos para la importación
 class Intereses(Base):
     __tablename__ = 'intereses'
     
@@ -42,17 +42,17 @@ def importar_intereses():
         count_existentes = 0
         
         for interes_item in intereses_data:
-            # Verificar si ya existe
-            existe = db.query(Intereses).filter_by(interes=interes_item['label']).first()
+            # Verificar si ya existe usando 'interes'
+            existe = db.query(Intereses).filter_by(interes=interes_item['interes']).first()
             
             if not existe:
-                nuevo_interes = Intereses(interes=interes_item['label'])
+                nuevo_interes = Intereses(interes=interes_item['interes'])
                 db.add(nuevo_interes)
                 count_nuevos += 1
-                print(f"✓ Agregado: {interes_item['label']}")
+                print(f"✓ Agregado: {interes_item['interes']}")
             else:
                 count_existentes += 1
-                print(f"- Ya existe: {interes_item['label']}")
+                print(f"- Ya existe: {interes_item['interes']}")
         
         db.commit()
         print(f"\nRESUMEN INTERESES:")
@@ -76,41 +76,24 @@ def importar_nacionalidades():
     db = SessionLocal()
     try:
         # Intentar leer el archivo JSON de nacionalidades
-        try:
-            with open("datosNacionalidad.json", "r", encoding="utf-8") as f:
-                nacionalidades_data = json.load(f)
-        except FileNotFoundError:
-            print("Archivo datosNacionalidades.json no encontrado, creando nacionalidades básicas...")
-            nacionalidades_data = [
-                {"value": "colombia", "label": "Colombia"},
-                {"value": "argentina", "label": "Argentina"},
-                {"value": "brasil", "label": "Brasil"},
-                {"value": "chile", "label": "Chile"},
-                {"value": "mexico", "label": "México"}
-            ]
+        with open("datosNacionalidad.json", "r", encoding="utf-8") as f:
+            nacionalidades_data = json.load(f)
         
         count_nuevos = 0
         count_existentes = 0
         
         for nac_item in nacionalidades_data:
-            if isinstance(nac_item, dict):
-                value = nac_item.get('value', nac_item.get('label', ''))
-                label = nac_item.get('label', value)
-            else:
-                value = nac_item
-                label = nac_item
+            # Verificar si ya existe usando 'nacionalidad'
+            existe = db.query(Nacionalidad).filter_by(nacionalidad=nac_item['nacionalidad']).first()
             
-            if value:
-                existe = db.query(Nacionalidad).filter_by(nacionalidad=value).first()
-                
-                if not existe:
-                    nueva_nacionalidad = Nacionalidad(nacionalidad=value)
-                    db.add(nueva_nacionalidad)
-                    count_nuevos += 1
-                    print(f"✓ Agregada: {label}")
-                else:
-                    count_existentes += 1
-                    print(f"- Ya existe: {label}")
+            if not existe:
+                nueva_nacionalidad = Nacionalidad(nacionalidad=nac_item['nacionalidad'])
+                db.add(nueva_nacionalidad)
+                count_nuevos += 1
+                print(f"✓ Agregada: {nac_item['nacionalidad']}")
+            else:
+                count_existentes += 1
+                print(f"- Ya existe: {nac_item['nacionalidad']}")
         
         db.commit()
         print(f"\nRESUMEN NACIONALIDADES:")
@@ -118,6 +101,9 @@ def importar_nacionalidades():
         print(f"   Ya existían: {count_existentes}")
         print(f"   Total procesadas: {len(nacionalidades_data)}")
         
+    except FileNotFoundError:
+        print("Error: No se encontró el archivo datosNacionalidades.json")
+        print("Asegúrate de que el archivo esté en la misma carpeta que este script.")
     except json.JSONDecodeError:
         print("Error: El archivo JSON no tiene un formato válido")
     except Exception as e:
