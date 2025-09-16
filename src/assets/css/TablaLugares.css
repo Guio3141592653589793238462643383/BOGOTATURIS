@@ -1,0 +1,64 @@
+.tabla-container {
+  padding: 40px;
+  background: linear-gradient(to right, #fbc2eb, #a6c1ee);
+  border-radius: 20px;
+  font-family: 'Segoe UI', sans-serif;
+  color: #333;
+}
+
+.titulo {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 20px;
+  color: #5a3e8c;
+}
+
+.busqueda-input {
+  padding: 10px;
+  margin-bottom: 20px;
+  width: 100%;
+  max-width: 400px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.tabla th, .tabla td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.tabla th {
+  cursor: pointer;
+  background-color: #f0f0f0;
+}
+
+.paginacion {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.paginacion button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background-color: white;
+  color: #a18cd1;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.paginacion button.activo {
+  background-color: #a18cd1;
+  color: white;
+}
