@@ -1,0 +1,40 @@
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #c1effa;
+  padding: 15px 30px;
+  border-bottom: 2px solid #dde3c4;
+  font-family: 'Segoe UI', sans-serif;
+  
+  
+
+}
+
+.navbar-logo h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  color: #333;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 25px;
+}
+
+.navbar-links a {
+  text-decoration: none;
+  color: #3d3d3d;  
+  font-weight: 500;       
+  font-size: 1.2rem;       
+  transition: color 0.3s ease;
+}
+
+.navbar-links a:hover {
+  color: #4e3ca9;
+}
+
+.navbar-links .activo {
+  border-bottom: 2px solid #7a6bbf;
+  padding-bottom: 2px;
+}

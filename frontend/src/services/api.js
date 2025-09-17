@@ -22,3 +22,17 @@ export const getIntereses = () =>
 // Verificar email
 export const checkEmail = (email) =>
   fetch(`${API_URL}/usuario/verificar-email/${email}`).then((res) => res.json());
+
+//login
+// Iniciar sesión (login)
+export const loginUsuario = async (data) => {
+  const response = await fetch(`${API_URL}/usuario/login`, {
+    method: "POST", // ✅ Método correcto
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  return response.json();
+};

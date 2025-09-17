@@ -1,5 +1,5 @@
 import "../assets/css/FormSignUp.css";
-import useFormValidation from "../hooks/useFormValidation";
+import useFormValidation from "../Hooks/useFormValidation";
 import Logo from "../assets/img/BogotaTurisLogo.png";
 
 const FormSignUp = () => {
@@ -201,24 +201,8 @@ const FormSignUp = () => {
 
   return (
     <>
-      <nav className="nav">
-        <div className="container1">
-          <div className="logo">
-            <img src={Logo} alt="BogotaTuris Logo" />
-          </div>
-          <ul className="nav-links">
-            <li>
-              <a href="#">Inicio</a>
-            </li>
-            <li>
-              <a href="#">Iniciar Sesión</a>
-            </li>
-          </ul>
-        </div>
-      </nav>
-
       <div className="container">
-        <h1>✍Registro</h1>
+        <h1  className="titulo-navbar">✍Registro</h1>
         <div className="Progreso-formulario">
           <div
             className="barra-progreso"
