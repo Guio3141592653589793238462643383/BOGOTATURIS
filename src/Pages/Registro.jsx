@@ -1,370 +1,686 @@
-import React from "react";
-import "../index.css";
+import "../assets/css/FormSignUp.css";
+import useFormValidation from "../Hooks/useFormValidation";
+import Logo from "../assets/img/BogotaTurisLogo.png";
 
 const FormSignUp = () => {
+
+  const {
+    formData,
+    validationState,
+    messages,
+    passwordStrength,
+    nacionalidades,
+    interesesDisponibles,
+    loadingNacionalidades,
+    loadingIntereses,
+    validatingEmail,
+    validatingNacionalidad,
+    validatePrimerNombre,
+    validateSegundoNombre,
+    validatePrimerApellido,
+    validateSegundoApellido,
+    handleInputChange,
+    handleInteresesChange,
+    calcularProgreso,
+    formularioCompleto,
+    validarTodoElFormulario,
+    resetForm
+  } = useFormValidation();
+
+  // Manejador de envío del formulario (mejorado)
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Validar todo el formulario primero
+    const esValido = await validarTodoElFormulario();
+
+    if (!esValido) {
+      alert("Por favor completa todos los campos requeridos correctamente");
+      return;
+    }
+
+    const datosFormulario = {
+      primer_nombre: formData.primer_nombre,
+      segundo_nombre: formData.segundo_nombre || null,
+      primer_apellido: formData.primer_apellido,
+      segundo_apellido: formData.segundo_apellido || null,
+      correo: formData.correo,
+      clave: formData.clave,
+      nacionalidad: formData.nacionalidad,
+      intereses: Array.isArray(formData.intereses) ? formData.intereses : [],
+      terminos: formData.terminos
+    };
+
+
+
+    try {
+      const response = await fetch("http://localhost:8000/api/usuario/registro", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify(datosFormulario),
+      })
+
+      const resultado = await response.json();
+
+      if (response.ok) {
+        console.log('Usuario registrado exitosamente:', resultado);
+        alert(`¡Registro exitoso! Bienvenido ${resultado.primer_nombre}`);
+
+        // Limpiar formulario después del éxito
+        resetForm();
+
+        // Opcional: redirigir a otra página
+        // window.location.href = '/login';
+
+      } else {
+        console.error('Error del servidor:', resultado);
+
+        // Manejar diferentes tipos de errores del backend
+        let mensajeError = 'Error en el registro. Verifica los datos.';
+
+        if (resultado.detail) {
+          if (typeof resultado.detail === 'object') {
+            // Error con información de campo específico
+            if (resultado.detail.detail) {
+              mensajeError = resultado.detail.detail;
+            }
+            if (resultado.detail.campo) {
+              mensajeError += ` (Campo: ${resultado.detail.campo})`;
+            }
+          } else if (typeof resultado.detail === 'string') {
+            mensajeError = resultado.detail;
+          }
+        }
+
+        alert(`Error: ${mensajeError}`);
+      }
+    } catch (error) {
+      console.error('Error de conexión:', error);
+      alert('Error de conexión. Verifica que el servidor esté ejecutándose en http://localhost:8000');
+    }
+  };
+
+  const progreso = calcularProgreso();
+
+  // Generar opciones de nacionalidades dinámicamente
+  const renderNacionalidades = () => {
+    if (loadingNacionalidades) {
+      return <option value="">Cargando nacionalidades...</option>;
+    }
+
+    if (nacionalidades.length === 0) {
+      return (
+        <option value="" disabled>
+          No se encontraron nacionalidades
+        </option>
+      );
+    }
+
+    return (
+      <>
+        <option value="" disabled>
+          Selecciona una opción
+        </option>
+        {nacionalidades.map((nac) => (
+          <option key={nac.id_nac} value={nac.id_nac}>
+            {nac.nacionalidad}
+          </option>
+        ))}
+      </>
+    );
+  };
+
+  // Generar intereses dinámicamente desde el servidor
+  const renderIntereses = () => {
+    if (loadingIntereses || interesesDisponibles.length === 0) {
+      // Fallback con intereses estáticos
+      const interesesEstaticos = [
+        "Aventureros", "Arte", "Gastronomía", "Naturaleza", "Conciertos",
+        "Escalada", "Museos", "Eventos", "Yoga", "Bares", "Danza",
+        "Cultura", "Deportes", "Historia", "Festivales", "Talleres",
+        "Cocinar", "Ecoturismo", "Concursos", "Discotecas"
+      ];
+
+      return interesesEstaticos.map((interes, index) => (
+        <tr key={`static-${index}`}>
+          <td className="checkbox-col">
+            <input
+              type="checkbox"
+              name="intereses"
+              value={interes}
+              checked={formData.intereses?.includes(interes)}
+              onChange={handleInteresesChange}
+            />
+          </td>
+          <td className="texto-col">{interes}</td>
+        </tr>
+      ));
+    }
+
+    // Dividir intereses en dos columnas
+    const mitad = Math.ceil(interesesDisponibles.length / 2);
+    const primeraColumna = interesesDisponibles.slice(0, mitad);
+    const segundaColumna = interesesDisponibles.slice(mitad);
+
+    return {
+      primeraColumna: primeraColumna.map((interes) => (
+        <tr key={`col1-${interes.id_inte}`}>
+          <td className="checkbox-col">
+            <input
+              type="checkbox"
+              name="intereses"
+              value={interes.interes}
+              checked={formData.intereses?.includes(interes.interes)}
+              onChange={handleInteresesChange}
+            />
+          </td>
+          <td className="texto-col">{interes.interes}</td>
+        </tr>
+      )),
+      segundaColumna: segundaColumna.map((interes) => (
+        <tr key={`col2-${interes.id_inte}`}>
+          <td className="checkbox-col">
+            <input
+              type="checkbox"
+              name="intereses"
+              value={interes.interes}
+              checked={formData.intereses?.includes(interes.interes)}
+              onChange={handleInteresesChange}
+            />
+          </td>
+          <td className="texto-col">{interes.interes}</td>
+        </tr>
+      ))
+    };
+  };
+
+  const interesesRenderizados = renderIntereses();
+
   return (
     <>
-
       <div className="container">
-        <h1>Registrarte</h1>
+        <h1  className="titulo-navbar">✍Registro</h1>
         <div className="Progreso-formulario">
-          <div className="barra-progreso" id="barraProgreso"></div>
+          <div
+            className="barra-progreso"
+            id="barraProgreso"
+            style={{ width: `${progreso}%` }}
+          ></div>
         </div>
-        <p style={{ textAlign: "center", color: "#131313ff", marginBottom: "30px" }}>
-          Proceso:<span id="porcentajeProgreso">0%</span>
+        <p style={{ textAlign: "center", color: "#666", marginBottom: "30px" }}>
+          Proceso: <span id="porcentajeProgreso">{progreso}%</span>
         </p>
 
-        <form id="formularioAvanzado" noValidate>
-          {/* Datos Personales */}
+        <form id="formularioAvanzado" noValidate onSubmit={handleSubmit}>
           <div className="form-group">
-            <h4>Datos Personales</h4>
-            <label htmlFor="nombreCompleto">Nombre Completo *</label>
-            <input
-              type="text"
-              id="nombreCompleto"
-              name="nombreCompleto"
-              required
-              autoFocus
-              placeholder="Mínimo 2 nombres"
-              pattern="[A-Za-zÁÉÍÓÚáéíúóÑñÜü ]{3,40}"
-            />
-            <div className="mensaje-error" id="errorNombre"></div>
-            <div className="mensaje-exito" id="exitoNombre"></div>
-          </div>
+            <div className="form-group">
+              <h4>Datos Personales</h4>
+              {/* Primer Nombre */}
+              <div className="form-group">
+                <label htmlFor="primer_nombre">Primer Nombre *</label>
+                <input
+                  type="text"
+                  id="primer_nombre"
+                  name="primer_nombre"
+                  value={formData.primer_nombre}
+                  onChange={(e) => {
+                    handleInputChange(e);
+                    validatePrimerNombre(e.target.value);
+                  }}
+                  required
+                  placeholder="Ej: Emily"
+                  pattern="[A-Za-zÁÉÍÓÚáéíúóÑñÜü ]{2,40}"
+                  className={
+                    validationState.primer_nombre === true
+                      ? "valido"
+                      : validationState.primer_nombre === false
+                        ? "invalido"
+                        : ""
+                  }
+                />
+                <div
+                  className="mensaje-error"
+                  style={{ display: messages.errorPrimerNombre ? "block" : "none" }}
+                >
+                  {messages.errorPrimerNombre}
+                </div>
+                <div
+                  className="mensaje-exito"
+                  style={{ display: messages.exitoPrimerNombre ? "block" : "none" }}
+                >
+                  {messages.exitoPrimerNombre}
+                </div>
+              </div>
 
-          <div className="form-group">
-            <label htmlFor="apellidoCompleto">Apellido Completo *</label>
-            <input
-              type="text"
-              id="apellidoCompleto"
-              name="apellidoCompleto"
-              required
-              placeholder="Mínimo 2 de apellido"
-              pattern="[A-Za-zÁÉÍÓÚáéíúóÑñÜü ]{3,40}"
-            />
-            <div className="mensaje-error" id="errorApellido"></div>
-            <div className="mensaje-exito" id="exitoApellido"></div>
-          </div>
+              {/* Segundo Nombre (opcional) */}
+              <div className="form-group">
+                <label htmlFor="segundo_nombre">Segundo Nombre</label>
+                <input
+                  type="text"
+                  id="segundo_nombre"
+                  name="segundo_nombre"
+                  value={formData.segundo_nombre || ""}
+                  onChange={(e) => {
+                    handleInputChange(e);
+                    validateSegundoNombre(e.target.value);
+                  }}
+                  placeholder="Ej: Andrea"
+                  pattern="[A-Za-zÁÉÍÓÚáéíúóÑñÜü ]{2,40}"
+                  className={
+                    validationState.segundo_nombre === true
+                      ? "valido"
+                      : validationState.segundo_nombre === false
+                        ? "invalido"
+                        : ""
+                  }
+                />
+                <div
+                  className="mensaje-error"
+                  style={{ display: messages.errorSegundoNombre ? "block" : "none" }}
+                >
+                  {messages.errorSegundoNombre}
+                </div>
+                <div
+                  className="mensaje-exito"
+                  style={{ display: messages.exitoSegundoNombre ? "block" : "none" }}
+                >
+                  {messages.exitoSegundoNombre}
+                </div>
+              </div>
 
-          {/* Email */}
-          <div className="form-group">
-            <label htmlFor="correo">Correo Electrónico *</label>
-            <input
-              type="email"
-              id="correo"
-              name="correo"
-              required
-              placeholder="usuario@dominio.com"
-              pattern="^[\w-\.]+@([\w-]+\.)+[\w-]{5,50}$"
-            />
-            <div className="mensaje-error" id="errorCorreo"></div>
-            <div className="mensaje-exito" id="exitoCorreo"></div>
-          </div>
+              {/* Primer Apellido */}
+              <div className="form-group">
+                <label htmlFor="primer_apellido">Primer Apellido *</label>
+                <input
+                  type="text"
+                  id="primer_apellido"
+                  name="primer_apellido"
+                  value={formData.primer_apellido}
+                  onChange={(e) => {
+                    handleInputChange(e);
+                    validatePrimerApellido(e.target.value);
+                  }}
+                  required
+                  placeholder="Ej: Remicio"
+                  pattern="[A-Za-zÁÉÍÓÚáéíúóÑñÜü ]{2,40}"
+                  className={
+                    validationState.primer_apellido === true
+                      ? "valido"
+                      : validationState.primer_apellido === false
+                        ? "invalido"
+                        : ""
+                  }
+                />
+                <div
+                  className="mensaje-error"
+                  style={{ display: messages.errorPrimerApellido ? "block" : "none" }}
+                >
+                  {messages.errorPrimerApellido}
+                </div>
+                <div
+                  className="mensaje-exito"
+                  style={{ display: messages.exitoPrimerApellido ? "block" : "none" }}
+                >
+                  {messages.exitoPrimerApellido}
+                </div>
+              </div>
 
-          {/* Confirmación correo */}
-          <div className="form-group">
-            <label htmlFor="confirmarCorreo">Confirmar correo electrónico *</label>
-            <input
-              type="email"
-              id="confirmarCorreo"
-              name="confirmarCorreo"
-              required
-              placeholder="Repite tu correo electrónico"
-            />
-            <div className="mensaje-error" id="errorConfirmarCorreo"></div>
-            <div className="mensaje-exito" id="exitoConfirmarCorreo"></div>
-          </div>
-
-          {/* Password */}
-          <div className="form-group">
-            <label htmlFor="password">Clave *</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              required
-              placeholder="Mínimo 8 caracteres"
-              minLength="8"
-            />
-            <div className="password-strength" id="strengthBar"></div>
-            <div className="mensaje-error" id="errorPassword"></div>
-            <div className="mensaje-exito" id="exitoPassword"></div>
-          </div>
-
-          {/* Confirmación Password */}
-          <div className="form-group">
-            <label htmlFor="confirmarPassword">Confirmar clave *</label>
-            <input
-              type="password"
-              id="confirmarPassword"
-              name="confirmarPassword"
-              required
-              placeholder="Repite tu contraseña"
-            />
-            <div className="mensaje-error" id="errorConfirmar"></div>
-            <div className="mensaje-exito" id="exitoConfirmar"></div>
-          </div>
-
-          {/* Nacionalidad */}
-          <div className="form-group">
-            <label htmlFor="nacionalidad">Seleccionar tu nacionalidad *</label>
-            <select name="nacionalidad" id="nacionalidad" required>
-              <option value="" disabled selected>Selecciona una opción</option>
-              <option value="afganistan">Afganistán</option>
-              <option value="albania">Albania</option>
-              <option value="alemania">Alemania</option>
-              <option value="andorra">Andorra</option>
-              <option value="angola">Angola</option>
-              <option value="antigua-barbuda">Antigua y Barbuda</option>
-              <option value="arabia-saudita">Arabia Saudita</option>
-              <option value="argelia">Argelia</option>
-              <option value="argentina">Argentina</option>
-              <option value="armenia">Armenia</option>
-              <option value="australia">Australia</option>
-              <option value="austria">Austria</option>
-              <option value="azerbaiyan">Azerbaiyán</option>
-              <option value="bahamas">Bahamas</option>
-              <option value="bangladesh">Bangladés</option>
-              <option value="barbados">Barbados</option>
-              <option value="barein">Baréin</option>
-              <option value="belgica">Bélgica</option>
-              <option value="belice">Belice</option>
-              <option value="benin">Benín</option>
-              <option value="bielorrusia">Bielorrusia</option>
-              <option value="birmania">Birmania</option>
-              <option value="bolivia">Bolivia</option>
-              <option value="bosnia">Bosnia y Herzegovina</option>
-              <option value="botsuana">Botsuana</option>
-              <option value="brasil">Brasil</option>
-              <option value="brunei">Brunéi</option>
-              <option value="bulgaria">Bulgaria</option>
-              <option value="burkina-faso">Burkina Faso</option>
-              <option value="burundi">Burundi</option>
-              <option value="butan">Bután</option>
-              <option value="cabo-verde">Cabo Verde</option>
-              <option value="camboya">Camboya</option>
-              <option value="camerun">Camerún</option>
-              <option value="canada">Canadá</option>
-              <option value="catar">Catar</option>
-              <option value="chad">Chad</option>
-              <option value="chile">Chile</option>
-              <option value="china">China</option>
-              <option value="chipre">Chipre</option>
-              <option value="colombia">Colombia</option>
-              <option value="comoras">Comoras</option>
-              <option value="corea-norte">Corea del Norte</option>
-              <option value="corea-sur">Corea del Sur</option>
-              <option value="costa-marfil">Costa de Marfil</option>
-              <option value="costa-rica">Costa Rica</option>
-              <option value="croacia">Croacia</option>
-              <option value="cuba">Cuba</option>
-              <option value="dinamarca">Dinamarca</option>
-              <option value="dominica">Dominica</option>
-              <option value="ecuador">Ecuador</option>
-              <option value="egipto">Egipto</option>
-              <option value="el-salvador">El Salvador</option>
-              <option value="emiratos-arabes">Emiratos Árabes Unidos</option>
-              <option value="eritrea">Eritrea</option>
-              <option value="eslovaquia">Eslovaquia</option>
-              <option value="eslovenia">Eslovenia</option>
-              <option value="espana">España</option>
-              <option value="estados-unidos">Estados Unidos</option>
-              <option value="estonia">Estonia</option>
-              <option value="etiopia">Etiopía</option>
-              <option value="filipinas">Filipinas</option>
-              <option value="finlandia">Finlandia</option>
-              <option value="fiyi">Fiyi</option>
-              <option value="francia">Francia</option>
-              <option value="gabon">Gabón</option>
-              <option value="gambia">Gambia</option>
-              <option value="georgia">Georgia</option>
-              <option value="ghana">Ghana</option>
-              <option value="granada">Granada</option>
-              <option value="grecia">Grecia</option>
-              <option value="guatemala">Guatemala</option>
-              <option value="guinea">Guinea</option>
-              <option value="guinea-bisau">Guinea-Bisáu</option>
-              <option value="guinea-ecuatorial">Guinea Ecuatorial</option>
-              <option value="guyana">Guyana</option>
-              <option value="haiti">Haití</option>
-              <option value="honduras">Honduras</option>
-              <option value="hungria">Hungría</option>
-              <option value="india">India</option>
-              <option value="indonesia">Indonesia</option>
-              <option value="irak">Irak</option>
-              <option value="iran">Irán</option>
-              <option value="irlanda">Irlanda</option>
-              <option value="islandia">Islandia</option>
-              <option value="islas-marshall">Islas Marshall</option>
-              <option value="islas-salomon">Islas Salomón</option>
-              <option value="israel">Israel</option>
-              <option value="italia">Italia</option>
-              <option value="jamaica">Jamaica</option>
-              <option value="japon">Japón</option>
-              <option value="jordania">Jordania</option>
-              <option value="kazajistan">Kazajistán</option>
-              <option value="kenia">Kenia</option>
-              <option value="kirguistan">Kirguistán</option>
-              <option value="kiribati">Kiribati</option>
-              <option value="kosovo">Kosovo</option>
-              <option value="kuwait">Kuwait</option>
-              <option value="laos">Laos</option>
-              <option value="letonia">Letonia</option>
-              <option value="libano">Líbano</option>
-              <option value="liberia">Liberia</option>
-              <option value="libia">Libia</option>
-              <option value="liechtenstein">Liechtenstein</option>
-              <option value="lituania">Lituania</option>
-              <option value="luxemburgo">Luxemburgo</option>
-              <option value="madagascar">Madagascar</option>
-              <option value="malasia">Malasia</option>
-              <option value="malaui">Malaui</option>
-              <option value="maldivas">Maldivas</option>
-              <option value="mali">Malí</option>
-              <option value="malta">Malta</option>
-              <option value="marruecos">Marruecos</option>
-              <option value="mauricio">Mauricio</option>
-              <option value="mauritania">Mauritania</option>
-              <option value="mexico">México</option>
-              <option value="micronesia">Micronesia</option>
-              <option value="moldavia">Moldavia</option>
-              <option value="monaco">Mónaco</option>
-              <option value="mongolia">Mongolia</option>
-              <option value="montenegro">Montenegro</option>
-              <option value="mozambique">Mozambique</option>
-              <option value="namibia">Namibia</option>
-              <option value="nauru">Nauru</option>
-              <option value="nepal">Nepal</option>
-              <option value="nicaragua">Nicaragua</option>
-              <option value="niger">Níger</option>
-              <option value="nigeria">Nigeria</option>
-              <option value="noruega">Noruega</option>
-              <option value="nueva-zelanda">Nueva Zelanda</option>
-              <option value="oman">Omán</option>
-              <option value="paises-bajos">Países Bajos</option>
-              <option value="pakistan">Pakistán</option>
-              <option value="palaos">Palaos</option>
-              <option value="palestina">Palestina</option>
-              <option value="panama">Panamá</option>
-              <option value="papua-nueva-guinea">Papúa Nueva Guinea</option>
-              <option value="paraguay">Paraguay</option>
-              <option value="peru">Perú</option>
-              <option value="polonia">Polonia</option>
-              <option value="portugal">Portugal</option>
-              <option value="reino-unido">Reino Unido</option>
-              <option value="republica-centroafricana">República Centroafricana</option>
-              <option value="republica-checa">República Checa</option>
-              <option value="republica-congo">República del Congo</option>
-              <option value="republica-democratica-congo">República Democrática del Congo</option>
-              <option value="republica-dominicana">República Dominicana</option>
-              <option value="ruanda">Ruanda</option>
-              <option value="rumania">Rumanía</option>
-              <option value="rusia">Rusia</option>
-              <option value="samoa">Samoa</option>
-              <option value="san-cristobal-nieves">San Cristóbal y Nieves</option>
-              <option value="san-marino">San Marino</option>
-              <option value="san-vicente-granadinas">San Vicente y las Granadinas</option>
-              <option value="santa-lucia">Santa Lucía</option>
-              <option value="santo-tome-principe">Santo Tomé y Príncipe</option>
-              <option value="senegal">Senegal</option>
-              <option value="serbia">Serbia</option>
-              <option value="seychelles">Seychelles</option>
-              <option value="sierra-leona">Sierra Leona</option>
-              <option value="singapur">Singapur</option>
-              <option value="siria">Siria</option>
-              <option value="somalia">Somalia</option>
-              <option value="sri-lanka">Sri Lanka</option>
-              <option value="suazilandia">Suazilandia</option>
-              <option value="sudafrica">Sudáfrica</option>
-              <option value="sudan">Sudán</option>
-              <option value="sudan-sur">Sudán del Sur</option>
-              <option value="suecia">Suecia</option>
-              <option value="suiza">Suiza</option>
-              <option value="surinam">Surinam</option>
-              <option value="tailandia">Tailandia</option>
-              <option value="tanzania">Tanzania</option>
-              <option value="tayikistan">Tayikistán</option>
-              <option value="timor-oriental">Timor Oriental</option>
-              <option value="togo">Togo</option>
-              <option value="tonga">Tonga</option>
-              <option value="trinidad-tobago">Trinidad y Tobago</option>
-              <option value="tunez">Túnez</option>
-              <option value="turkmenistan">Turkmenistán</option>
-              <option value="turquia">Turquía</option>
-              <option value="tuvalu">Tuvalu</option>
-              <option value="ucrania">Ucrania</option>
-              <option value="uganda">Uganda</option>
-              <option value="uruguay">Uruguay</option>
-              <option value="uzbekistan">Uzbekistán</option>
-              <option value="vanuatu">Vanuatu</option>
-              <option value="vaticano">Vaticano</option>
-              <option value="venezuela">Venezuela</option>
-              <option value="vietnam">Vietnam</option>
-              <option value="yemen">Yemen</option>
-              <option value="zambia">Zambia</option>
-              <option value="zimbabwe">Zimbabue</option>
-            </select>
-            <div id="errorNacionalidad" className="mensaje-error"></div>
-            <div id="exitoNacionalidad" className="mensaje-exito"></div>
-          </div>
-
-          {/* Intereses */}
-          <div className="form-group-Intereses">
-            <label htmlFor="intereses">Intereses Turísticos *</label>
-
-            <div className="tablas-container" id="contenedor-intereses">
-              {/* TABLA IZQUIERDA */}
-              <table className="tabla-intereses">
-                <tbody>
-                  <tr><td className="checkbox-col"><input type="checkbox" name="intereses" value="Aventureros" /></td><td className="texto-col">Aventureros</td></tr>
-                  <tr><td className="checkbox-col"><input type="checkbox" name="intereses" value="Arte" /></td><td className="texto-col">Arte</td></tr>
-                  <tr><td className="checkbox-col"><input type="checkbox" name="intereses" value="Cine" /></td><td className="texto-col">Cine</td></tr>
-                  <tr><td className="checkbox-col"><input type="checkbox" name="intereses" value="Compras" /></td><td className="texto-col">Compras</td></tr>
-                  <tr><td className="checkbox-col"><input type="checkbox" name="intereses" value="Gastronomía" /></td><td className="texto-col">Gastronomía</td></tr>
-                  <tr><td className="checkbox-col"><input type="checkbox" name="intereses" value="Historia" /></td><td className="texto-col">Historia</td></tr>
-                  <tr><td className="checkbox-col"><input type="checkbox" name="intereses" value="Museos" /></td><td className="texto-col">Museos</td></tr>
-                  <tr><td className="checkbox-col"><input type="checkbox" name="intereses" value="Naturaleza" /></td><td className="texto-col">Naturaleza</td></tr>
-                  <tr><td className="checkbox-col"><input type="checkbox" name="intereses" value="Parques" /></td><td className="texto-col">Parques</td></tr>
-                  <tr><td className="checkbox-col"><input type="checkbox" name="intereses" value="Bares" /></td><td className="texto-col">Bares</td></tr>
-                </tbody>
-              </table>
-
-              {/* TABLA DERECHA */}
-              <table className="tabla-intereses" id="intereses">
-                <tbody>
-                  <tr><td className="checkbox-col"><input type="checkbox" name="intereses" value="Danza" /></td><td className="texto-col">Danza</td></tr>
-                  <tr><td className="checkbox-col"><input type="checkbox" name="intereses" value="Cultura" /></td><td className="texto-col">Cultura</td></tr>
-                  <tr><td className="checkbox-col"><input type="checkbox" name="intereses" value="Fotografía" /></td><td className="texto-col">Fotografía</td></tr>
-                  <tr><td className="checkbox-col"><input type="checkbox" name="intereses" value="Deportes" /></td><td className="texto-col">Deportes</td></tr>
-                  <tr><td className="checkbox-col"><input type="checkbox" name="intereses" value="Playa" /></td><td className="texto-col">Playa</td></tr>
-                  <tr><td className="checkbox-col"><input type="checkbox" name="intereses" value="Montaña" /></td><td className="texto-col">Montaña</td></tr>
-                  <tr><td className="checkbox-col"><input type="checkbox" name="intereses" value="Arquitectura" /></td><td className="texto-col">Arquitectura</td></tr>
-                  <tr><td className="checkbox-col"><input type="checkbox" name="intereses" value="Religión" /></td><td className="texto-col">Religión</td></tr>
-                  <tr><td className="checkbox-col"><input type="checkbox" name="intereses" value="Eventos" /></td><td className="texto-col">Eventos</td></tr>
-                  <tr><td className="checkbox-col"><input type="checkbox" name="intereses" value="Discotecas" /></td><td className="texto-col">Discotecas</td></tr>
-                </tbody>
-              </table>
+              {/* Segundo Apellido (opcional) */}
+              <div className="form-group">
+                <label htmlFor="segundo_apellido">Segundo Apellido</label>
+                <input
+                  type="text"
+                  id="segundo_apellido"
+                  name="segundo_apellido"
+                  value={formData.segundo_apellido || ""}
+                  onChange={(e) => {
+                    handleInputChange(e);
+                    validateSegundoApellido(e.target.value);
+                  }}
+                  placeholder="Ej: López"
+                  pattern="[A-Za-zÁÉÍÓÚáéíúóÑñÜü ]{2,40}"
+                  className={
+                    validationState.segundo_apellido === true
+                      ? "valido"
+                      : validationState.segundo_apellido === false
+                        ? "invalido"
+                        : ""
+                  }
+                />
+                <div
+                  className="mensaje-error"
+                  style={{ display: messages.errorSegundoApellido ? "block" : "none" }}
+                >
+                  {messages.errorSegundoApellido}
+                </div>
+                <div
+                  className="mensaje-exito"
+                  style={{ display: messages.exitoSegundoApellido ? "block" : "none" }}
+                >
+                  {messages.exitoSegundoApellido}
+                </div>
+              </div>
             </div>
-            <div id="exitoIntereses" className="mensaje-exito"></div>
-            <div id="errorIntereses" className="mensaje-error"></div>
-          </div>
 
-          {/* Términos */}
-          <div className="form-group">
-            <input type="checkbox" id="terminos" name="terminos" required />
-            <label htmlFor="terminos" style={{ display: "inline", marginLeft: "8px" }}>
-              Acepto los términos y condiciones *
-            </label>
-            <div className="mensaje-error" id="errorTerminos"></div>
-          </div>
+            {/* Email con validación mejorada */}
+            <div className="form-group">
+              <label htmlFor="correo">Correo Electrónico *</label>
+              <input
+                type="email"
+                id="correo"
+                name="correo"
+                value={formData.correo}
+                onChange={handleInputChange}
+                required
+                placeholder="usuario@dominio.com"
+                pattern="^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$"
+                className={
+                  validationState.correo === true
+                    ? "valido"
+                    : validationState.correo === false
+                      ? "invalido"
+                      : ""
+                }
+              />
 
-          <button type="submit" id="btnEnviar">
-            Enviar Formulario &#x1f600;
-            
-          </button>
-             <p className="register-link">
-          ¿Ya tienes cuenta? <a href="./login">Iniciar Sesión</a>
-        </p>
+              <div
+                className="mensaje-error"
+                id="errorCorreo"
+                style={{ display: messages.errorCorreo ? "block" : "none" }}
+              >
+                {messages.errorCorreo}
+              </div>
+              <div
+                className="mensaje-exito"
+                id="exitoCorreo"
+                style={{ display: messages.exitoCorreo ? "block" : "none" }}
+              >
+                {messages.exitoCorreo}
+              </div>
+            </div>
+
+            {/*Confirmación de Correo electronico */}
+            <div className="form-group">
+              <label htmlFor="confirmarCorreo">
+                Confirmar correo electronico *
+              </label>
+              <input
+                type="email"
+                id="confirmarCorreo"
+                name="confirmarCorreo"
+                value={formData.confirmarCorreo}
+                onChange={handleInputChange}
+                required
+                placeholder="Repite tu correo electronico"
+                className={
+                  validationState.confirmarCorreo === true
+                    ? "valido"
+                    : validationState.confirmarCorreo === false
+                      ? "invalido"
+                      : ""
+                }
+              />
+              <div
+                className="mensaje-error"
+                id="errorConfirmarCorreo"
+                style={{
+                  display: messages.errorConfirmarCorreo ? "block" : "none",
+                }}
+              >
+                {messages.errorConfirmarCorreo}
+              </div>
+              <div
+                className="mensaje-exito"
+                id="exitoConfirmarCorreo"
+                style={{
+                  display: messages.exitoConfirmarCorreo ? "block" : "none",
+                }}
+              >
+                {messages.exitoConfirmarCorreo}
+              </div>
+            </div>
+
+            {/* Clave con indicador de fortaleza */}
+            <div className="form-group">
+              <label htmlFor="clave">Clave *</label>
+              <input
+                type="password"
+                id="clave"
+                name="clave"
+                value={formData.clave}
+                onChange={handleInputChange}
+                required
+                placeholder="Mínimo 8 caracteres"
+                minLength="8"
+                className={
+                  validationState.clave === true
+                    ? "valido"
+                    : validationState.clave === false
+                      ? "invalido"
+                      : ""
+                }
+              />
+
+              {/* Indicador visual de fortaleza */}
+              <div className="password-strength-container">
+                <div
+                  className="password-strength-bar"
+                  style={{
+                    width: `${(passwordStrength.nivel / 4) * 100}%`,
+                    backgroundColor: passwordStrength.color
+                  }}
+                ></div>
+                <small
+                  style={{
+                    color: passwordStrength.color,
+                    marginTop: "2px",
+                    display: "block"
+                  }}
+                >
+                  {formData.clave.length > 0 && passwordStrength.texto}
+                </small>
+              </div>
+
+              <div
+                className="mensaje-error"
+                style={{ display: messages.errorClave ? "block" : "none" }}
+              >
+                {messages.errorClave}
+              </div>
+              <div
+                className="mensaje-exito"
+                style={{ display: messages.exitoClave ? "block" : "none" }}
+              >
+                {messages.exitoClave}
+              </div>
+            </div>
+
+
+            {/* Confirmación de clave */}
+            <div className="form-group">
+              <label htmlFor="confirmarClave">Confirmar clave *</label>
+              <input
+                type="password"
+                id="confirmarClave"
+                name="confirmarClave"
+                value={formData.confirmarClave}
+
+                onChange={handleInputChange}
+                required
+                placeholder="Repite tu contraseña"
+                className={
+                  validationState.ConfirmarClave === true
+                    ? "valido"
+                    : validationState.ConfirmarClave === false
+                      ? "invalido"
+                      : ""
+                }
+              />
+              <div
+                className="mensaje-error"
+                id="errorConfirmar"
+                style={{
+                  display: messages.errorConfirmarClave ? "block" : "none",
+                }}
+              >
+                {messages.errorConfirmarClave}
+              </div>
+              <div
+                className="mensaje-exito"
+                id="exitoConfirmar"
+                style={{
+                  display: messages.exitoConfirmarClave ? "block" : "none",
+                }}
+              >
+                {messages.exitoConfirmarClave}
+              </div>
+            </div>
+
+            {/* Nacionalidad con seleccionar - DINÁMICO */}
+            <div className="form-group">
+              <label htmlFor="nacionalidad">
+                Seleccionar tu nacionalidad *
+              </label>
+              <select
+                name="nacionalidad"
+                id="nacionalidad"
+                value={formData.nacionalidad}
+                onChange={handleInputChange}
+                required
+                disabled={loadingNacionalidades}
+                className={
+                  validationState.nacionalidad === true
+                    ? "valido"
+                    : validationState.nacionalidad === false
+                      ? "invalido"
+                      : ""
+                }
+              >
+                {renderNacionalidades()}
+              </select>
+              {validatingNacionalidad && (
+                <small style={{ color: '#17a2b8' }}>Verificando nacionalidad...</small>
+              )}
+              <div
+                id="errorNacionalidad"
+                className="mensaje-error"
+                style={{
+                  display: messages.errorNacionalidad ? "block" : "none",
+                }}
+              >
+                {messages.errorNacionalidad}
+              </div>
+              <div
+                id="exitoNacionalidad"
+                className="mensaje-exito"
+                style={{
+                  display: messages.exitoNacionalidad ? "block" : "none",
+                }}
+              >
+                {messages.exitoNacionalidad}
+              </div>
+            </div>
+
+            {/* Intereses Turísticos - DINÁMICOS */}
+            <div className={`form-group-Intereses ${validationState.intereses === true
+              ? "valido"
+              : validationState.intereses === false
+                ? "invalido"
+                : ""
+              }`}>
+              <label htmlFor="intereses">Intereses Turísticos *</label>
+              {loadingIntereses && (
+                <p style={{ textAlign: 'center', color: '#666' }}>
+                  Cargando intereses disponibles...
+                </p>
+              )}
+
+              <div className="tablas-container" id="contenedor-intereses">
+                {/* TABLA IZQUIERDA */}
+                <table className="tabla-intereses">
+                  <tbody>
+                    {Array.isArray(interesesRenderizados)
+                      ? interesesRenderizados.slice(0, Math.ceil(interesesRenderizados.length / 2))
+                      : interesesRenderizados.primeraColumna || []}
+                  </tbody>
+                </table>
+
+                {/* TABLA DERECHA */}
+                <table className="tabla-intereses">
+                  <tbody>
+                    {Array.isArray(interesesRenderizados)
+                      ? interesesRenderizados.slice(Math.ceil(interesesRenderizados.length / 2))
+                      : interesesRenderizados.segundaColumna || []}
+                  </tbody>
+                </table>
+              </div>
+
+              <div
+                className="mensaje-error"
+                style={{ display: messages.errorIntereses ? "block" : "none" }}
+              >
+                {messages.errorIntereses}
+              </div>
+              <div
+                className="mensaje-exito"
+                style={{ display: messages.exitoIntereses ? "block" : "none" }}
+              >
+                {messages.exitoIntereses}
+              </div>
+            </div>
+
+            {/* Términos y condiciones */}
+            <div className="form-group">
+              <label
+                htmlFor="terminos"
+                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+              >
+                <input
+                  type="checkbox"
+                  id="terminos"
+                  name="terminos"
+                  required
+                  checked={formData.terminos}
+                  onChange={handleInputChange}
+                />
+                Acepto los términos y condiciones *
+              </label>
+              <div
+                className="mensaje-error"
+                style={{ display: messages.errorTerminos ? "block" : "none" }}
+              >
+                {messages.errorTerminos}
+              </div>
+              <div
+                className="mensaje-exito"
+                style={{ display: messages.exitoTerminos ? "block" : "none" }}
+              >
+                {messages.exitoTerminos}
+              </div>
+            </div>
+
+            {/* Botón de envío */}
+            <div className="form-group">
+              <button
+                type="submit"
+                id="btnEnviar"
+                disabled={!formularioCompleto() || validatingEmail || validatingNacionalidad}
+                className={
+                  (formularioCompleto() && !validatingEmail && !validatingNacionalidad)
+                    ? "btn-habilitado"
+                    : "btn-deshabilitado"
+                }
+              >
+                {(validatingEmail || validatingNacionalidad)
+                  ? "Validando..."
+                  : "Registrarse"
+                }
+              </button>
+            </div>
+          </div>
         </form>
       </div>
     </>
