@@ -1,6 +1,5 @@
 import "../assets/css/FormSignUp.css";
 import useFormValidation from "../Hooks/useFormValidation";
-import Logo from "../assets/img/BogotaTurisLogo.png";
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; 
 

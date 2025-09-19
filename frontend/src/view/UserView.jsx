@@ -67,13 +67,23 @@ export default function UserView() {
   }, [usuarioId, navigate, fetchUsuarioData]);
 
   // Función para cerrar sesión
-  const handleLogout = () => {
-    localStorage.removeItem("usuario_id");
-    localStorage.removeItem("user_email");
-    localStorage.removeItem("token");
-    localStorage.removeItem("loginTime");
-    navigate("/login");
+const handleLogout = () => {
+  // 🔥 Eliminar token y datos del usuario
+  localStorage.removeItem("usuario_id");
+  localStorage.removeItem("user_email");
+  localStorage.removeItem("token");
+  localStorage.removeItem("loginTime");
+
+  // 🔒 Prevenir que vuelva atrás y vea la sesión
+  navigate("/login", { replace: true });
+
+  // Limpieza del historial del navegador
+  window.history.pushState(null, "", window.location.href);
+  window.onpopstate = function () {
+    navigate("/login", { replace: true });
   };
+};
+
 
   // Funciones para navegación
   const handleMiCuenta = () => {
