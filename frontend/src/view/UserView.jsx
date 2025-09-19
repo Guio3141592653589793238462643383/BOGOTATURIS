@@ -7,102 +7,101 @@ import Data from '../utils/data';
 import Modal from '../Pages/Modal';
 import { useParams, useNavigate } from "react-router-dom";
 
-
-
 export default function UserView() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const { userId } = useParams();
-const usuarioId = userId || localStorage.getItem("usuario_id");
-
+  const usuarioId = userId || localStorage.getItem("usuario_id");
 
   // Estados existentes
   const [selectedCard, setSelectedCard] = useState(null);
   const [isBienvenidoOpen, setIsBienvenidoOpen] = useState(false);
   
-  // NUEVOS ESTADOS para manejo de usuario
+  // Estados para manejo de usuario
   const [usuarioData, setUsuarioData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+  const [showProfile, setShowProfile] = useState(false);
 
+  // 🔧 Función optimizada para obtener datos básicos del perfil
+  const fetchUsuarioData = useCallback(async (id) => {
+    try {
+      console.log(`🔄 [USER] Cargando perfil básico del usuario ID: ${id}`);
+      setLoading(true);
+      
+      const response = await fetch(`http://localhost:8000/api/usuario/perfil/${id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
-  const API_BASE_URL = "http://localhost:8000";
-
-const fetchUsuarioData = useCallback(async (id) => {
-  try {
-    console.log(`🔄 [USER] Cargando datos del usuario ID: ${id}`);
-
-    setLoading(true);
-    
-    const response = await fetch(`http://localhost:8000/api/usuario/perfil/${id}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      console.log("✅ [USER] Datos del usuario cargados:", data);
-      setUsuarioData(data);
-      setError(null);
-    } else if (response.status === 404) {
-      setError("Usuario no encontrado");
-      navigate("/login");
-    } else {
-      setError("Error al cargar los datos del usuario");
+      if (response.ok) {
+        const data = await response.json();
+        console.log("✅ [USER] Perfil básico cargado:", data);
+        setUsuarioData(data);
+        setError(null);
+      } else if (response.status === 404) {
+        console.log("❌ [USER] Usuario no encontrado");
+        setError("Usuario no encontrado");
+        // Redirigir al login después de 2 segundos
+        setTimeout(() => navigate("/login"), 2000);
+      } else {
+        setError("Error al cargar los datos del usuario");
+      }
+    } catch (error) {
+      console.error("💥 [USER] Error de conexión:", error);
+      setError("Error de conexión con el servidor");
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("💥 [USER] Error:", error);
-    setError("Error de conexión");
-  } finally {
-    setLoading(false);
-  }
-}, [navigate]);
+  }, [navigate]);
 
-  // EFECTO PARA CARGAR DATOS AL MONTAR EL COMPONENTE
-useEffect(() => {
-  if (!usuarioId) {
-    console.log("❌ [USER] No hay ID de usuario, redirigiendo a login");
-    navigate("/login");
-    return;
-  }
-  fetchUsuarioData(usuarioId);
-}, [usuarioId, navigate, fetchUsuarioData]);
+  // Cargar datos al montar el componente
+  useEffect(() => {
+    if (!usuarioId) {
+      console.log("❌ [USER] No hay ID de usuario, redirigiendo a login");
+      navigate("/login");
+      return;
+    }
+    fetchUsuarioData(usuarioId);
+  }, [usuarioId, navigate, fetchUsuarioData]);
 
-
-
-  // FUNCIÓN PARA CERRAR SESIÓN
+  // Función para cerrar sesión
   const handleLogout = () => {
     localStorage.removeItem("usuario_id");
     localStorage.removeItem("user_email");
     localStorage.removeItem("token");
+    localStorage.removeItem("loginTime");
     navigate("/login");
   };
 
-  // FUNCIONES PARA NAVEGACIÓN
+  // Funciones para navegación
   const handleMiCuenta = () => {
-    // EN VEZ DE NAVEGAR, MOSTRAR MODAL O SECCIÓN DE PERFIL
-    // eslint-disable-next-line no-undef
-    setShowProfile(true); // O crear un estado para mostrar perfil
+    setShowProfile(true);
+    setIsBienvenidoOpen(false);
   };
 
   const handleCambiarPassword = () => {
     navigate(`/usuario/${usuarioId}/cambiar-password`);
+    setIsBienvenidoOpen(false);
   };
 
   const handleCambiarIntereses = () => {
     navigate(`/usuario/${usuarioId}/cambiar-intereses`);
+    setIsBienvenidoOpen(false);
   };
 
   const toggleBienvenido = () => {
     setIsBienvenidoOpen(!isBienvenidoOpen);
   };
 
-  // Cerrar modal con Escape
+  // Cerrar modales con Escape
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === 'Escape') setSelectedCard(null);
+      if (e.key === 'Escape') {
+        setSelectedCard(null);
+        setShowProfile(false);
+      }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -110,23 +109,32 @@ useEffect(() => {
 
   const data = Data();
 
-  // MOSTRAR LOADING
+  // 🔄 Pantalla de carga
   if (loading) {
     return (
       <div className="loading-container" style={{
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        height: '100vh'
+        height: '100vh',
+        flexDirection: 'column'
       }}>
-        <div className="loading-spinner">
-          <h2>Cargando tu perfil...</h2>
-        </div>
+        <div className="loading-spinner" style={{
+          border: '4px solid #f3f3f3',
+          borderTop: '4px solid #3498db',
+          borderRadius: '50%',
+          width: '50px',
+          height: '50px',
+          animation: 'spin 1s linear infinite',
+          marginBottom: '20px'
+        }}></div>
+        <h2>Cargando tu perfil...</h2>
+        <p>Obteniendo información del usuario {usuarioId}</p>
       </div>
     );
   }
 
-  // MOSTRAR ERROR
+  // ❌ Pantalla de error
   if (error) {
     return (
       <div className="error-container" style={{
@@ -134,21 +142,33 @@ useEffect(() => {
         justifyContent: 'center',
         alignItems: 'center',
         height: '100vh',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        backgroundColor: '#f8f9fa'
       }}>
-        <div className="error-message">
-          <h2>Error: {error}</h2>
+        <div className="error-message" style={{
+          textAlign: 'center',
+          padding: '40px',
+          backgroundColor: 'white',
+          borderRadius: '10px',
+          boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+        }}>
+          <h2 style={{ color: '#e74c3c', marginBottom: '20px' }}>⚠️ {error}</h2>
+          <p style={{ marginBottom: '20px' }}>
+            {error.includes("conexión") 
+              ? "Verifica tu conexión a internet y que el servidor esté ejecutándose."
+              : "Serás redirigido al login en unos segundos..."
+            }
+          </p>
           <button 
             onClick={() => navigate("/login")} 
-            className="btn-primary"
             style={{
-              padding: '10px 20px',
-              backgroundColor: '#007bff',
+              padding: '12px 24px',
+              backgroundColor: '#3498db',
               color: 'white',
               border: 'none',
               borderRadius: '5px',
               cursor: 'pointer',
-              marginTop: '10px'
+              fontSize: '16px'
             }}
           >
             Volver al Login
@@ -158,6 +178,7 @@ useEffect(() => {
     );
   }
 
+  // ✅ Vista principal con datos del usuario
   return (
     <>
       <nav className="nav">
@@ -235,6 +256,54 @@ useEffect(() => {
         onClose={() => setSelectedCard(null)} 
         card={selectedCard} 
       />
+
+      {/* 👤 Modal de perfil básico */}
+      {showProfile && usuarioData && (
+        <div className="modal-overlay" onClick={() => setShowProfile(false)}>
+          <div className="profile-modal" onClick={e => e.stopPropagation()}>
+            <div className="profile-header">
+              <h3>Mi Perfil</h3>
+              <button 
+                className="close-btn" 
+                onClick={() => setShowProfile(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="profile-content">
+              <div className="profile-field">
+                <label>Nombre Completo:</label>
+                <span>
+                  {usuarioData.primer_nombre} 
+                  {usuarioData.segundo_nombre ? ` ${usuarioData.segundo_nombre}` : ''} 
+                  {usuarioData.primer_apellido} 
+                  {usuarioData.segundo_apellido ? ` ${usuarioData.segundo_apellido}` : ''}
+                </span>
+              </div>
+              <div className="profile-field">
+                <label>Email:</label>
+                <span>{usuarioData.correo}</span>
+              </div>
+              <div className="profile-field">
+                <label>Nacionalidad:</label>
+                <span>{usuarioData.nacionalidad}</span>
+              </div>
+              <div className="profile-field">
+                <label>ID de Usuario:</label>
+                <span>{usuarioData.id_usuario}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CSS para la animación del spinner */}
+      <style jsx>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
     </>
   );
 }

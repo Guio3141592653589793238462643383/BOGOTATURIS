@@ -48,6 +48,8 @@ function App() {
         <Route path="/cambiar-password" element={<CambiarPassword />} />
         <Route path="/cambiar-intereses" element={<CambiarIntereses />} />
         <Route path="/comentarios" element={<EliminarComentarios />} />
+        <Route path="/usuario/:userId/editar-perfil" element={<Perfil />} />
+
     
       </Routes>
 

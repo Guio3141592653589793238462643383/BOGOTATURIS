@@ -392,4 +392,107 @@ button:disabled {
                 gap: 30px;
             }
         }
+/* Modal overlay - fondo oscuro */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-in-out;
+}
 
+/* Modal container */
+.welcome-modal {
+  background: linear-gradient(135deg, #e3f2fd 0%, #f8bbd9 50%, #ffcdd2 100%);
+  border-radius: 20px;
+  padding: 40px 30px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  max-width: 400px;
+  width: 90%;
+  position: relative;
+  animation: slideIn 0.4s ease-out;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Título del modal */
+.welcome-modal h2 {
+  color: #1565c0;
+  font-size: 28px;
+  margin-bottom: 15px;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Mensaje del modal */
+.welcome-modal p {
+  color: #424242;
+  font-size: 18px;
+  margin-bottom: 25px;
+  line-height: 1.4;
+}
+
+/* Botón del modal */
+.welcome-modal button {
+  background: linear-gradient(45deg, #42a5f5, #ec407a);
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.welcome-modal button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Icono decorativo */
+.welcome-icon {
+  font-size: 50px;
+  margin-bottom: 20px;
+  display: block;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .welcome-modal {
+    margin: 20px;
+    padding: 30px 20px;
+  }
+  
+  .welcome-modal h2 {
+    font-size: 24px;
+  }
+  
+  .welcome-modal p {
+    font-size: 16px;
+  }
+}

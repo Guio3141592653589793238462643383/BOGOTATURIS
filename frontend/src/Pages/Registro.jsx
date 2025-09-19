@@ -1,9 +1,12 @@
 import "../assets/css/FormSignUp.css";
 import useFormValidation from "../Hooks/useFormValidation";
 import Logo from "../assets/img/BogotaTurisLogo.png";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom'; 
 
 const FormSignUp = () => {
-
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const navigate = useNavigate();
   const {
     formData,
     validationState,
@@ -67,7 +70,7 @@ const FormSignUp = () => {
 
       if (response.ok) {
         console.log('Usuario registrado exitosamente:', resultado);
-        alert(`¡Registro exitoso! Bienvenido ${resultado.primer_nombre}`);
+        setShowWelcomeModal(true);
 
         // Limpiar formulario después del éxito
         resetForm();
@@ -198,6 +201,11 @@ const FormSignUp = () => {
   };
 
   const interesesRenderizados = renderIntereses();
+    const handleWelcomeClose = () => {
+    setShowWelcomeModal(false);
+    navigate('/login');
+
+  };
 
   return (
     <>
@@ -682,6 +690,20 @@ const FormSignUp = () => {
             </div>
           </div>
         </form>
+        {/* Modal de bienvenida */}
+      {showWelcomeModal && (
+        <div className="modal-overlay" onClick={() => setShowWelcomeModal(false)}>
+          <div className="welcome-modal" onClick={e => e.stopPropagation()}>
+            <div className="welcome-icon">🎉</div>
+            <h2>¡Registro Exitoso!</h2>
+            <p>Bienvenido a <strong>BogotaTuris</strong></p>
+            <p>¡Descubre los mejores lugares de nuestra hermosa ciudad!</p>
+            <button onClick={handleWelcomeClose}>
+              Comenzar mi aventura
+            </button>
+          </div>
+        </div>
+      )}
       </div>
     </>
   );

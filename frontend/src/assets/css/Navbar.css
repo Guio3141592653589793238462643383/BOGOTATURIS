@@ -11,11 +11,52 @@
 
 }
 
-.navbar-logo h1 {
-  margin: 0;
-  font-size: 1.8rem;
-  color: #333;
+.navbar .logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* espacio entre logo e h1 */
 }
+
+.navbar .logo img {
+  width: 45px;
+  height: auto;
+}
+
+.navbar .logo {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem; /* espacio entre logo e h1 */
+}
+
+.navbar .logo img {
+  width: 100px;   /* Aumenta el tamaño del logo */
+  height: 120px;  /* Mantiene proporción */
+}
+
+.navbar .logo h1 {
+  margin: 0;
+  font-size: 1.2rem; /* Mantén el texto pequeño */
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: #555;
+
+  /* Efecto borde + sombra */
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+
+  /* Efecto degradado en texto */
+  background: linear-gradient(90deg, #0077ff, #00c6ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  transition: transform 0.3s ease, text-shadow 0.3s ease;
+}
+
+.navbar .logo h1:hover {
+  transform: scale(1.05);
+  text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+}
+
 
 .navbar-links {
   display: flex;
@@ -38,3 +79,4 @@
   border-bottom: 2px solid #7a6bbf;
   padding-bottom: 2px;
 }
+

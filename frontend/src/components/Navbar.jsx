@@ -3,15 +3,17 @@ import { NavLink } from "react-router-dom";
 import "../assets/css/Navbar.css";
 import Dashboard from "../Pages/Dashboard";
 import Inicio from "../Pages/Inicio";
+import Logo from '../assets/img/BogotaTurisLogo.png';
+
 
 
 const Navbar = () => {
   return (
     <header className="navbar">
-      <div className="navbar-logo">
-        <img src="/img/logoBogotaTuris.png.png" alt="Bogotá Turis Logo" className="h-10 w-auto mr-2" />
-        <h1>BogotaTuris</h1>
-      </div>
+<div className="logo">
+  <img src={Logo} alt="Bogotá Turis Logo" />
+  <h1>BogotaTuris</h1>
+</div>
       <nav className="navbar-links">
         <NavLink to="/" className={({ isActive }) => isActive ? "activo" : ""}>Inicio</NavLink>
         <NavLink to="/registro" className={({ isActive }) => isActive ? "activo" : ""}>Registro</NavLink>
