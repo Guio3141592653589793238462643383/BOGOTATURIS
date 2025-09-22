@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { FaMobileAlt, FaTimes } from "react-icons/fa";
+import axios from "axios";
 import "../assets/css/ChatBot.css";
 
 const ChatBot = () => {
@@ -9,33 +10,37 @@ const ChatBot = () => {
   ]);
   const [input, setInput] = useState("");
 
-  // Manejar envío de mensaje
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return;
 
     // Mensaje del usuario
     const newMessage = { from: "user", text: input };
     setMessages((prev) => [...prev, newMessage]);
+    setInput("");
 
-    // Respuesta automática simple
-    setTimeout(() => {
-      const botReply = { from: "bot", text: "🤖 Entendido, pronto tendré una respuesta para ti." };
+    try {
+      // Petición al backend FastAPI
+      const response = await axios.post("http://localhost:8000/chat/", {
+        mensaje: input,
+      });
+
+      const botReply = { from: "bot", text: response.data.reply };
       setMessages((prev) => [...prev, botReply]);
-    }, 800);
-
-    setInput(""); // limpiar input
+    } catch (error) {
+      console.error(error);
+      const botReply = { from: "bot", text: "❌ Error al conectarse con el servidor." };
+      setMessages((prev) => [...prev, botReply]);
+    }
   };
 
   return (
     <div>
-      {/* Botón flotante */}
       {!isOpen && (
         <button className="chatbot-button" onClick={() => setIsOpen(true)}>
           <FaMobileAlt size={22} />
         </button>
       )}
 
-      {/* Ventana del chat */}
       {isOpen && (
         <div className="chatbot-window">
           <div className="chatbot-header">
