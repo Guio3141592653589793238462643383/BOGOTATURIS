@@ -1,15 +1,42 @@
-import { useState } from "react";
 import "../assets/css/FormSignUp.css";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import logoUser  from "../assets/img/user.png";
 import Logo from "../assets/img/BogotaTurisLogo.png";
 
 function CambiarPassword() {
   const [mensaje, setMensaje] = useState("");
+  const { userId } = useParams();
+  const navigate = useNavigate();
+  const usuarioId = userId || localStorage.getItem("usuario_id");
+  const [usuarioData, setUsuarioData] = useState(null);
   const [password, setPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  useEffect(() => {
+    if (!usuarioId) {
+      navigate("/login");
+      return;
+    }
+    const fetchUsuarioData = async () => {
+      try {
+        const response = await fetch(`http://localhost:8000/api/usuario/perfil/${usuarioId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setUsuarioData(data);
+        } else {
+          // Manejar error si quieres
+        }
+      } catch (error) {
+        // Manejar error si quieres
+      }
+    };
+    fetchUsuarioData();
+  }, [usuarioId, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,7 +46,7 @@ function CambiarPassword() {
     }
 
     try {
-      const res = await fetch("http://localhost:8000/api/usuario/cambiar-password", {
+      const res = await fetch(`http://localhost:8000/api/usuario/cambiar-password/${usuarioId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -43,88 +70,102 @@ function CambiarPassword() {
     }
   };
 
+  const handleCambiarIntereses = () => {
+    navigate(`/usuario/${usuarioId}/cambiar-intereses`);
+  };
+
   return (
     <>
       <nav className="nav">
         <div className="container1">
           <div className="logo">
             <img src={Logo} alt="BogotaTuris Logo" />
+            <h1>BogotaTuris</h1>
           </div>
           <ul className="nav-links">
-            <li><a href="#">Inicio</a></li>
-            <li><a href="#">Cerrar Sesión</a></li>
+            <li className="nav-item dropdown">
+              <a className="nav-link dropdown-toggle" href="#" id="userDropdown" role="button">
+                <strong className="user-section">
+                  Bienvenido {usuarioData?.correo || "Usuario"}
+                  <img src={logoUser } alt="Logo Usuario" className="user-logo" />
+                </strong>
+              </a>
+              <ul className="dropdown-menu" aria-labelledby="userDropdown">
+                <li>
+                  <a className="dropdown-item" onClick={handleCambiarIntereses}>
+                    Cambiar Intereses
+                  </a>
+                </li>
+              </ul>
+            </li>
           </ul>
         </div>
       </nav>
 
-      <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-lg">
-        <h2 className="text-xl font-bold mb-4">Cambiar Contraseña</h2>
-        {mensaje && <div className="mb-4">{mensaje}</div>}
+<form onSubmit={handleSubmit} className="form-container1">
+  <div className="form-group1 relative">
+    <label htmlFor="password">Contraseña Actual</label>
+    <input
+      id="password"
+      type={showPassword ? "text" : "password"}
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+      required
+      placeholder="Ingrese su clave "
+    />
+    <button
+      type="button"
+      onClick={() => setShowPassword(!showPassword)}
+      aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+    >
+      {showPassword ? "🙈" : "👁️"}
+    </button>
+  </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+  <div className="form-group1 relative">
+    <label htmlFor="newPassword">Nueva Contraseña</label>
+    <input
+      id="newPassword"
+      type={showNewPassword ? "text" : "password"}
+      value={newPassword}
+      onChange={(e) => setNewPassword(e.target.value)}
+      required
+      placeholder="Ingrese nueva clave"
+    />
+    <button
+      type="button"
+      onClick={() => setShowNewPassword(!showNewPassword)}
+      aria-label={showNewPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+    >
+      {showNewPassword ? "🙈" : "👁️"}
+    </button>
+  </div>
 
-          {/* Contraseña actual */}
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Contraseña actual"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full border p-2 rounded pr-10"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-lg"
-            >
-            </button>
-          </div>
+  <div className="form-group1 relative">
+    <label htmlFor="confirmPassword">Confirmar Nueva Contraseña</label>
+    <input
+      id="confirmPassword"
+      type={showConfirmPassword ? "text" : "password"}
+      value={confirmPassword}
+      onChange={(e) => setConfirmPassword(e.target.value)}
+      required
+      placeholder="Confirme nueva clave"
+    />
+    <button
+      type="button"
+      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+      aria-label={showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+    >
+      {showConfirmPassword ? "🙈" : "👁️"}
+    </button>
+  </div>
 
-          {/* Nueva contraseña */}
-          <div className="relative">
-            <input
-              type={showNewPassword ? "text" : "password"}
-              placeholder="Nueva contraseña"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full border p-2 rounded pr-10"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowNewPassword(!showNewPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-lg"
-            >
-            </button>
-          </div>
+  {mensaje && <p className="mensaje1">{mensaje}</p>}
 
-          {/* Confirmar nueva contraseña */}
-          <div className="relative">
-            <input
-              type={showConfirmPassword ? "text" : "password"}
-              placeholder="Confirmar nueva contraseña"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full border p-2 rounded pr-10"
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-lg"
-            >
-            </button>
-          </div>
-
-          <button
-            type="submit"
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 rounded-lg hover:opacity-90 transition"
-          >
-            Actualizar Contraseña
-          </button>
-        </form>
-      </div>
+  <button type="submit" className="form-submit-btn1">
+    Actualizar Contraseña
+  </button>
+</form>
     </>
   );
 }

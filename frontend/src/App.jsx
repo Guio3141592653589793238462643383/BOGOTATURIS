@@ -11,13 +11,13 @@ import CrearComentario from "./Pages/CreateComment";
 import ConsultarLugar from "./Pages/ConsultPlaces";
 import CambiarPassword from "./Pages/CambiarPassword";
 import CambiarIntereses from "./Pages/CambiarIntereses";
-import EliminarComentarios from "./Pages/eliminarComentarios";
+
 
 
 
 
 import Navbar from "./components/Navbar";
-import Chatbot from "./components/ChatBot";
+
 
 // NUEVAS IMPORTACIONES
 import Lugar from "./Pages/LugaresPage";
@@ -42,21 +42,14 @@ function App() {
         <Route path="/eventos" element={<Eventos />} />
         <Route path="/perfil" element={<Perfil />} />
         <Route path="/usuario/:userId" element={<UserView />} />
-        <Route path="/comentarios/nuevo" element={<CrearComentario />} />
-        <Route path="/lugares/:lugarId" element={<ConsultarLugar />} />
-        <Route path="/usuario/:id/cambiar-password" element={<CambiarPassword />} />
-        <Route path="/cambiar-password" element={<CambiarPassword />} />
-        <Route path="/cambiar-intereses" element={<CambiarIntereses />} />
-        <Route path="/comentarios" element={<EliminarComentarios />} />
-        <Route path="/usuario/:userId/editar-perfil" element={<Perfil />} />
+        <Route path="/usuario/:userId/perfil" element={<Perfil />} />
+        <Route path="/usuario/:userId/comentarios/nuevo" element={<CrearComentario />} />
+        <Route path="/consultar-lugar/:lugarId" element={<ConsultarLugar />} />
+        <Route path="/usuario/:userId/cambiar-password" element={<CambiarPassword />} />
+        <Route path="/usuario/:userId/cambiar-intereses" element={<CambiarIntereses />} />
 
     
       </Routes>
-
-      {/* Rutas duplicadas eliminadas */}
-|||||
-      {/* Chatbot agregado */}
-      <Chatbot />
     </Router>
   );
 }

@@ -1,63 +1,112 @@
-import { useNavigate } from 'react-router-dom'
+import { motion, AnimatePresence } from "framer-motion";
+import { useParams, useNavigate } from "react-router-dom";
 
 export default function Modal({ open, onClose, card }) {
-  const navigate = useNavigate()
-
-  if (!open || !card) return null
-
+  const navigate = useNavigate();
+  const { userId } = useParams();
+  const usuarioId = userId || localStorage.getItem("usuario_id");
+  // Funciones para navegación
+  const handleComentario = () => {
+    navigate(`/usuario/${usuarioId}/comentarios/nuevo`);
+  };
+  const handleLugares = () => {
+    navigate(`/consultar-lugar/${card.id_lugar}`);
+  };
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white rounded-lg shadow-xl max-w-lg w-[90%] relative"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Botón de cerrar */}
-<button
-  onClick={onClose}
-  className="absolute top-3 right-3 p-2 rounded-full text-gray-600 hover:text-red-500 hover:bg-gray-100 text-2xl leading-none transition"
->
-  ×
-</button>
-
-
-        {/* Imagen */}
-        <img
-          src={card.imagen}
-          alt={card.titulo}
-          className="w-full h-72 object-cover rounded-t-lg"
-        />
-
-        {/* Contenido */}
-        <div className="p-4">
-          <h2 className="text-2xl font-bold">{card.titulo}</h2>
-          <p className="mt-2 text-gray-700">{card.descripcion}</p>
-
-          {/* Botón para crear comentario */}
- <button
-  onClick={() => navigate('/comentarios/nuevo')}
-  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
->
-  Crear comentario
-</button>
-          <button
-            onClick={() =>
-              navigate(`/lugares/${card.id}`, { state: { lugar: card } })
-            }
-            className="mt-4 ml-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+    <AnimatePresence>
+      {open && card && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+        >
+          <motion.div
+            className="relative rounded-3xl shadow-2xl max-w-lg w-[90%] overflow-hidden
+             bg-white/20 backdrop-blur-lg border border-white/30"
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 120, damping: 18 }}
+            onClick={(e) => e.stopPropagation()}
           >
-            Consultar lugar
-          </button>
-<button
-  onClick={() => navigate("/comentarios")}  // Ir a la tabla de comentarios
-  className="mt-4 ml-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
->
-  Eliminar Comentarios
-</button>
-        </div>
-      </div>
-    </div>
-  )
+            {/* Botón cerrar */}
+            <button
+              onClick={onClose}
+              className="absolute top-3 right-3 p-2 rounded-full 
+                         bg-white/90 text-blue-700 hover:bg-red-500 hover:text-white 
+                         transition-colors shadow-md"
+            >
+              ✕
+            </button>
+
+            {/* Imagen destacada */}
+            <motion.div
+              className="relative h-56"
+              initial={{ scale: 1.1 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
+            >
+              <img
+                src={card.imagen}
+                alt={card.titulo}
+                className="w-full h-full object-cover rounded-t-3xl"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <h2
+                className="absolute bottom-4 left-5 text-3xl font-extrabold text-white"
+                style={{
+                  WebkitTextStroke: "1px #555", // contorno gris oscuro
+                  textShadow: `
+      0 0 8px rgba(255,255,255,0.8), 
+      0 0 16px rgba(100,100,100,0.6)
+    `,
+                }}
+              >
+                {card.titulo}
+              </h2>
+            </motion.div>
+
+            {/* Contenido */}
+            <div className="p-6 text-gray-700">
+              <motion.p
+                className="text-base leading-relaxed mb-5 text-gray-600"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                {card.descripcion}
+              </motion.p>
+
+              {/* Botones de acción */}
+              <div className="flex justify-center gap-4">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-5 py-2 rounded-lg 
+                             bg-gradient-to-r from-blue-400 to-blue-600 
+                             text-white font-semibold shadow-lg"
+                  onClick={handleComentario}
+                >
+                  Crear Comentario
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-5 py-2 rounded-lg 
+                             bg-gradient-to-r from-sky-400 to-sky-600 
+                             text-white font-semibold shadow-lg"
+                  onClick={handleLugares}
+                >
+                  Consultar más este lugar
+                </motion.button>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 }

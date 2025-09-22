@@ -1,83 +1,148 @@
-  body {
-    font-family: "Edu SA Hand", cursive;
-    margin: 0;
-    padding: 0;
-    background: linear-gradient(135deg, #00438f 0%, #ABD0E1 100%);
-    min-height: 100vh;
-  }
+body {
+  font-family: "Poppins", sans-serif;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, #A8D1E7 0%, #FFFFFF 100%);
+  min-height: 100vh;
+}
 
-  .nav {
-    background-color: #047ef8; /* Color de fondo de la barra de navegación */
-    width: 100%; /* Ancho completo de la página */
-    padding: 20px 20px;
-  }
+/* Navbar */
+.nav {
+  background: linear-gradient(135deg, #00438F 0%, #5E90A6 100%);
+  width: 100%;
+  padding: 15px 25px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  top: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-  .container1 {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    max-width: 1200px; /* Ancho máximo del contenedor */
-    margin: 0 auto; /* Centrar el contenedor horizontalmente */
-  }
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 40px; 
+  
+}
 
-  .logo img {
-    max-height: 100px;
-  }
+.logo img {
+  max-height: 90px;
+  transition: transform 0.3s ease;
+}
 
-  .nav-links {
-    list-style: none;
-    display: flex;
-    gap: 20px;
-  }
+.logo img:hover {
+  transform: scale(1.05);
+}
 
-  .nav-links li {
-    position: relative;
-    padding: 10px 20px; /* Espaciado interno de los elementos del menú */
-    border-radius: 5px; /* Bordes redondeados */
-  }
+.logo h1 {
+  font-family: "Lobster Two", cursive;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+  
+}
 
-  .nav-links li:hover {
-    background-color: rgba(0, 0, 255, 0.425); /* Color de fondo al pasar el mouse */
-  }
 
-  .nav-links a {
-    text-decoration: none;
-    color: #000; /* Color del texto del enlace */
-  }
+.user-section {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* separa texto de icono */
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+}
 
-  .nav-links li:hover a {
-    color: white; /* Color del texto al pasar el mouse */
-  }
+.user-logo {
+  width: 28px;   /* 📌 más grande */
+  height: 28px;
+  object-fit: contain;
+  filter: brightness(0); /* vuelve negro el icono */
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.3s ease;
+}
 
-  .dropdown-menu {
-    display: block;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    background-color: rgba(48, 136, 236, 0.582);
-    padding: 10px;
-    z-index: 1000;
-    border-radius: 5px; /* Bordes redondeados */
-  }
+.user-logo:hover {
+  transform: scale(1.2);
+  filter: brightness(0.4) sepia(1) hue-rotate(180deg) saturate(4); /* efecto dorado */
+}
 
-  .dropdown-menu li {
-    margin: 5px 0;
-    padding: 10px 20px; /* Espaciado interno de los elementos del menú desplegable */
-    border-radius: 5px; /* Bordes redondeados */
-  }
 
-  .dropdown-menu li:hover {
-    background-color: rgba(0, 0, 255, 0.425); /* Color de fondo al pasar el mouse */
-  }
+.container1 {
+  display: flex;
+  justify-content: space-between; /* logo izquierda - user derecha */
+  align-items: center;
+  max-width: 1200px;
+  margin: 10 auto;
+  padding: 0 20px;
+}
 
-  .dropdown-menu a {
-    color: black;
-    text-decoration: none;
-  }
 
-  .dropdown-menu li:hover a {
-    color: white; /* Color del texto al pasar el mouse */
-  }
+.nav-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Esto empuja el último li (dropdown) a la derecha */
+.nav-links .nav-item.dropdown {
+  margin-left: 90%;
+}
+
+
+.nav-item {
+  position: relative;
+}
+
+.dropdown-toggle {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: white;
+  box-shadow: 0px 4px 10px rgba(0,0,0,0.15);
+  border-radius: 8px;
+  min-width: 180px;
+  z-index: 10;
+}
+
+.dropdown-menu li {
+  list-style: none;
+}
+
+.dropdown-menu .dropdown-item {
+  display: block;
+  padding: 10px 15px;
+  color: #333;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.dropdown-menu .dropdown-item:hover {
+  background: #f5f5f5;
+  color: #00438F;
+}
+
+
+.nav-item:hover .dropdown-menu {
+  display: block;
+}
+
+
+
   /* Estilos para la sección de promoción */
 .promo-section {
     background-color: rgba(255, 255, 255, 0.8);
@@ -176,4 +241,320 @@ p{
   padding: 1rem;
 }
 
+
+@keyframes fadeIn {
+  from { opacity: 0 }
+  to { opacity: 1 }
+}
+@keyframes scaleIn {
+  from { transform: scale(0.8); opacity: 0 }
+  to { transform: scale(1); opacity: 1 }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.4s ease forwards;
+}
+.animate-scaleIn {
+  animation: scaleIn 0.4s ease forwards;
+}
+/* Contenedor formulario */
+.form-container {
+  background: linear-gradient(135deg, #00438F 0%, #5E90A6 100%);
+  border: 3px solid #003366; /* azul oscuro para borde */
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 6px 18px rgba(0, 67, 143, 0.5);
+  max-width: 100%;
+  color: #f0f4f8; /* texto claro para contraste */
+  transition: box-shadow 0.3s ease;
+}
+
+.form-container:hover {
+  box-shadow: 0 8px 24px rgba(0, 67, 143, 0.7);
+}
+
+/* Título formulario */
+.form-container h2 {
+  color: #e0e7f1; /* azul muy claro */
+  font-family: 'Playfair Display', serif;
+  margin-bottom: 24px;
+  font-size: 2rem;
+  letter-spacing: 1px;
+}
+
+/* Grupos de inputs */
+.form-group {
+  margin-bottom: 18px;
+}
+
+/* Labels */
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #cbd5e1; /* azul grisáceo claro */
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1.05rem;
+  letter-spacing: 0.03em;
+}
+
+/* Inputs */
+.form-group input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2.5px solid #5E90A6; /* borde azul más claro */
+  border-radius: 10px;
+  font-size: 1rem;
+  font-family: 'Nunito', sans-serif;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  background-color: #f0f4f8; /* fondo claro para inputs */
+  color: #003366; /* texto azul oscuro */
+}
+
+.form-group input::placeholder {
+  color: #7f9bb3; /* azul grisáceo */
+  font-style: italic;
+}
+
+.form-group input:focus {
+  border-color: #002855; /* azul más oscuro */
+  outline: none;
+  box-shadow: 0 0 10px rgba(0, 67, 143, 0.6);
+}
+
+/* Botón guardar */
+.form-container button[type="submit"] {
+  background: linear-gradient(135deg, #5E90A6 0%, #00438F 100%);
+  color: #f0f4f8;
+  font-weight: 700;
+  padding: 14px 32px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  font-size: 1.15rem;
+  transition: background 0.4s ease, color 0.4s ease;
+  box-shadow: 0 4px 12px rgba(0, 67, 143, 0.5);
+}
+
+.form-container button[type="submit"]:hover {
+  background: linear-gradient(135deg, #003366 0%, #00509e 100%);
+  color: #e0e7f1;
+  box-shadow: 0 6px 18px rgba(0, 67, 143, 0.8);
+}
+
+/* Card perfil */
+.profile-card {
+  background-color: #f0f4f8;
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 6px 15px rgba(0, 67, 143, 0.15);
+  max-width: 100%;
+  align-self: flex-start;
+  color: #003366;
+}
+
+.profile-card {
+  background-color: #d9e8f5; /* azul muy claro, suave y agradable */
+  border: 2.5px solid rgba(0, 67, 143, 0.85); /* borde azul oscuro semitransparente */
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 8px 20px rgba(0, 67, 143, 0.25); /* sombra azul suave */
+  max-width: 100%;
+  align-self: flex-start;
+  color: #003366; /* texto azul oscuro para buen contraste */
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.profile-card:hover {
+  box-shadow: 0 12px 30px rgba(0, 67, 143, 0.45);
+  border-color: #001f4d; /* azul aún más oscuro al hover */
+}
+
+/* Título perfil */
+.profile-card h2 {
+  color: #002855; /* azul oscuro */
+  font-family: 'Playfair Display', serif;
+  margin-bottom: 24px;
+  font-size: 2rem;
+  letter-spacing: 1px;
+}
+
+/* Info perfil */
+.profile-info p {
+  font-family: 'Nunito', sans-serif;
+  font-size: 1rem;
+  color: #002855;
+  margin-bottom: 12px;
+}
+
+.profile-info span {
+  font-weight: 700;
+  color: #00438F;
+}
+
+
+/* Separación entre formulario y perfil */
+@media (min-width: 768px) {
+  .form-container {
+    margin-right: 48px;
+  }
+}
+.form-container1 {
+  background: linear-gradient(135deg, #00438F 0%, #5E90A6 100%);
+  border: 3px solid #003366;
+  border-radius: 16px;
+  padding: 20px 24px; 
+  box-shadow: 0 6px 18px rgba(0, 67, 143, 0.5);
+  color: #f0f4f8;
+  max-width: 400px; 
+  margin: 0 auto; 
+  margin-top: 5%;
+
+  font-family: 'Nunito', sans-serif;
+}
+.form-group1 {
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.form-group1 label {
+  flex: 0 0 130px;
+  margin-right: 12px;
+  font-weight: 600;
+  color: #cbd5e1;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.03em;
+  user-select: none;
+}
+
+.form-group1.relative input {
+  flex: 1 1 auto;
+  padding: 10px 12px;
+  padding-right: 36px; /* espacio para el botón emoji */
+  border: 2.5px solid #5E90A6;
+  border-radius: 10px;
+  font-size: 1rem;
+  color: #003366;
+  background-color: #f0f4f8;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  outline-offset: 2px;
+}
+
+.form-group1.relative input::placeholder {
+  color: #7f9bb3;
+  font-style: italic;
+}
+
+.form-group1.relative input:focus {
+  border-color: #002855;
+  box-shadow: 0 0 8px rgba(0, 67, 143, 0.6);
+  outline: none;
+}
+
+.form-group1.relative button {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1.3rem; /* tamaño emoji */
+  color: #00438F;
+  user-select: none;
+  padding: 0;
+  width: auto;
+  height: auto;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.3s ease;
+}
+
+.form-group1.relative button:hover {
+  color: #001f4d;
+}
+
+.tablas-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 32px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+/* Estilos para las tablas */
+.tabla-intereses {
+  border-collapse: collapse;
+  margin-bottom: 25px;
+  position: relative;
+  border: none;
+  width: auto;
+}
+
+.tabla-intereses td {
+  border: none;
+  padding: 8px 12px;
+  vertical-align: middle;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.tabla-intereses tr {
+  cursor: pointer;
+}
+
+/* Hover en toda la fila */
+.tabla-intereses tr:hover {
+  background-color: #e0e0e0;
+}
+
+.tabla-intereses tr:hover td {
+  color: #111111;
+}
+
+.tabla-intereses tr:hover input[type="checkbox"] {
+  filter: brightness(0.8);
+}
+
+/* Columna de checkboxes */
+.tabla-intereses .checkbox-col {
+  width: 30px;
+  text-align: center;
+  padding-right: 8px;
+}
+
+/* Columna de texto */
+.tabla-intereses .texto-col {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: black;
+  font-size: 0.95rem;
+  font-family: "Edu SA Hand", cursive;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* Checkbox */
+.tabla-intereses input[type="checkbox"] {
+  cursor: pointer;
+  margin: 0;
+  width: 16px;
+  height: 16px;
+}
+
+/* Responsive: apilar tablas en pantallas pequeñas */
+@media (max-width: 768px) {
+  .tablas-container {
+    flex-direction: column;
+    gap: 30px;
+  }
+}
 
