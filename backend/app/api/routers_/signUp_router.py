@@ -92,7 +92,7 @@ def registrar_usuario(request: SignUpRequest, db: Session = Depends(get_db)):
             primer_apellido=request.primer_apellido,
             segundo_apellido=request.segundo_apellido,
             clave=hash_password(request.clave),
-            id_rol=1,  # rol por defecto
+            id_rol=2, 
             id_correo=nuevo_correo.id_correo,
             id_nac=nacionalidad.id_nac
         )

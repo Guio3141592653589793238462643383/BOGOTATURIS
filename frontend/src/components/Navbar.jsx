@@ -1,34 +1,26 @@
-import FormSignUp from "./FormSignUp";
-export default function Navbar() {
-  return (
-    <nav className="bg-gray-800 p-4 text-white">
-      <div className="container mx-auto flex justify-between items-center">
-        <div className="flex items-center space-x-4">
-          <img 
-            src="/_img/registro/Logo.png" 
-            alt="BogotaTuris Logo" 
-            className="h-8 w-auto"
-          />
-          <h1 className="text-xl font-bold">BogotaTuris</h1>
-        </div>
-        <ul className="flex space-x-4 items-center">
-          <li>
-            <a href="#" className="hover:text-gray-300">
-              Inicio
-            </a>
-          </li>
-          <li>
-             <a href="/registro" component={FormSignUp} className="hover:text-gray-300 font-semibold text-blue-300">
-              Registro
-            </a>
-          </li>
-          <li>
-            <a href="#" className="hover:text-gray-300">
-              Iniciar Sesión
-            </a>
-          </li>
-        </ul>
-      </div>
-    </nav>
-  );
-}
+import React from "react";
+import { NavLink } from "react-router-dom";
+import "../assets/css/Navbar.css";
+import Inicio from "../Pages/Inicio";
+import Logo from '../assets/img/BogotaTurisLogo.png';
+
+
+
+const Navbar = () => {
+    return (     
+    <header className="navbar">
+      <div className="logo">   
+        <img src={Logo} alt="Bogotá Turis Logo" />   
+        <h1>BogotaTuris</h1> 
+      </div>       
+      <nav className="navbar-links">         
+        <NavLink to="/" className={({ isActive }) => isActive ? "activo" : ""}>Inicio</NavLink>         
+        <NavLink to="/registro" className={({ isActive }) => isActive ? "activo" : ""}>Registro</NavLink>         
+        <NavLink to="/login" className={({ isActive }) => isActive ? "activo" : ""}>Iniciar Sesión</NavLink>                  
+      </nav>       
+      <nav className="navbar-user"></nav>     
+    </header>   
+  ); 
+};
+
+export default Navbar;
