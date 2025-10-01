@@ -460,7 +460,7 @@ const FormSignUp = () => {
                 value={formData.clave}
                 onChange={handleInputChange}
                 required
-                placeholder="Mínimo 8 caracteres"
+                placeholder="Ingresar numeros, una mayuscula, minuscula"
                 minLength="8"
                 className={
                   validationState.clave === true

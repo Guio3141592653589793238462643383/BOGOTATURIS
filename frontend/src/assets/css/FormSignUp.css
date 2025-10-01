@@ -10,9 +10,9 @@ body {
   padding: 20px 0;
 }
 
-/* 📦 Container principal mejorado */
+/* 📦 Container principal mejorado - MÁS ESTRECHO */
 .container {
-  max-width: 750px;
+  max-width: 600px; /* Reducido de 750px a 600px */
   margin: 2rem auto;
   padding: 40px;
   background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
@@ -241,13 +241,13 @@ label:hover::before {
   left: -15px;
 }
 
-/* 🎯 Inputs de lujo */
+/* 🎯 Inputs de lujo - TAMAÑO REDUCIDO */
 input {
   width: 100%;
-  padding: 16px 20px;
+  padding: 12px 16px; /* Reducido de 16px 20px */
   border: 2px solid #e3f2fd;
   border-radius: 12px;
-  font-size: 16px;
+  font-size: 15px; /* Reducido de 16px */
   font-family: "Poppins", sans-serif;
   font-weight: 500;
   box-sizing: border-box;
@@ -306,13 +306,13 @@ input.invalido:focus {
   75% { transform: translateX(5px); }
 }
 
-/* 🎯 Select mejorado */
+/* 🎯 Select mejorado - TAMAÑO REDUCIDO Y FUENTE CORREGIDA */
 select {
   width: 100%;
-  padding: 16px 20px;
+  padding: 12px 16px; /* Reducido de 16px 20px */
   border: 2px solid #e3f2fd;
   border-radius: 12px;
-  font-size: 16px;
+  font-size: 15px; /* Reducido de 16px */
   font-family: "Poppins", sans-serif;
   font-weight: 500;
   box-sizing: border-box;
@@ -359,14 +359,14 @@ select.invalido {
   background-size: 16px;
 }
 
-/* 🎨 Options mejoradas */
+/* 🎨 Options mejoradas - FUENTE CORREGIDA */
 option {
   background-color: #ffffff;
   padding: 12px;
   font-family: "Poppins", sans-serif;
   font-weight: 500;
   color: #2c3e50;
-  font-size: 16px;
+  font-size: 15px; /* Reducido de 16px para consistencia */
 }
 
 option:hover {
@@ -410,31 +410,35 @@ option:hover {
   animation: shake 0.5s ease-in-out;
 }
 
-/* 📊 Tablas container mejorado */
+/* 📊 Tablas container mejorado - EN LA MISMA FILA */
 .tablas-container {
   display: flex;
-  gap: 40px;
+  gap: 30px; /* Espacio entre las dos columnas */
   max-width: 100%;
   margin-bottom: 25px;
   font-family: "Poppins", sans-serif;
-  justify-content: center;
-  flex-wrap: wrap;
+  justify-content: center; /* Centradas pero lado a lado */
+  align-items: flex-start; /* Alineadas arriba */
+  flex-wrap: nowrap; /* NO se envuelven - siempre en la misma fila */
 }
 
-/* 📋 Tabla intereses mejorada */
+/* 📋 Tabla intereses mejorada - LADO A LADO */
 .tabla-intereses {
   border-collapse: separate;
   border-spacing: 0;
-  margin-bottom: 20px;
+  margin-bottom: 0; /* Sin margin bottom para mejor alineación */
   background: rgba(255, 255, 255, 0.7);
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 4px 15px rgba(52, 152, 219, 0.1);
+  flex: 1; /* Se distribuyen equitativamente el espacio */
+  max-width: 250px; /* Ancho máximo para no crecer demasiado */
+  min-width: 200px; /* Ancho mínimo */
 }
 
 .tabla-intereses td {
   border: none;
-  padding: 12px 16px;
+  padding: 12px 16px; /* Padding optimizado para estar lado a lado */
   vertical-align: middle;
   transition: all 0.3s ease;
   font-family: "Poppins", sans-serif;
@@ -447,7 +451,7 @@ option:hover {
 }
 
 .tabla-intereses .checkbox-col {
-  width: 35px;
+  width: 35px; /* Optimizado para el layout lado a lado */
   text-align: center;
   padding-right: 12px;
 }
@@ -455,9 +459,10 @@ option:hover {
 .tabla-intereses .texto-col {
   font-weight: 600;
   color: #2c3e50;
-  font-size: 1rem;
+  font-size: 0.95rem; /* Ligeramente más pequeño para mejor ajuste */
   cursor: pointer;
   transition: color 0.3s ease;
+  white-space: nowrap; /* Evita que el texto se divida */
 }
 
 .tabla-intereses tr:hover .texto-col {
@@ -467,8 +472,8 @@ option:hover {
 .tabla-intereses input[type="checkbox"] {
   cursor: pointer;
   margin: 0;
-  width: 18px;
-  height: 18px;
+  width: 16px; /* Ligeramente más pequeño para mejor proporción */
+  height: 16px;
   accent-color: #3498db;
 }
 
@@ -477,6 +482,28 @@ option:hover {
   transition: all 0.3s ease;
 }
 
+/* 📱 Responsive - En móviles SÍ se apilan */
+@media (max-width: 768px) {
+  .tablas-container {
+    flex-direction: column; /* Solo en móvil se apilan */
+    gap: 20px;
+    align-items: center;
+  }
+  
+  .tabla-intereses {
+    max-width: 100%;
+    width: 100%;
+  }
+  
+  .tabla-intereses .texto-col {
+    font-size: 1rem; /* Tamaño normal en móvil */
+  }
+  
+  .tabla-intereses input[type="checkbox"] {
+    width: 18px; /* Tamaño normal en móvil */
+    height: 18px;
+  }
+}
 /* 🎯 Checkbox términos mejorado */
 #terminos {
   width: auto;
@@ -741,6 +768,7 @@ button:disabled {
 /* 📱 Responsive Design */
 @media (max-width: 768px) {
   .container {
+    max-width: 95%; /* Ajustado para responsive */
     margin: 1rem;
     padding: 30px 25px;
     border-radius: 20px;
@@ -756,11 +784,13 @@ button:disabled {
   
   .tablas-container {
     flex-direction: column;
-    gap: 20px;
+    gap: 30px; /* Mantenido espaciado en mobile */
+    justify-content: center; /* Centrado en mobile */
+    padding: 0 10px;
   }
   
   input, select {
-    padding: 14px 18px;
+    padding: 12px 16px; /* Mantenido tamaño reducido */
     font-size: 15px;
   }
   
@@ -787,5 +817,10 @@ button:disabled {
   
   .welcome-modal h2 {
     font-size: 2rem;
+  }
+  
+  .tablas-container {
+    gap: 20px;
+    padding: 0 5px;
   }
 }

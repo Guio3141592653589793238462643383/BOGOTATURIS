@@ -1,12 +1,14 @@
-
 import useLoginValidation from "../hooks/Validacion_login";
+
 const LoginPage = () => {
   const {
     formData,
     errors,
+    touched,
     successMessage,
     isLoading,
     handleInputChange,
+    handleBlur,
     handleSubmit,
   } = useLoginValidation();
 
@@ -25,13 +27,18 @@ const LoginPage = () => {
               value={formData.correo}
               placeholder="usuario@dominio.com"
               onChange={handleInputChange}
+              onBlur={handleBlur}
               className={errors.correo ? "error-input" : ""}
               disabled={isLoading}
               autoComplete="email"
               required
             />
-            {errors.correo && <p className="error">{errors.correo}</p>}
-            {!errors.correo && formData.correo && (
+            {/* Mostrar error si existe */}
+            {errors.correo && (
+              <p className="error">{errors.correo}</p>
+            )}
+            {/* Mostrar éxito SOLO si NO hay error y el campo tiene contenido válido */}
+            {!errors.correo && formData.correo && touched.correo && (
               <p className="success">✓ Email válido</p>
             )}
           </div>
@@ -45,26 +52,30 @@ const LoginPage = () => {
               value={formData.clave}
               placeholder="Mínimo 8 caracteres"
               onChange={handleInputChange}
+              onBlur={handleBlur}
               className={errors.clave ? "error-input" : ""}
               disabled={isLoading}
               autoComplete="current-password"
               required
             />
-            {errors.clave && <p className="error">{errors.clave}</p>}
-            {!errors.clave && formData.clave && (
+            {/* Mostrar error si existe */}
+            {errors.clave && (
+              <p className="error">{errors.clave}</p>
+            )}
+            {/* Mostrar éxito SOLO si NO hay error y el campo tiene contenido válido */}
+            {!errors.clave && formData.clave && touched.clave && (
               <p className="success">✓ Contraseña válida</p>
             )}
           </div>
 
           <button 
-            
             type="submit" 
             disabled={isLoading}
             className={isLoading ? "loading" : ""}
           >
             {isLoading ? (
               <>
-                <span className="spinner" ></span>
+                <span className="spinner"></span>
                 Validando...
               </>
             ) : (

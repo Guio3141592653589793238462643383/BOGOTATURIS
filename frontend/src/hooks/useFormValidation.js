@@ -20,9 +20,9 @@ const [formData, setFormData] = useState({
   // Estado de validación (true/false/null)
 const [validationState, setValidationState] = useState({
   primer_nombre: null,
-  segundo_nombre: null,
+  segundo_nombre: true,
   primer_apellido: null,
-  segundo_apellido: null,
+  segundo_apellido: true,
   correo: null,
   confirmarCorreo: null,
   clave: null,
@@ -293,7 +293,7 @@ const validateConfirmarClaveHelper = useCallback((valor, claveOriginal) => {
     
     if (!esValido) {
       if (valor.length < 8) {
-        updateMessage('clave', 'error', 'Contraseña debe tener al menos 8 caracteres');
+        updateMessage('clave', 'error', 'Contraseña debe tener numeros, 1 Mayuscula, Minusculas');
       } else {
         updateMessage('clave', 'error', 'Contraseña muy débil. Debe contener al menos 2 tipos de caracteres');
       }

@@ -1,5 +1,5 @@
 import bcrypt
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter, Body, HTTPException, Depends
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
@@ -65,20 +65,21 @@ def login(login_request: LoginRequest, db: Session = Depends(get_db)):
 
 class UsuarioUpdateRequest(BaseModel):
     primer_nombre: str
-    segundo_nombre: str = None
+    segundo_nombre: Optional[str] = None 
     primer_apellido: str
-    segundo_apellido: str = None
+    segundo_apellido:  Optional[str] = None 
     correo: EmailStr
     id_nac: int 
 
 class PerfilBasicoResponse(BaseModel):
     id_usuario: int
     primer_nombre: str
-    segundo_nombre: str = None
+    segundo_nombre: Optional[str] = None 
     primer_apellido: str
-    segundo_apellido: str = None
+    segundo_apellido: Optional[str] = None 
     correo: EmailStr
     id_nac: int
+    message: str 
 
 
 
