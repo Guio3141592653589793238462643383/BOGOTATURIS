@@ -17,6 +17,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-family: 'Poppins', sans-serif; 
 }
 
 .logo {
@@ -73,13 +74,14 @@ body {
 
 .container1 {
   display: flex;
-  justify-content: space-between; /* logo izquierda - user derecha */
+  justify-content: space-between; /* separa logo izquierda y usuario derecha */
   align-items: center;
+  width: 100%; /* ✅ ancho completo */
   max-width: 1200px;
-  margin: 10 auto;
-  padding: 0 20px;
+  margin: 0 auto; /* ✅ centrado en pantalla */
+  padding: 0 40px; /* espacio lateral */
+  font-family: 'Poppins', sans-serif; 
 }
-
 
 .nav-links {
   list-style: none;
@@ -87,11 +89,15 @@ body {
   padding: 0;
   display: flex;
   align-items: center;
+  justify-content: flex-end; /* ✅ envía el menú a la derecha */
+  flex: 1;
 }
 
-/* Esto empuja el último li (dropdown) a la derecha */
+/* El li del usuario */
 .nav-links .nav-item.dropdown {
-  margin-left: 90%;
+  display: flex; /* ✅ para que funcione justify-content */
+  justify-content: flex-end;
+  position: relative;
 }
 
 
@@ -99,48 +105,116 @@ body {
   position: relative;
 }
 
+/* --- Botón del usuario (bienvenido + icono) --- */
 .dropdown-toggle {
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  color: #fff;
+  font-weight: 600;
+  font-family: "Poppins", sans-serif;
+  transition: color 0.3s ease;
+}
+
+.dropdown-toggle:hover {
+  color: #dceeff;
 }
 
 
-.dropdown-menu {
+/* 🌈 Menú flotante moderno y atractivo */
+.dropdown-menu.enhanced-dropdown {
   display: none;
   position: absolute;
   right: 0;
-  top: 100%;
-  background: white;
-  box-shadow: 0px 4px 10px rgba(0,0,0,0.15);
-  border-radius: 8px;
-  min-width: 180px;
-  z-index: 10;
+  top: 120%;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fbff 100%);
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 67, 143, 0.25);
+  min-width: 230px;
+  overflow: hidden;
+  transform: translateY(-12px) scale(0.95);
+  opacity: 0;
+  transition: all 0.35s ease;
+  z-index: 30;
+  border: 1px solid rgba(0, 67, 143, 0.1);
 }
 
-.dropdown-menu li {
+/* 🧊 Animación de entrada */
+.nav-item:hover .enhanced-dropdown {
+  display: block;
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+/* --- Ítems del menú --- */
+.dropdown-menu.enhanced-dropdown li {
   list-style: none;
 }
 
-.dropdown-menu .dropdown-item {
-  display: block;
-  padding: 10px 15px;
-  color: #333;
+.dropdown-menu.enhanced-dropdown .dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 20px;
+  color: #1a1a1a;
+  font-weight: 500;
+  font-family: "Poppins", sans-serif;
   text-decoration: none;
-  transition: background 0.2s;
+  background: transparent;
+  transition: all 0.25s ease;
+  cursor: pointer;
 }
 
-.dropdown-menu .dropdown-item:hover {
-  background: #f5f5f5;
+.dropdown-menu.enhanced-dropdown .dropdown-item i {
   color: #00438F;
+  font-size: 1.25rem;
+  transition: transform 0.25s ease, color 0.25s ease;
 }
 
-
-.nav-item:hover .dropdown-menu {
-  display: block;
+/* 💫 Efecto hover con brillo */
+.dropdown-menu.enhanced-dropdown .dropdown-item:hover {
+  background: linear-gradient(135deg, #d9ecff 0%, #ebf4ff 100%);
+  color: #003366;
 }
 
+.dropdown-menu.enhanced-dropdown .dropdown-item:hover i {
+  transform: translateX(5px) scale(1.15);
+  color: #003366;
+}
+
+/* 🔹 Separador para cerrar sesión */
+.logout-item {
+  border-top: 1px solid #e6e6e6;
+  margin-top: 5px;
+}
+
+/* ✨ Botón de usuario cuando está activo o hover */
+.dropdown-toggle {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #ffffff;
+  font-weight: 600;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.dropdown-toggle:hover,
+.nav-item:hover .dropdown-toggle {
+  color: #d1e8ff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+.dropdown-toggle img.user-logo {
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.dropdown-toggle:hover img.user-logo,
+.nav-item:hover .dropdown-toggle img.user-logo {
+  transform: scale(1.2);
+  filter: drop-shadow(0 0 5px #ffffff);
+}
 
 
   /* Estilos para la sección de promoción */
@@ -549,6 +623,159 @@ p{
   width: 16px;
   height: 16px;
 }
+/*para el formulario de comentarios */
+
+/* 🌍 Fondo principal */
+.comentario-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-size: 300% 300%;
+  animation: gradientShift 8s ease infinite;
+  font-family: "Poppins", sans-serif;
+}
+
+/* 📦 Caja del formulario */
+.comentario-box {
+  background: linear-gradient(145deg, #ffffff, #f8fafc);
+  padding: 45px 40px;
+  border-radius: 25px;
+  box-shadow: 
+    0 25px 80px rgba(0, 0, 0, 0.15),
+    0 15px 40px rgba(52, 152, 219, 0.1);
+  max-width: 450px;
+  width: 100%;
+  position: relative;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  animation: slideInUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* 🎨 Borde degradado */
+.comentario-box::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 25px;
+  padding: 3px;
+  background: linear-gradient(135deg, #00b4d8, #0077b6, #90e0ef);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: xor;
+  -webkit-mask-composite: xor;
+  z-index: -1;
+}
+
+/* ✨ Animaciones */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes slideInUp {
+  from { transform: translateY(30px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* 📝 Título */
+.comentario-box h1 {
+  text-align: center;
+  font-family: "Dancing Script", cursive;
+  font-size: 2.6rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #0077b6, #00b4d8, #90e0ef);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 35px;
+  letter-spacing: 1px;
+}
+
+/* 🧩 Inputs */
+.input-group {
+  margin-bottom: 25px;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #0077b6;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 15px;
+  border: 2px solid #caf0f8;
+  border-radius: 15px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: #ffffff;
+}
+
+.input-group input:focus {
+  border-color: #00b4d8;
+  box-shadow: 0 0 10px rgba(0, 180, 216, 0.3);
+  outline: none;
+  transform: translateY(-2px);
+}
+
+/* 🔘 Botón */
+button {
+  width: 100%;
+  background: linear-gradient(135deg, #00b4d8, #0077b6);
+  color: white;
+  padding: 15px;
+  border: none;
+  border-radius: 15px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 25px rgba(0, 119, 182, 0.3);
+}
+
+button:hover {
+  background: linear-gradient(135deg, #0096c7, #023e8a);
+  transform: translateY(-4px);
+}
+
+/* ⏳ Spinner */
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 🚨 Alertas */
+.alert {
+  margin-top: 20px;
+  padding: 12px;
+  border-radius: 10px;
+  text-align: center;
+  font-weight: 600;
+  color: #fff;
+}
+
+.success-alert {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  box-shadow: 0 8px 25px rgba(39, 174, 96, 0.3);
+}
+
+.error-alert {
+  background: linear-gradient(135deg, #ff6b6b, #e74c3c);
+  box-shadow: 0 8px 25px rgba(231, 76, 60, 0.3);
+}
+
 
 /* Responsive: apilar tablas en pantallas pequeñas */
 @media (max-width: 768px) {

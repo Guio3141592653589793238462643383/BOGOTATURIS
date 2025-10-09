@@ -1,5 +1,4 @@
 import { useState } from 'react';
-
 const useLoginValidation = () => {
   const [formData, setFormData] = useState({
     correo: '',
@@ -12,7 +11,7 @@ const useLoginValidation = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   // URL de tu API - AJUSTA ESTO A TU CONFIGURACIÓN
-  const API_URL = 'http://localhost:8000'; // Cambia el puerto si es diferente
+  const API_URL = 'http://localhost:8000';
 
   // Función para validar email
   const validateEmail = (email) => {
@@ -40,20 +39,20 @@ const useLoginValidation = () => {
   // Validar un campo específico
   const validateField = (name, value) => {
     let error = '';
-    
+
     if (name === 'correo') {
       error = validateEmail(value);
     } else if (name === 'clave') {
       error = validatePassword(value);
     }
-    
+
     return error;
   };
 
   // Manejar cambios en los inputs - VALIDACIÓN EN TIEMPO REAL
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
+
     // Actualizar el valor del campo
     setFormData(prev => ({
       ...prev,
@@ -82,7 +81,7 @@ const useLoginValidation = () => {
   // Manejar blur (cuando el usuario sale del campo)
   const handleBlur = (e) => {
     const { name, value } = e.target;
-    
+
     // Marcar como tocado
     setTouched(prev => ({
       ...prev,
@@ -100,7 +99,7 @@ const useLoginValidation = () => {
   // Validar todo el formulario
   const validateForm = () => {
     const newErrors = {};
-    
+
     newErrors.correo = validateEmail(formData.correo);
     newErrors.clave = validatePassword(formData.clave);
 
@@ -110,7 +109,7 @@ const useLoginValidation = () => {
   // Manejar el envío del formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Marcar todos los campos como tocados
     setTouched({
       correo: true,
@@ -123,14 +122,14 @@ const useLoginValidation = () => {
 
     // Verificar si hay errores
     const hasErrors = Object.values(newErrors).some(error => error !== '');
-    
+
     if (hasErrors) {
       return;
     }
 
     // ✅ LLAMADA REAL A TU API DE FASTAPI
     setIsLoading(true);
-    
+
     try {
       const response = await fetch(`${API_URL}/api/usuario/login`, {
         method: 'POST',
@@ -153,18 +152,18 @@ const useLoginValidation = () => {
       // ✅ Login exitoso
       setSuccessMessage('¡Inicio de sesión exitoso!');
       setErrors({});
-      
+
       // Guardar el token en localStorage
       localStorage.setItem('access_token', data.access_token);
       localStorage.setItem('usuario_id', data.usuario_id);
-      
+
       console.log('Login exitoso:', data);
-      
+
       // Redirigir al perfil del usuario después de 1 segundo
-      setTimeout(() => {
-        window.location.href = `/usuario/${data.usuario_id}/perfil`;
-      }, 1000);
-      
+setTimeout(() => {
+  window.location.href = `/usuario/${data.usuario_id}`;
+}, 1000);
+
     } catch (error) {
       console.error('Error en login:', error);
       setErrors({

@@ -14,32 +14,21 @@ export default function UserView() {
   const { userId } = useParams();
   const usuarioId = userId || localStorage.getItem("usuario_id");
 
-  // Estados existentes
   const [selectedCard, setSelectedCard] = useState(null);
-
-  // Estados para manejo de usuario
   const [usuarioData, setUsuarioData] = useState(null);
-  const [loading, setLoading] = useState(false); 
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // 🔧 Función optimizada SIN usuarioData como dependencia
+  // ✅ Función para obtener datos del usuario
   const fetchUsuarioData = useCallback(
     async (id, forceRefresh = false) => {
       try {
-        if (usuarioData && !forceRefresh) {
-          return;
-        }
+        if (usuarioData && !forceRefresh) return;
 
         setLoading(true);
-
         const response = await fetch(
           `http://localhost:8000/api/usuario/perfil/${id}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
+          { method: "GET", headers: { "Content-Type": "application/json" } }
         );
 
         if (response.ok) {
@@ -65,42 +54,46 @@ export default function UserView() {
   );
 
   const refreshUserData = useCallback(() => {
-    if (usuarioId) {
-      fetchUsuarioData(usuarioId, true); 
-    }
+    if (usuarioId) fetchUsuarioData(usuarioId, true);
   }, [usuarioId, fetchUsuarioData]);
 
-  // 🔧 Cargar datos solo una vez al montar
+  // ✅ Cargar datos del usuario, validando que el usuario del localStorage coincida con el logeado
   useEffect(() => {
     if (!usuarioId) {
       navigate("/login");
       return;
     }
 
-    // 1️⃣ Intentar cargar desde localStorage primero
     const savedUser = localStorage.getItem("usuarioData");
     if (savedUser) {
       try {
         const parsedUser = JSON.parse(savedUser);
+        const savedId =
+          parsedUser?.id_usuario?.toString() ||
+          parsedUser?.id ||
+          parsedUser?.idUser;
 
-        // 🔧 Validar si están los campos importantes
-        if (!parsedUser.correo || !parsedUser.primer_nombre) {
-          console.log("⚠️ [USER] Datos incompletos en localStorage, buscando en servidor...");
-          fetchUsuarioData(usuarioId, true); // 👉 forzar refresh
+        // 🔍 Validar que los datos guardados coincidan con el usuario logeado
+        if (savedId !== usuarioId.toString()) {
+          console.log("⚠️ [USER] Usuario distinto, recargando desde servidor...");
+          fetchUsuarioData(usuarioId, true); // Forzar refresh
+        } else if (!parsedUser.correo || !parsedUser.primer_nombre) {
+          console.log("⚠️ [USER] Datos incompletos, recargando...");
+          fetchUsuarioData(usuarioId, true);
         } else {
+          console.log("✅ [USER] Datos válidos desde localStorage");
           setUsuarioData(parsedUser);
-          console.log("✅ [USER] Datos cargados desde localStorage");
         }
       } catch (error) {
-        console.log("❌ [USER] Error parseando localStorage, buscando en servidor");
+        console.log("❌ [USER] Error al parsear localStorage, recargando...");
         localStorage.removeItem("usuarioData");
-        fetchUsuarioData(usuarioId);
+        fetchUsuarioData(usuarioId, true);
       }
     } else {
-      // 2️⃣ Si no hay datos guardados, hacer fetch
-      fetchUsuarioData(usuarioId);
+      // Si no hay nada guardado, obtener del servidor
+      fetchUsuarioData(usuarioId, true);
     }
-  }, [usuarioId, navigate]);
+  }, [usuarioId, navigate, fetchUsuarioData]);
 
   useEffect(() => {
     const handleUserDataUpdate = (event) => {
@@ -111,20 +104,13 @@ export default function UserView() {
       }
     };
 
-    window.addEventListener('userDataUpdated', handleUserDataUpdate);
-    
-    return () => {
-      window.removeEventListener('userDataUpdated', handleUserDataUpdate);
-    };
+    window.addEventListener("userDataUpdated", handleUserDataUpdate);
+    return () =>
+      window.removeEventListener("userDataUpdated", handleUserDataUpdate);
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("usuario_id");
-    localStorage.removeItem("user_email");
-    localStorage.removeItem("token");
-    localStorage.removeItem("loginTime");
-    localStorage.removeItem("usuarioData");
-
+    localStorage.clear(); // ✅ Limpiar todo para evitar datos viejos
     navigate("/login", { replace: true });
 
     window.history.pushState(null, "", window.location.href);
@@ -133,24 +119,14 @@ export default function UserView() {
     };
   };
 
-  const handleMiCuenta = () => {
-    navigate(`/usuario/${usuarioId}/perfil`);
-  };
-
-  const handleCambiarPassword = () => {
+  const handleMiCuenta = () => navigate(`/usuario/${usuarioId}/perfil`);
+  const handleCambiarPassword = () =>
     navigate(`/usuario/${usuarioId}/cambiar-password`);
-  };
-
-  const handleCambiarIntereses = () => {
+  const handleCambiarIntereses = () =>
     navigate(`/usuario/${usuarioId}/cambiar-intereses`);
-  };
 
   useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === "Escape") {
-        setSelectedCard(null);
-      }
-    };
+    const onKey = (e) => e.key === "Escape" && setSelectedCard(null);
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
@@ -189,66 +165,20 @@ export default function UserView() {
 
   if (error && !usuarioData) {
     return (
-      <div style={{ 
-        display: "flex", 
-        justifyContent: "center", 
-        alignItems: "center", 
-        height: "100vh",
-        flexDirection: "column"
-      }}>
-        <h2>❌ Error</h2>
-        <p>{error}</p>
-        <button onClick={() => fetchUsuarioData(usuarioId, true)}>
-          Reintentar
-        </button>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
       <div
-        className="error-container"
         style={{
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
           height: "100vh",
           flexDirection: "column",
-          backgroundColor: "#f8f9fa",
         }}
       >
-        <div
-          className="error-message"
-          style={{
-            textAlign: "center",
-            padding: "40px",
-            backgroundColor: "white",
-            borderRadius: "10px",
-            boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-          }}
-        >
-          <h2 style={{ color: "#e74c3c", marginBottom: "20px" }}>⚠️ {error}</h2>
-          <p style={{ marginBottom: "20px" }}>
-            {error.includes("conexión")
-              ? "Verifica tu conexión a internet y que el servidor esté ejecutándose."
-              : "Serás redirigido al login en unos segundos..."}
-          </p>
-          <button
-            onClick={() => navigate("/login")}
-            style={{
-              padding: "12px 24px",
-              backgroundColor: "#3498db",
-              color: "white",
-              border: "none",
-              borderRadius: "5px",
-              cursor: "pointer",
-              fontSize: "16px",
-            }}
-          >
-            Volver al Login
-          </button>
-        </div>
+        <h2>❌ Error</h2>
+        <p>{error}</p>
+        <button onClick={() => fetchUsuarioData(usuarioId, true)}>
+          Reintentar
+        </button>
       </div>
     );
   }
@@ -263,12 +193,7 @@ export default function UserView() {
           </div>
           <ul className="nav-links">
             <li className="nav-item dropdown">
-              <a
-                className="nav-link dropdown-toggle"
-                href="#"
-                id="userDropdown"
-                role="button"
-              >
+              <a className="nav-link dropdown-toggle" href="#" id="userDropdown">
                 <strong className="user-section">
                   Bienvenido {usuarioData?.correo || "Usuario"}
                   <img
@@ -279,28 +204,29 @@ export default function UserView() {
                 </strong>
               </a>
 
-              <ul className="dropdown-menu" aria-labelledby="userDropdown">
-                <li>
-                  <a className="dropdown-item" onClick={handleMiCuenta}>
-                    Mi Cuenta
-                  </a>
-                </li>
-                <li>
-                  <a className="dropdown-item" onClick={handleCambiarPassword}>
-                    Cambiar Contraseña
-                  </a>
-                </li>
-                <li>
-                  <a className="dropdown-item" onClick={handleCambiarIntereses}>
-                    Cambiar Intereses
-                  </a>
-                </li>
-                <li>
-                  <a className="dropdown-item" onClick={handleLogout}>
-                    Cerrar Sesión
-                  </a>
-                </li>
-              </ul>
+<ul className="dropdown-menu enhanced-dropdown" aria-labelledby="userDropdown">
+  <li>
+    <a className="dropdown-item" onClick={handleMiCuenta}>
+      <i className="bi bi-person-circle me-2"></i> Mi Cuenta
+    </a>
+  </li>
+  <li>
+    <a className="dropdown-item" onClick={handleCambiarPassword}>
+      <i className="bi bi-key me-2"></i> Cambiar Contraseña
+    </a>
+  </li>
+  <li>
+    <a className="dropdown-item" onClick={handleCambiarIntereses}>
+      <i className="bi bi-heart me-2"></i> Cambiar Intereses
+    </a>
+  </li>
+  <li className="logout-item">
+    <a className="dropdown-item" onClick={handleLogout}>
+      <i className="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
+    </a>
+  </li>
+</ul>
+
             </li>
           </ul>
         </div>
@@ -345,7 +271,7 @@ export default function UserView() {
               imagen={item.imagen}
               titulo={item.titulo}
               descripcion={item.descripcion}
-              onClick={() => setSelectedCard(item)} 
+              onClick={() => setSelectedCard(item)}
             />
           ))}
         </div>

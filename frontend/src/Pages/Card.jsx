@@ -33,19 +33,21 @@ export default function Card({ imagen, titulo, onClick }) {
   {/* Título con glow azul/blanco */}
 {/* Título con glow inicial + hover dinámico */}
 <motion.h3
-  className="absolute bottom-4 left-4 text-xl font-bold tracking-wide text-white"
+  className="absolute bottom-4 left-5 text-2xl font-extrabold tracking-wide text-white"
   animate={{
-    textShadow: "0px 0px 8px rgba(0,0,0,0.8), 0px 0px 14px rgba(255,255,255,0.6)"
+    textShadow:
+      "0px 0px 8px rgba(0,0,0,0.8), 0px 0px 14px rgba(255,255,255,0.6)",
   }}
   whileHover={{
-    x: 10,
+    x: 6,
     textShadow:
-      "0px 0px 12px rgba(0,170,255,0.9), 0px 0px 20px rgba(255,255,255,0.8)"
+      "0px 0px 12px rgba(0,170,255,0.9), 0px 0px 20px rgba(255,255,255,0.8)",
   }}
   transition={{ duration: 0.3 }}
 >
   {titulo}
 </motion.h3>
+
 
 </motion.div>
 

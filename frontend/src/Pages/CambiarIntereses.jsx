@@ -135,7 +135,7 @@ export default function CambiarIntereses() {
               </a>
 
               {/* Dropdown siempre en el DOM, pero oculto con CSS */}
-              <ul className="dropdown-menu" aria-labelledby="userDropdown">
+<ul className="dropdown-menu enhanced-dropdown" aria-labelledby="userDropdown">
                 <li>
                   <a className="dropdown-item" onClick={handleInicio}>
                     inicio

@@ -90,10 +90,10 @@ function CambiarPassword() {
                   <img src={logoUser } alt="Logo Usuario" className="user-logo" />
                 </strong>
               </a>
-              <ul className="dropdown-menu" aria-labelledby="userDropdown">
+              <ul className="dropdown-menu enhanced-dropdown" aria-labelledby="userDropdown">
                 <li>
                   <a className="dropdown-item" onClick={handleCambiarIntereses}>
-                    Cambiar Intereses
+                    <i className="bi bi-heart me-2"></i> Cambiar Intereses
                   </a>
                 </li>
               </ul>
