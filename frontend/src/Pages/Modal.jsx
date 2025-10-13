@@ -3,11 +3,13 @@ import { X } from "lucide-react";
 import { useState } from "react";
 import ModalComentario from "./ModalComentario";
 import ListaComentarios from "../components/ListaComentarios";
+import ModalLugar from "./ModalLugar";
 
 export default function Modal({ open, onClose, card }) {
   const [nuevoComentario, setNuevoComentario] = useState(null);
   const token = localStorage.getItem("token");
   const [showComentario, setShowComentario] = useState(false);
+  const [showLugar, setShowLugar] = useState(false);
 
   // ✅ Obtiene el ID del usuario logueado desde el localStorage
   const usuarioId = localStorage.getItem("usuario_id");
@@ -22,25 +24,24 @@ export default function Modal({ open, onClose, card }) {
           exit={{ opacity: 0 }}
           onClick={onClose}
         >
-          {/* Contenedor de ambos modales */}
           <motion.div
-            className={`relative flex gap-4 transition-all duration-500`}
+            className="relative flex gap-4 transition-all duration-500"
             style={{ maxWidth: "90%", width: "100%", justifyContent: "center" }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal principal */}
+            {/* 🔹 Modal principal */}
             <motion.div
               className="relative rounded-3xl shadow-2xl max-w-md w-[90%] overflow-hidden bg-gradient-to-br from-[#FDF3E7] via-white to-[#A6D8E7] border border-[#dceaf2]"
               initial={{ y: 100, opacity: 0 }}
               animate={{
                 y: 0,
                 opacity: 1,
-                x: showComentario ? -40 : 0,
+                x: showComentario || showLugar ? -40 : 0,
               }}
               exit={{ y: 100, opacity: 0 }}
               transition={{ type: "spring", stiffness: 120, damping: 18 }}
             >
-              {/* Imagen y título */}
+              {/* Imagen y texto */}
               <div className="relative h-48">
                 <img
                   src={card.imagen}
@@ -75,7 +76,10 @@ export default function Modal({ open, onClose, card }) {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     className="px-4 py-1.5 rounded-md text-sm font-semibold bg-[#5E90A6] text-white shadow-md hover:bg-[#00438F] transition-all"
-                    onClick={() => setShowComentario(true)}
+                    onClick={() => {
+                      setShowComentario(true);
+                      setShowLugar(false);
+                    }}
                   >
                     Crear comentario
                   </motion.button>
@@ -84,6 +88,10 @@ export default function Modal({ open, onClose, card }) {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     className="px-4 py-1.5 rounded-md text-sm font-semibold bg-[#A6D8E7] text-[#00376E] shadow-md hover:bg-[#5E90A6] hover:text-white transition-all"
+                    onClick={() => {
+                      setShowComentario(false);
+                      setShowLugar(true);
+                    }}
                   >
                     Ver más del lugar
                   </motion.button>
@@ -97,15 +105,20 @@ export default function Modal({ open, onClose, card }) {
               </div>
             </motion.div>
 
-            {/* Modal lateral de crear comentario */}
-            <AnimatePresence>
-              {showComentario && (
-                <ModalComentario
-                  onClose={() => setShowComentario(false)}
-                  onComentarioCreado={setNuevoComentario} // 🔹 importante
-                />
-              )}
-            </AnimatePresence>
+            {/* 🔹 Modales laterales controlados */}
+            {showComentario && (
+              <ModalComentario
+                onClose={() => setShowComentario(false)}
+                onComentarioCreado={setNuevoComentario}
+              />
+            )}
+
+            {showLugar && (
+              <ModalLugar
+                lugarId={card.id_lugar}
+                onClose={() => setShowLugar(false)}
+              />
+            )}
           </motion.div>
         </motion.div>
       )}

@@ -103,6 +103,7 @@ function CambiarPassword() {
       </nav>
 
 <form onSubmit={handleSubmit} className="form-container1">
+      <h2>Cambiar Contraseña</h2>
   <div className="form-group1 relative">
     <label htmlFor="password">Contraseña Actual</label>
     <input
@@ -123,6 +124,7 @@ function CambiarPassword() {
   </div>
 
   <div className="form-group1 relative">
+
     <label htmlFor="newPassword">Nueva Contraseña</label>
     <input
       id="newPassword"

@@ -332,139 +332,362 @@ p{
   animation: scaleIn 0.4s ease forwards;
 }
 /* Contenedor formulario */
+/* 🎨 Fondo general elegante y dinámico */
+.profile-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background-size: 400% 400%;
+  animation: gradientShift 10s ease infinite;
+  padding: 40px 20px;
+  font-family: "Inter", "Poppins", sans-serif; /* ✅ Fuente moderna y profesional */
+  color: #2c3e50;
+}
+
+/* 🌈 Animación suave del fondo */
+@keyframes gradientShift {
+  0% {
+    background: linear-gradient(135deg, #e8f8f5, #e3f2fd, #fef9e7);
+  }
+  50% {
+    background: linear-gradient(135deg, #d1f2eb, #d6eaf8, #fcf3cf);
+  }
+  100% {
+    background: linear-gradient(135deg, #e8f8f5, #e3f2fd, #fef9e7);
+  }
+}
+
+/* 📦 Caja principal del formulario */
 .form-container {
-  background: linear-gradient(135deg, #00438F 0%, #5E90A6 100%);
-  border: 3px solid #003366; /* azul oscuro para borde */
-  border-radius: 16px;
-  padding: 28px;
-  box-shadow: 0 6px 18px rgba(0, 67, 143, 0.5);
-  max-width: 100%;
-  color: #f0f4f8; /* texto claro para contraste */
-  transition: box-shadow 0.3s ease;
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  padding: 50px 40px;
+  border-radius: 25px;
+  box-shadow:
+    0 25px 80px rgba(0, 0, 0, 0.12),
+    0 10px 25px rgba(52, 152, 219, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  max-width: 520px;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid #e3f2fd;
+  transition: all 0.4s ease;
+  animation: slideInUp 0.9s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.form-container:hover {
-  box-shadow: 0 8px 24px rgba(0, 67, 143, 0.7);
+/* ✨ Borde degradado animado */
+.form-container::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 25px;
+  padding: 2.5px;
+  background: linear-gradient(135deg, #3498db, #1abc9c, #2ecc71, #16a085);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: xor;
+  -webkit-mask-composite: xor;
+  z-index: -1;
+  animation: gradientShift 6s ease infinite;
 }
 
-/* Título formulario */
+/* 🏷️ Título elegante y moderno */
 .form-container h2 {
-  color: #e0e7f1; /* azul muy claro */
-  font-family: 'Playfair Display', serif;
-  margin-bottom: 24px;
-  font-size: 2rem;
+  font-family: "Montserrat", sans-serif; /* ✅ más moderna que Dancing Script */
+  font-size: 2.1rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 35px;
+  background: linear-gradient(135deg, #2c3e50, #3498db, #1abc9c);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   letter-spacing: 1px;
+  text-transform: uppercase;
+  position: relative;
 }
 
-/* Grupos de inputs */
+.form-container h2::after {
+  content: '';
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90px;
+  height: 3.5px;
+  background: linear-gradient(90deg, #3498db, #1abc9c);
+  border-radius: 2px;
+  animation: pulse 2s infinite;
+}
+
+/* 🧩 Grupos de campos */
 .form-group {
-  margin-bottom: 18px;
+  margin-bottom: 25px;
+  animation: slideInLeft 0.5s ease-out;
 }
 
-/* Labels */
+/* 🏷️ Etiquetas */
 .form-group label {
   display: block;
-  font-weight: 600;
   margin-bottom: 8px;
-  color: #cbd5e1; /* azul grisáceo claro */
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1.05rem;
-  letter-spacing: 0.03em;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #2c3e50;
+  letter-spacing: 0.7px;
+  transition: color 0.3s ease;
 }
 
-/* Inputs */
-.form-group input {
+.form-group label:hover {
+  color: #3498db;
+}
+
+/* 🎯 Inputs */
+.form-group input,
+.form-group select {
   width: 100%;
-  padding: 12px 16px;
-  border: 2.5px solid #5E90A6; /* borde azul más claro */
-  border-radius: 10px;
-  font-size: 1rem;
-  font-family: 'Nunito', sans-serif;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  background-color: #f0f4f8; /* fondo claro para inputs */
-  color: #003366; /* texto azul oscuro */
+  padding: 14px 18px;
+  border: 2px solid #e3f2fd;
+  border-radius: 15px;
+  font-size: 15px;
+  font-weight: 500;
+  background: #ffffff;
+  color: #2c3e50;
+  transition: all 0.3s ease;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
 }
 
-.form-group input::placeholder {
-  color: #7f9bb3; /* azul grisáceo */
-  font-style: italic;
-}
-
-.form-group input:focus {
-  border-color: #002855; /* azul más oscuro */
+.form-group input:focus,
+.form-group select:focus {
   outline: none;
-  box-shadow: 0 0 10px rgba(0, 67, 143, 0.6);
+  border-color: #3498db;
+  box-shadow:
+    0 0 0 4px rgba(52, 152, 219, 0.15),
+    0 8px 20px rgba(52, 152, 219, 0.08);
+  transform: translateY(-2px);
 }
 
-/* Botón guardar */
+/* 🚀 Botón guardar */
 .form-container button[type="submit"] {
-  background: linear-gradient(135deg, #5E90A6 0%, #00438F 100%);
-  color: #f0f4f8;
-  font-weight: 700;
-  padding: 14px 32px;
+  width: 100%;
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: #fff;
   border: none;
-  border-radius: 12px;
+  padding: 16px 25px;
+  border-radius: 15px;
+  font-weight: 700;
+  font-size: 16px;
   cursor: pointer;
-  font-family: 'Nunito', sans-serif;
-  font-size: 1.15rem;
-  transition: background 0.4s ease, color 0.4s ease;
-  box-shadow: 0 4px 12px rgba(0, 67, 143, 0.5);
+  transition: all 0.35s ease;
+  box-shadow:
+    0 10px 30px rgba(52, 152, 219, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-top: 12px;
 }
 
 .form-container button[type="submit"]:hover {
-  background: linear-gradient(135deg, #003366 0%, #00509e 100%);
-  color: #e0e7f1;
-  box-shadow: 0 6px 18px rgba(0, 67, 143, 0.8);
+  background: linear-gradient(135deg, #1abc9c, #16a085);
+  transform: translateY(-3px);
+  box-shadow:
+    0 15px 40px rgba(26, 188, 156, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
-/* Card perfil */
+/* 🪞 Tarjeta lateral del perfil */
 .profile-card {
-  background-color: #f0f4f8;
-  border-radius: 16px;
-  padding: 28px;
-  box-shadow: 0 6px 15px rgba(0, 67, 143, 0.15);
-  max-width: 100%;
-  align-self: flex-start;
-  color: #003366;
+  background: #fff;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.08);
+  animation: fadeInUp 0.8s ease-out;
+  transition: all 0.3s ease;
 }
 
-.profile-card {
-  background-color: #d9e8f5; /* azul muy claro, suave y agradable */
-  border: 2.5px solid rgba(0, 67, 143, 0.85); /* borde azul oscuro semitransparente */
-  border-radius: 16px;
-  padding: 28px;
-  box-shadow: 0 8px 20px rgba(0, 67, 143, 0.25); /* sombra azul suave */
-  max-width: 100%;
-  align-self: flex-start;
-  color: #003366; /* texto azul oscuro para buen contraste */
-  transition: box-shadow 0.3s ease, border-color 0.3s ease;
-}
-
-.profile-card:hover {
-  box-shadow: 0 12px 30px rgba(0, 67, 143, 0.45);
-  border-color: #001f4d; /* azul aún más oscuro al hover */
-}
-
-/* Título perfil */
 .profile-card h2 {
-  color: #002855; /* azul oscuro */
-  font-family: 'Playfair Display', serif;
-  margin-bottom: 24px;
-  font-size: 2rem;
-  letter-spacing: 1px;
+  font-size: 1.7rem;
+  margin-bottom: 12px;
+  color: #2c3e50;
+  font-weight: 700;
 }
 
-/* Info perfil */
 .profile-info p {
-  font-family: 'Nunito', sans-serif;
   font-size: 1rem;
-  color: #002855;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
+  color: #34495e;
 }
 
 .profile-info span {
+  font-weight: 600;
+  color: #2980b9;
+}
+.linea-animada {
+  width: 80px; /* puedes ajustar el ancho */
+  height: 3px;
+  background: linear-gradient(90deg, #007bff, #00d4ff, #007bff);
+  margin: 8px auto 0; /* centra la línea debajo del texto */
+  border-radius: 10px;
+  animation: pulseGlow 2s infinite ease-in-out;
+}
+
+@keyframes pulseGlow {
+  0% {
+    opacity: 0.6;
+    transform: scaleX(1);
+    box-shadow: 0 0 4px #00d4ff;
+  }
+  50% {
+    opacity: 1;
+    transform: scaleX(1.2);
+    box-shadow: 0 0 12px #00d4ff;
+  }
+  100% {
+    opacity: 0.6;
+    transform: scaleX(1);
+    box-shadow: 0 0 4px #00d4ff;
+  }
+}
+
+
+/* 🔆 Animaciones */
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-25px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 🌟 Card de perfil premium */
+.profile-card {
+  background: linear-gradient(145deg, #fafdff, #e8f4ff);
+  border: 2.5px solid rgba(0, 80, 150, 0.3);
+  border-radius: 26px;
+  padding: 38px;
+  box-shadow:
+    0 10px 25px rgba(0, 80, 160, 0.25),
+    0 0 25px rgba(0, 180, 255, 0.1);
+  color: #003366;
+  max-width: 100%;
+  align-self: flex-start;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s ease;
+  animation: floatCard 6s ease-in-out infinite;
+}
+
+/* ✨ Efecto de halo brillante animado */
+.profile-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 26px;
+  background: linear-gradient(120deg, #00c8ff, #00438F, #00c8ff);
+  opacity: 0;
+  filter: blur(8px);
+  transition: opacity 0.5s ease;
+  z-index: 0;
+}
+.profile-card:hover::before {
+  opacity: 0.9;
+}
+
+/* 🌬️ Movimiento flotante suave */
+@keyframes floatCard {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(0.3deg); }
+}
+
+/* 🩵 Contenido visible encima del brillo */
+.profile-card * {
+  position: relative;
+  z-index: 1;
+}
+
+/* 💫 Título principal */
+.profile-card h2 {
+  font-family: "Poppins", sans-serif;
+  font-size: 2.3rem;
+  text-align: center;
+  letter-spacing: 1px;
+  color: #003b7a;
+  margin-bottom: 18px;
+  text-transform: uppercase;
+  background: linear-gradient(90deg, #00438F, #00b4ff, #007bff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  position: relative;
+  text-shadow: 0 2px 10px rgba(0, 100, 200, 0.15);
+}
+
+/* 🌈 Línea animada debajo del título */
+.profile-card h2::after {
+  content: "";
+  display: block;
+  width: 90px;
+  height: 4px;
+  margin: 10px auto 0;
+  background: linear-gradient(90deg, #00b4ff, #00e0ff, #007bff);
+  border-radius: 8px;
+  animation: glowLine 2.5s infinite ease-in-out;
+  box-shadow: 0 0 10px rgba(0, 200, 255, 0.7);
+}
+
+/* ✨ Efecto resplandor de la línea */
+@keyframes glowLine {
+  0%, 100% { transform: scaleX(1); opacity: 0.7; box-shadow: 0 0 6px #00e0ff; }
+  50% { transform: scaleX(1.4); opacity: 1; box-shadow: 0 0 20px #00e0ff; }
+}
+
+/* 🧍‍♀️ Información del perfil */
+.profile-info p {
+  font-family: "Nunito", sans-serif;
+  font-size: 1.05rem;
+  color: #003366;
+  margin-bottom: 12px;
+  text-align: center;
+  line-height: 1.6;
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+.profile-info p:hover {
+  transform: scale(1.03);
+  color: #005fa3;
+}
+
+/* 🌟 Texto destacado */
+.profile-info span {
   font-weight: 700;
-  color: #00438F;
+  color: #007bff;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+.profile-info span:hover {
+  color: #00c4ff;
+  text-shadow: 0 0 8px #00e0ff;
+}
+
+/* 💨 Efecto de luz que se mueve por la tarjeta */
+.profile-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(120deg, rgba(255,255,255,0.3), rgba(255,255,255,0));
+  transform: skewX(-25deg);
+  transition: all 0.5s ease;
+  z-index: 1;
+}
+.profile-card:hover::after {
+  left: 130%;
+  transition: all 1s ease;
 }
 
 
@@ -474,35 +697,90 @@ p{
     margin-right: 48px;
   }
 }
+/* ======== CONTENEDOR PRINCIPAL ======== */
 .form-container1 {
-  background: linear-gradient(135deg, #00438F 0%, #5E90A6 100%);
-  border: 3px solid #003366;
-  border-radius: 16px;
-  padding: 20px 24px; 
-  box-shadow: 0 6px 18px rgba(0, 67, 143, 0.5);
-  color: #f0f4f8;
-  max-width: 400px; 
-  margin: 0 auto; 
-  margin-top: 5%;
-
-  font-family: 'Nunito', sans-serif;
+  max-width: 510px; 
+  margin: 60px auto;
+  background: linear-gradient(180deg, #ffffff 0%, #f0f8ff 100%);
+  padding: 40px 35px;
+  border-radius: 20px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  animation: aparecer 0.8s ease;
 }
-.form-group1 {
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
+.form-container1::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  padding: 3px;
+  background: linear-gradient(135deg, #3498db, #1abc9c, #2980b9);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: xor;
+  -webkit-mask-composite: xor;
+  z-index: -1;
+}
+
+@keyframes aparecer {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ======== TÍTULO ======== */
+.form-container1 h2 {
+  font-family: "Poppins", sans-serif;
+  color: #0b4d91;
+  font-weight: 700;
+  margin-bottom: 20px;
   position: relative;
 }
 
-.form-group1 label {
-  flex: 0 0 130px;
-  margin-right: 12px;
-  font-weight: 600;
-  color: #cbd5e1;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1rem;
-  letter-spacing: 0.03em;
-  user-select: none;
+.form-container1 h2::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 3px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #00b7ff, #00e0ff, #4ef3ff);
+  animation: lineaMover 1.8s infinite ease-in-out;
+}
+
+@keyframes lineaMover {
+  0%, 100% { transform: translateX(-50%) scaleX(0.9); opacity: 0.6; }
+  50% { transform: translateX(-50%) scaleX(1.1); opacity: 1; }
+}
+
+/* ======== INPUTS ======== */
+.form-group1 {
+  position: relative;
+  margin-bottom: 25px;
+  text-align: left;
+}
+
+.form-group1 input {
+  background: linear-gradient(145deg, #ffffff, #f8fafc);
+  color: #2c3e50;
+  border: 2px solid #e3f2fd;
+  border-radius: 12px;
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.form-group1 input:hover {
+  border-color: #5dade2;
+  box-shadow: 0 6px 20px rgba(52, 152, 219, 0.1);
+  transform: translateY(-2px);
+}
+
+.form-group1 input:focus {
+  border-color: #3498db;
+  box-shadow: 
+      0 0 0 4px rgba(52, 152, 219, 0.15),
+      0 10px 30px rgba(52, 152, 219, 0.1);
+  transform: translateY(-3px);
 }
 
 .form-group1.relative input {
@@ -563,66 +841,95 @@ p{
   margin-top: 20px;
 }
 
-/* Estilos para las tablas */
-.tabla-intereses {
-  border-collapse: collapse;
-  margin-bottom: 25px;
-  position: relative;
-  border: none;
-  width: auto;
+/* Contenedor general */
+.contenedor-intereses {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 80px; /* espacio entre las columnas */
+  flex-wrap: wrap; /* se acomoda si la pantalla es pequeña */
+  margin-top: 30px;
 }
 
-.tabla-intereses td {
-  border: none;
-  padding: 8px 12px;
-  vertical-align: middle;
-  transition: background-color 0.2s, color 0.2s;
+/* Cada columna */
+.columna {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: white;
+  padding: 20px 25px;
+  border-radius: 20px;
+  box-shadow: 0 6px 20px rgba(0, 90, 160, 0.15);
+  transition: all 0.3s ease;
+  width: 280px;
 }
 
-.tabla-intereses tr {
-  cursor: pointer;
+/* Efecto al pasar el mouse sobre la columna */
+.columna:hover {
+  box-shadow: 0 10px 25px rgba(0, 224, 255, 0.3);
+  transform: translateY(-4px);
 }
 
-/* Hover en toda la fila */
-.tabla-intereses tr:hover {
-  background-color: #e0e0e0;
-}
-
-.tabla-intereses tr:hover td {
-  color: #111111;
-}
-
-.tabla-intereses tr:hover input[type="checkbox"] {
-  filter: brightness(0.8);
-}
-
-/* Columna de checkboxes */
-.tabla-intereses .checkbox-col {
-  width: 30px;
-  text-align: center;
-  padding-right: 8px;
-}
-
-/* Columna de texto */
-.tabla-intereses .texto-col {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
-  color: black;
+/* Cada fila (interés individual) */
+.item-interes {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
   font-size: 0.95rem;
-  font-family: "Edu SA Hand", cursive;
-  text-align: left;
-  white-space: nowrap;
+  color: #002855;
   cursor: pointer;
+  transition: color 0.3s ease;
 }
 
-/* Checkbox */
-.tabla-intereses input[type="checkbox"] {
-  cursor: pointer;
-  margin: 0;
-  width: 16px;
-  height: 16px;
+/* Color al pasar el mouse sobre el texto */
+.item-interes:hover {
+  color: #00aaff;
 }
+
+/* Checkbox personalizado */
+.item-interes input[type="checkbox"] {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #00aaff;
+  border-radius: 5px;
+  background-color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.item-interes input[type="checkbox"]:checked {
+  background-color: #00cfff;
+  box-shadow: 0 0 10px rgba(0, 224, 255, 0.6);
+  border-color: #00b8ff;
+}
+
+.item-interes input[type="checkbox"]:checked::after {
+  content: "✔";
+  position: absolute;
+  color: white;
+  font-weight: bold;
+  top: -2px;
+  left: 3px;
+  font-size: 14px;
+}
+
+/* Ajuste para móviles */
+@media (max-width: 768px) {
+  .contenedor-intereses {
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+  }
+
+  .columna {
+    width: 90%;
+  }
+}
+
 /*para el formulario de comentarios */
 
 /* 🌍 Fondo principal */
