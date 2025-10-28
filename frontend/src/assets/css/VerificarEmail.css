@@ -1,0 +1,193 @@
+/* Contenedor principal */
+.verificar-email-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+/* Tarjeta de verificación */
+.verificar-email-card {
+  background: white;
+  border-radius: 20px;
+  padding: 50px 40px;
+  max-width: 600px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideIn 0.5s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Contenido */
+.verificar-content {
+  text-align: center;
+}
+
+.verificar-content h2 {
+  font-size: 2rem;
+  color: #2c3e50;
+  margin: 20px 0;
+  font-weight: 700;
+}
+
+.verificar-content p {
+  color: #666;
+  font-size: 1.1rem;
+  margin: 15px 0;
+  line-height: 1.6;
+}
+
+/* Spinner grande */
+.spinner-large {
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid #667eea;
+  border-radius: 50%;
+  width: 80px;
+  height: 80px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 30px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Iconos */
+.icon-success {
+  font-size: 5rem;
+  animation: bounce 0.6s ease;
+}
+
+.icon-error {
+  font-size: 5rem;
+  animation: shake 0.5s ease;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+/* Mensajes */
+.mensaje-principal {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.mensaje-secundario {
+  font-size: 1rem;
+  color: #7f8c8d;
+  font-style: italic;
+}
+
+.mensaje-error {
+  color: #e74c3c;
+  font-weight: 600;
+  background: #fdf2f2;
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 4px solid #e74c3c;
+  margin: 20px 0;
+}
+
+.redireccion {
+  color: #95a5a6;
+  font-size: 0.95rem;
+  margin-top: 30px;
+}
+
+/* Botones */
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 15px 40px;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 10px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+.btn-primary:active {
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: white;
+  color: #667eea;
+  border: 2px solid #667eea;
+  padding: 12px 30px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin: 10px;
+}
+
+.btn-secondary:hover {
+  background: #667eea;
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* Acciones de error */
+.acciones-error {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 30px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .verificar-email-card {
+    padding: 40px 25px;
+  }
+
+  .verificar-content h2 {
+    font-size: 1.5rem;
+  }
+
+  .verificar-content p {
+    font-size: 1rem;
+  }
+
+  .icon-success,
+  .icon-error {
+    font-size: 4rem;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+  }
+}

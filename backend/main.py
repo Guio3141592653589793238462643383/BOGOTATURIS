@@ -9,11 +9,12 @@ import os
 from app.api.routers_.chat_router import router as chat_router
 #from app.api.routers_.historial_router import router as historial_router
 from app.api.routers_.signUp_router import router as signUp_router
-from app.api.routers_.login_router import router as login_router  # <-- Agregado
+from app.api.routers_.login_router import router as login_router
+from app.api.routers_.admin_router import router as admin_router
+from app.api.routers_.politicas_router import router as politicas_router
+from app.api.routers_.notificaciones_router import router as notificaciones_router
+from app.api.routers_.verificacion_router import router as verificacion_router
 from fastapi.templating import Jinja2Templates
-
-
-
 
 load_dotenv()
 
@@ -29,17 +30,17 @@ app = FastAPI(
 templates = Jinja2Templates(directory="templates")
 
 origins = [
-    #"http://localhost:5173",  # tu frontend
-    "*",
+    "http://localhost:5173",  # Frontend Vite
+    "http://127.0.0.1:5173",  # Frontend Vite alternativo
+    "http://localhost:3000",  # Frontend React alternativo
 ]
 
 # Configuración de CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins, #["http://localhost:3000", "http://localhost:5173"],  # Puertos comunes de React
-    #Access-Control-Allow-Origins=["http://localhost:5173"],
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -55,7 +56,11 @@ async def index(request: Request):
 app.include_router(chat_router)
 #app.include_router(historial_router)
 app.include_router(signUp_router)
-app.include_router(login_router)  # <-- Incluir router usuario
+app.include_router(login_router)
+app.include_router(admin_router)
+app.include_router(politicas_router)
+app.include_router(notificaciones_router)
+app.include_router(verificacion_router)
 
 
 @app.get("/health")

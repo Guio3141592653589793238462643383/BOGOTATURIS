@@ -1,5 +1,6 @@
-from sqlalchemy import Date, DateTime, Time, create_engine, String, BigInteger, Integer, ForeignKey
+from sqlalchemy import Date, DateTime, Time, create_engine, String, BigInteger, Integer, ForeignKey, Boolean, Text
 from sqlalchemy.orm import DeclarativeBase, mapped_column, sessionmaker
+from datetime import datetime
 
 # URL de conexión con driver pymysql
 connection_url = 'mysql+pymysql://root@127.0.0.1:3306/BogotaTuris'
@@ -26,12 +27,20 @@ class Usuario(Base):
     id_rol = mapped_column(BigInteger, ForeignKey('rol.id_rol'), nullable=False)
     id_correo = mapped_column(BigInteger, ForeignKey('correo.id_correo'), nullable=False)
     id_nac = mapped_column(BigInteger, ForeignKey('nacionalidad.id_nac'), nullable=False)
+    # Campos de aceptación de políticas
+    acepto_terminos = mapped_column(Boolean, nullable=False, default=False)
+    acepto_tratamiento_datos = mapped_column(Boolean, nullable=False, default=False)
+    fecha_aceptacion_terminos = mapped_column(DateTime, nullable=True)
+    fecha_aceptacion_tratamiento = mapped_column(DateTime, nullable=True)
+    # Campos de verificación de email
+    email_verificado = mapped_column(Boolean, nullable=False, default=False)
+    fecha_verificacion_email = mapped_column(DateTime, nullable=True)
 
 class Rol(Base):
     __tablename__ = 'rol'
 
     id_rol = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    rol = mapped_column(String(20), nullable=False, unique=True)  
+    rol = mapped_column(String(50), nullable=False)
 
 class Correo(Base):
     __tablename__ = 'correo'
@@ -109,6 +118,38 @@ class Rutas(Base):
     inicio_ruta = mapped_column(String(50), nullable=False)
     fin_ruta = mapped_column(String(50), nullable=False)
     id_lugar = mapped_column(BigInteger, ForeignKey('lugar.id_lugar'), nullable=False)
+
+class HistorialAceptaciones(Base):
+    __tablename__ = 'historial_aceptaciones'
+
+    id_historial = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    id_usuario = mapped_column(BigInteger, ForeignKey('usuario.id_usuario'), nullable=False)
+    tipo_documento = mapped_column(String(50), nullable=False)  # 'terminos' o 'tratamiento_datos'
+    acepto = mapped_column(Boolean, nullable=False)
+    fecha_accion = mapped_column(DateTime, nullable=False, default=datetime.utcnow)
+    ip_address = mapped_column(String(45), nullable=True)  # Para IPv4 e IPv6
+    user_agent = mapped_column(Text, nullable=True)
+
+class VisualizacionPDF(Base):
+    __tablename__ = 'visualizacion_pdf'
+
+    id_visualizacion = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    id_usuario = mapped_column(BigInteger, ForeignKey('usuario.id_usuario'), nullable=True)  # Puede ser null si no está registrado aún
+    session_id = mapped_column(String(255), nullable=False)  # Para tracking antes del registro
+    tipo_documento = mapped_column(String(50), nullable=False)
+    fecha_visualizacion = mapped_column(DateTime, nullable=False, default=datetime.utcnow)
+    tiempo_visualizacion = mapped_column(Integer, nullable=True)  # Segundos que estuvo viendo el PDF
+
+class TokenVerificacion(Base):
+    __tablename__ = 'token_verificacion'
+
+    id_token = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    id_usuario = mapped_column(BigInteger, ForeignKey('usuario.id_usuario'), nullable=False)
+    token = mapped_column(String(255), nullable=False, unique=True)
+    fecha_creacion = mapped_column(DateTime, nullable=False, default=datetime.utcnow)
+    fecha_expiracion = mapped_column(DateTime, nullable=False)
+    usado = mapped_column(Boolean, nullable=False, default=False)
+    fecha_uso = mapped_column(DateTime, nullable=True)
 
 SessionLocal = sessionmaker(bind=engine)
 

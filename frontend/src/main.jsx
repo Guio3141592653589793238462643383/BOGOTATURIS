@@ -11,6 +11,7 @@ import ProtectedRoute from './components/ProtectedRoute.jsx';
 import Inicio from './Pages/Inicio';
 import Login from './Pages/Login';
 import Registro from './Pages/Registro';
+import VerificarEmail from './Pages/VerificarEmail';
 
 // Páginas protegidas
 import Dashboard from './Pages/Dashboard';
@@ -18,6 +19,7 @@ import Eventos from './Pages/EventosPage';
 import Lugares from './Pages/LugaresPage';
 import Perfil from './Pages/PerfilPage';
 import UserView from './view/UserView';
+import AdminView from './view/AdminView';
 import CrearComentario from './Pages/CreateComment';
 import ConsultarLugar from './Pages/ConsultPlaces';
 import CambiarPassword from './Pages/CambiarPassword';
@@ -33,6 +35,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           <Route path="/" element={<Inicio />} />
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Registro />} />
+          <Route path="/verificar-email" element={<VerificarEmail />} />
 
           {/* Páginas protegidas con Navbar */}
           <Route element={<ProtectedRoute />}>
@@ -46,6 +49,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         {/* Páginas protegidas SIN Navbar */}
         <Route element={<ProtectedRoute />}>
           <Route path="/usuario/:userId" element={<UserView />} />
+          <Route path="/admin/:userId" element={<AdminView />} />
           <Route path="/usuario/:userId/perfil" element={<Perfil />} />
           <Route path="/usuario/:userId/comentarios/nuevo" element={<CrearComentario />} />
           <Route path="/consultar-lugar/:lugarId" element={<ConsultarLugar />} />

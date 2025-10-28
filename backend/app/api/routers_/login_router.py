@@ -20,6 +20,8 @@ class LoginRequest(BaseModel):
 class LoginResponse(BaseModel):
     access_token: str
     usuario_id: int
+    id_rol: int
+    rol: str
     message: str
 
 @router.post("/login", response_model=LoginResponse)
@@ -42,6 +44,18 @@ def login(login_request: LoginRequest, db: Session = Depends(get_db)):
         print("❌ Usuario no existe en la base de datos")
         raise HTTPException(status_code=401, detail="Usuario no encontrado")
 
+    # ✅ Verificar si el email está verificado (excepto para administradores)
+    from app.BD.bd_Relacional.db_connection import Rol
+    rol_obj = db.query(Rol).filter(Rol.id_rol == user.id_rol).first()
+    rol_nombre = rol_obj.rol if rol_obj else "usuario"
+    
+    if rol_nombre != "administrador" and not user.email_verificado:
+        print("❌ Email no verificado para el usuario:", login_request.correo)
+        raise HTTPException(
+            status_code=403, 
+            detail="Debes verificar tu correo electrónico antes de iniciar sesión. Revisa tu bandeja de entrada."
+        )
+
     # ✅ Comparar contraseñas con bcrypt
     if not bcrypt.checkpw(login_request.clave.encode('utf-8'), user.clave.encode('utf-8')):
         print("❌ Contraseña incorrecta para el usuario:", login_request.correo)
@@ -50,15 +64,18 @@ def login(login_request: LoginRequest, db: Session = Depends(get_db)):
     # ✅ Generar token de acceso
     payload = {
         "user_id": user.id_usuario,
+        "rol": rol_nombre,
         "exp": datetime.utcnow() + timedelta(minutes=30)
     }
     token = jwt.encode(payload, "secret_key", algorithm="HS256")
 
-    print("✅ Login exitoso para usuario:", user.id_usuario)
+    print(f"✅ Login exitoso para usuario: {user.id_usuario} con rol: {rol_nombre}")
 
     return {
         "access_token": token,
         "usuario_id": user.id_usuario,
+        "id_rol": user.id_rol,
+        "rol": rol_nombre,
         "message": "Inicio de sesión exitoso"
     }
 
@@ -151,7 +168,7 @@ class ComentarioOut(BaseModel):
     id_usuario: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 @router.post("/comentarios", response_model=ComentarioOut)
 def crear_comentario(com: ComentarioCreate, db: Session = Depends(get_db)):

@@ -152,6 +152,7 @@ const useLoginValidation = () => {
       // ✅ Login exitoso
       setSuccessMessage('¡Inicio de sesión exitoso!');
       setErrors({});
+<<<<<<< HEAD
 
       // Guardar el token en localStorage
       localStorage.setItem('access_token', data.access_token);
@@ -164,6 +165,26 @@ setTimeout(() => {
   window.location.href = `/usuario/${data.usuario_id}`;
 }, 1000);
 
+=======
+      
+      // Guardar el token y datos del usuario en localStorage
+      localStorage.setItem('access_token', data.access_token);
+      localStorage.setItem('usuario_id', data.usuario_id);
+      localStorage.setItem('user_rol', data.rol);
+      localStorage.setItem('id_rol', data.id_rol);
+      
+      console.log('Login exitoso:', data);
+      
+      // Redirigir según el rol del usuario después de 1 segundo
+      setTimeout(() => {
+        if (data.rol === 'administrador') {
+          window.location.href = `/admin/${data.usuario_id}`;
+        } else {
+          window.location.href = `/usuario/${data.usuario_id}`;
+        }
+      }, 1000);
+      
+>>>>>>> 93b0132 (subiendo cambios de registro, bd, inicio de sesión y vista admin)
     } catch (error) {
       console.error('Error en login:', error);
       setErrors({

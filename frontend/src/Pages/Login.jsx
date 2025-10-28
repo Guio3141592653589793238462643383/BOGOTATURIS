@@ -1,4 +1,5 @@
 import useLoginValidation from "../hooks/Validacion_login";
+import { useEffect } from "react";
 
 const LoginPage = () => {
   const {
@@ -11,12 +12,25 @@ const LoginPage = () => {
     handleBlur,
     handleSubmit,
   } = useLoginValidation();
+  
+  // Verificar si ya hay una sesión activa y redirigir
+  useEffect(() => {
+    const usuarioId = localStorage.getItem("usuario_id");
+    const userRol = localStorage.getItem("user_rol");
+    
+    if (usuarioId && userRol) {
+      if (userRol === "administrador") {
+        window.location.href = `/admin/${usuarioId}`;
+      } else {
+        window.location.href = `/usuario/${usuarioId}`;
+      }
+    }
+  }, []);
 
   return (
     <div className="login-wrapper">
       <div className="login-box">
         <h1>Iniciar Sesión</h1>
-
         <form onSubmit={handleSubmit} noValidate>
           <div className="input-group">
             <label htmlFor="correo">Correo Electrónico *</label>
