@@ -236,45 +236,131 @@ const useFormValidation = () => {
     updateMessage('correo', 'error', '');
     updateMessage('correo', 'exito', '✓ Email válido y disponible');
     markField('correo', true);
-    
-    return true;
-  }, [updateMessage, markField]);
 
-  const calcularFortalezaPassword = useCallback((clave) => {
-    let nivel = 0;
-    let texto = 'Muy Débil';
-    let color = '#dc3545';
-    
-    if (/[a-z]/.test(clave)) nivel++;
-    if (/[A-Z]/.test(clave)) nivel++;
-    if (/[0-9]/.test(clave)) nivel++;
-    if (/[^A-Za-z0-9]/.test(clave)) nivel++;
-    
+const validatePrimerApellido = useCallback((valor) => {
+  const esValido = valor.trim().length >= 2;
+
+  if (!esValido) {
+    updateMessage('primerApellido', 'error', 'El primer apellido debe tener al menos 2 letras');
+    updateMessage('primerApellido', 'exito', '');
+  } else {
+    updateMessage('primerApellido', 'error', '');
+    updateMessage('primerApellido', 'exito', '✓ Primer apellido válido');
+  }
+
+  markField('primer_apellido', esValido);
+  return esValido;
+}, [updateMessage, markField]);
+
+const validateSegundoApellido = useCallback((valor) => {
+  const esValido = valor.trim() === '' || valor.trim().length >= 2;
+
+  if (!esValido) {
+    updateMessage('segundoApellido', 'error', 'El segundo apellido debe tener al menos 2 letras');
+    updateMessage('segundoApellido', 'exito', '');
+  } else {
+    updateMessage('segundoApellido', 'error', '');
+    updateMessage('segundoApellido', 'exito', valor ? '✓ Segundo apellido válido' : '');
+  }
+
+  markField('segundo_apellido', esValido);
+  return esValido;
+}, [updateMessage, markField]);
+
+const validateConfirmarCorreoHelper = useCallback((valor, correoOriginal) => {
+  const esValido = valor === correoOriginal && valor.length > 0;
+  
+  if (!esValido) {
+    updateMessage('confirmarCorreo', 'error', 'Los correos no coinciden');
+    updateMessage('confirmarCorreo', 'exito', '');
+  } else {
+    updateMessage('confirmarCorreo', 'error', '');
+    updateMessage('confirmarCorreo', 'exito', '✓ Correos coinciden');
+  }
+  
+  markField('confirmarCorreo', esValido);
+  return esValido;
+}, [updateMessage, markField]);
+
+const validateCorreo = useCallback(async (valor) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const formatoValido = emailRegex.test(valor);
+  
+  if (!formatoValido) {
+    updateMessage('correo', 'error', 'Formato de email inválido');
+    updateMessage('correo', 'exito', '');
+    markField('correo', false);
+    return false;
+  }
+
+  updateMessage('correo', 'error', '');
+  updateMessage('correo', 'exito', '✓ Email válido y disponible');
+  markField('correo', true);
+  
+  return true;
+}, [updateMessage, markField]);
+
+const calcularFortalezaPassword = useCallback((clave) => {
+  if (!clave) return { nivel: 0, texto: 'Muy Débil', color: '#dc3545' };
+  
+  let nivel = 0;
+  let texto = 'Muy Débil';
+  let color = '#dc3545';
+  
+  // Solo verificamos la longitud mínima como requisito
+  const cumpleLongitud = clave.length >= 8;
+  
+  // El resto son sugerencias de fortaleza
+  if (/[a-z]/.test(clave)) nivel++;
+  if (/[A-Z]/.test(clave)) nivel++;
+  if (/[0-9]/.test(clave)) nivel++;
+  if (/[^A-Za-z0-9]/.test(clave)) nivel++;
+  
+  // Ajustar el nivel basado en la longitud
+  if (clave.length >= 12) nivel = Math.min(4, nivel + 1);
+  
+  // Solo mostrar como válido si cumple con la longitud mínima
+  if (cumpleLongitud) {
     switch (nivel) {
+      case 0:
       case 1:
         texto = 'Débil';
-        color = '#dc3545';
+        color = '#fd7e14';
         break;
       case 2:
-        texto = 'Aceptable';
+        texto = 'Moderada';
         color = '#ffc107';
         break;
       case 3:
         texto = 'Fuerte';
-        color = '#17a2b8';
+        color = '#28a745';
         break;
       case 4:
         texto = 'Muy Fuerte';
-        color = '#28a745';
+        color = '#20c997';
         break;
+      default:
+        texto = 'Válida';
+        color = '#28a745';
     }
-    
-    return { nivel, texto, color };
-  }, []);
+  } else {
+    texto = 'Muy Corta';
+    color = '#dc3545';
+  }
+  
+  return { nivel, texto, color, valida: cumpleLongitud };
+}, []);
 
-  const validateConfirmarClaveHelper = useCallback((valor, claveOriginal) => {
-    const esValido = valor.length > 0 && valor === claveOriginal;
+const validateConfirmarClaveHelper = useCallback((valor, claveOriginal) => {
+  const esValido = valor.length > 0 && valor === claveOriginal;
 
+  if (!esValido) {
+    updateMessage('confirmarClave', 'error', 'Las contraseñas no coinciden');
+    updateMessage('confirmarClave', 'exito', '');
+  } else {
+    updateMessage('confirmarClave', 'error', '');
+    updateMessage('confirmarClave', 'exito', '✓ Contraseñas coinciden');
+  }
     if (!esValido) {
       updateMessage('confirmarClave', 'error', 'Las contraseñas no coinciden');
       updateMessage('confirmarClave', 'exito', '');
@@ -291,18 +377,20 @@ const useFormValidation = () => {
     const fortaleza = calcularFortalezaPassword(valor);
     setPasswordStrength(fortaleza);
     
-    const esValido = valor.length >= 8 && fortaleza.nivel >= 2;
+    // Solo validamos la longitud mínima
+    const esValido = valor.length >= 8;
     
-    if (!esValido) {
-      if (valor.length < 8) {
-        updateMessage('clave', 'error', 'Contraseña debe tener numeros, 1 Mayuscula, Minusculas');
-      } else {
-        updateMessage('clave', 'error', 'Contraseña muy débil. Debe contener al menos 2 tipos de caracteres');
-      }
+    // Actualizamos los mensajes
+    if (valor.length === 0) {
+      updateMessage('clave', 'error', 'La contraseña es obligatoria');
+      updateMessage('clave', 'exito', '');
+    } else if (!esValido) {
+      updateMessage('clave', 'error', 'La contraseña debe tener al menos 8 caracteres');
       updateMessage('clave', 'exito', '');
     } else {
+      // Mostrar sugerencia de fortaleza como mensaje de éxito
       updateMessage('clave', 'error', '');
-      updateMessage('clave', 'exito', `✓ Contraseña ${fortaleza.texto}`);
+      updateMessage('clave', 'exito', `✓ ${fortaleza.texto}${fortaleza.nivel < 2 ? ' (Sugerencia: usa mayúsculas, minúsculas, números o símbolos para mayor seguridad)' : ''}`);
     }
     
     markField('clave', esValido);

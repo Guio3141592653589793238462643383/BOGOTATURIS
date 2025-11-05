@@ -32,10 +32,12 @@ const useLoginValidation = () => {
       setErrors((prev) => ({ ...prev, clave: "La contraseña es obligatoria" }));
       return false;
     }
+    // Solo validar la longitud mínima
     if (value.length < 8) {
-      setErrors((prev) => ({ ...prev, clave: "Debe tener al menos 8 caracteres" }));
+      setErrors((prev) => ({ ...prev, clave: "La contraseña debe tener al menos 8 caracteres" }));
       return false;
     }
+    // Limpiar cualquier error de contraseña
     setErrors((prev) => ({ ...prev, clave: "" }));
     return true;
   }, []);

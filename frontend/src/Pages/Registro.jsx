@@ -1,5 +1,5 @@
 import "../assets/css/FormSignUp.css";
-import useFormValidation from "../hooks/useFormValidation";
+import useFormValidation from "../hooks/useFormValidation.jsx";
 import usePoliticas from "../hooks/usePoliticas";
 import PDFModal from "../components/PDFModal";
 import React, { useState, useEffect } from 'react';
@@ -70,26 +70,70 @@ const FormSignUp = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validar todo el formulario primero
-    const esValido = await validarTodoElFormulario();
+    // Validar políticas primero
+    if (!validarPoliticas()) {
+      alert("Debes leer y aceptar las políticas antes de registrarte");
+      return;
+    }
+
+    // Validar todo el formulario
+    const esValido = await validarTodoElFormulario(politicasAceptadas);
 
     if (!esValido) {
       alert("Por favor completa todos los campos requeridos correctamente");
       return;
     }
 
-    // Validar políticas
-    if (!validarPoliticas()) {
-      alert("Debes leer y aceptar las políticas antes de registrarte");
+    // Verificar que las contraseñas coincidan
+    if (formData.clave !== formData.confirmarClave) {
+      alert("Las contraseñas no coinciden");
+      return;
+    }
+
+    // Crear objeto con los datos del formulario
+    // Asegurarse de que sessionId esté definido
+    if (!sessionId) {
+      console.error('Error: sessionId no está definido');
+      alert('Error de sesión. Por favor, recarga la página e inténtalo de nuevo.');
+      return;
+    }
+
+    // Asegurarse de que todos los campos requeridos tengan valores válidos
+    if (!formData.primer_nombre || !formData.primer_apellido || !formData.correo || !formData.clave || !formData.nacionalidad) {
+      alert('Por favor completa todos los campos requeridos');
+      return;
+    }
+
+    // Validar que se hayan seleccionado intereses
+    if (!formData.intereses || formData.intereses.length === 0) {
+      alert('Por favor selecciona al menos un interés');
+      return;
+    }
+
+    // Validar que se hayan aceptado los términos
+    if (!politicasAceptadas.acepto_terminos || !politicasAceptadas.acepto_tratamiento_datos) {
+      alert('Debes aceptar los términos y condiciones y la política de tratamiento de datos');
+      return;
+    }
+
+    // Validar que la contraseña tenga al menos 8 caracteres
+    if (formData.clave.length < 8) {
+      alert('La contraseña debe tener al menos 8 caracteres');
+      return;
+    }
+
+    // Validar que las contraseñas coincidan
+    if (formData.clave !== formData.confirmarClave) {
+      alert('Las contraseñas no coinciden');
       return;
     }
 
     const datosFormulario = {
-      primer_nombre: formData.primer_nombre,
-      segundo_nombre: formData.segundo_nombre || null,
-      primer_apellido: formData.primer_apellido,
-      segundo_apellido: formData.segundo_apellido || null,
-      correo: formData.correo,
+      primer_nombre: formData.primer_nombre.trim(),
+      segundo_nombre: formData.segundo_nombre ? formData.segundo_nombre.trim() : null,
+      primer_apellido: formData.primer_apellido.trim(),
+      segundo_apellido: formData.segundo_apellido ? formData.segundo_apellido.trim() : null,
+      correo: formData.correo.trim().toLowerCase(),
       clave: formData.clave,
       nacionalidad: formData.nacionalidad,
       intereses: Array.isArray(formData.intereses) ? formData.intereses : [],
@@ -97,8 +141,8 @@ const FormSignUp = () => {
       acepto_tratamiento_datos: politicasAceptadas.acepto_tratamiento_datos,
       session_id: sessionId
     };
-
-
+    
+    console.log('Datos a enviar al servidor:', JSON.stringify(datosFormulario, null, 2));
 
     try {
       const response = await fetch("http://localhost:8000/api/usuario/registro", {
@@ -110,7 +154,13 @@ const FormSignUp = () => {
         body: JSON.stringify(datosFormulario),
       })
 
-      const resultado = await response.json();
+      let resultado;
+      try {
+        resultado = await response.json();
+      } catch (error) {
+        console.error('Error al analizar la respuesta JSON:', error);
+        throw new Error('Error al procesar la respuesta del servidor');
+      }
 
       if (response.ok) {
         console.log('Usuario registrado exitosamente:', resultado);
@@ -120,20 +170,45 @@ const FormSignUp = () => {
         resetForm();
         resetPoliticas();
 
-        // Opcional: redirigir a otra página
-        // window.location.href = '/login';
+        // Mostrar mensaje de éxito y redirigir al login después de 3 segundos
+        alert('¡Registro exitoso! Por favor verifica tu correo electrónico para activar tu cuenta.');
+        
+        // Redirigir al login después de mostrar el mensaje
+        setTimeout(() => {
+          navigate('/login');
+        }, 3000);
 
       } else {
-        console.error('Error del servidor:', resultado);
+        console.error('Error del servidor:', {
+          status: response.status,
+          statusText: response.statusText,
+          data: resultado
+        });
 
         // Manejar diferentes tipos de errores del backend
-        let mensajeError = 'Error en el registro. Verifica los datos.';
-
-        if (resultado.detail) {
+        let mensajeError = 'Error en el registro. ';
+        
+        // Si es un error 422, mostrar detalles de validación
+        if (response.status === 422 && resultado.detail) {
+          if (Array.isArray(resultado.detail)) {
+            // Error de validación de Pydantic
+            const errores = resultado.detail.map(e => {
+              const campo = e.loc ? e.loc.join('.') : 'campo_desconocido';
+              return `- ${campo}: ${e.msg}`;
+            }).join('\n');
+            mensajeError = `Error de validación:\n${errores}`;
+          } else if (typeof resultado.detail === 'string') {
+            mensajeError = resultado.detail;
+          } else if (resultado.detail.detail) {
+            mensajeError = resultado.detail.detail;
+          }
+        } 
+        // Otros tipos de errores
+        else if (resultado.detail) {
           if (typeof resultado.detail === 'object') {
             // Error con información de campo específico
             if (resultado.detail.detail) {
-              mensajeError = resultado.detail.detail;
+              mensajeError += resultado.detail.detail;
             }
             if (resultado.detail.campo) {
               mensajeError += ` (Campo: ${resultado.detail.campo})`;
@@ -143,7 +218,7 @@ const FormSignUp = () => {
           }
         }
 
-        alert(`Error: ${mensajeError}`);
+        alert(`Error (${response.status}): ${mensajeError}`);
       }
     } catch (error) {
       console.error('Error de conexión:', error);

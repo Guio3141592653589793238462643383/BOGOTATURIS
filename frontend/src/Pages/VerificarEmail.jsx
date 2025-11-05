@@ -27,12 +27,20 @@ export default function VerificarEmail() {
         token
       });
       
-      setEstado('exito');
-      setMensaje(response.data.message);
-      setYaVerificado(response.data.ya_verificado);
-      
-      // NO redirigir automáticamente, dejar que el usuario elija
-      // El usuario puede hacer clic en "Ir al Login Ahora" cuando esté listo
+      if (response.data.success) {
+        if (response.data.ya_verificado) {
+          setEstado('exito');
+          setMensaje(response.data.message);
+          setYaVerificado(true);
+        } else {
+          // Redirigir a la página de verificación exitosa solo si se acaba de verificar
+          navigate('/verificacion-exitosa');
+          return;
+        }
+      } else {
+        setEstado('error');
+        setMensaje(response.data.detail || 'Error al verificar el correo');
+      }
     } catch (error) {
       setEstado('error');
       setMensaje(error.response?.data?.detail || 'Error al verificar email');
