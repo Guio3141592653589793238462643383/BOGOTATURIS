@@ -124,20 +124,31 @@ const LoginPage = () => {
         setSuccessMessage('Inicio de sesión exitoso');
         toast.success('Inicio de sesión exitoso');
         
-        // Redirigir según el rol del usuario
-        const userRole = localStorage.getItem('user_rol');
-        const userId = localStorage.getItem('usuario_id');
+        // Obtener el rol del usuario del contexto de autenticación
+        const userRole = result.user?.rol?.toLowerCase() || localStorage.getItem('user_rol')?.toLowerCase();
+        const userId = result.user?.id || localStorage.getItem('usuario_id');
         
+        // Validar que el rol sea válido
+        if (!userRole) {
+          console.error('Rol de usuario no encontrado');
+          toast.error('Error al determinar el rol del usuario');
+          return;
+        }
+        
+        // Redirigir según el rol del usuario
         if (userRole === 'administrador') {
           navigate(`/admin/${userId}`);
-        } else {
+        } else if (userRole === 'usuario') {
           navigate(`/usuario/${userId}`);
+        } else {
+          // Si el rol no es reconocido, redirigir a una página por defecto
+          console.warn(`Rol no reconocido: ${userRole}, redirigiendo a página de inicio`);
+          navigate('/');
         }
       } else {
-        setErrors({
-          general: result?.error || 'Credenciales inválidas. Por favor, inténtalo de nuevo.'
-        });
-        toast.error(result?.error || 'Error en el inicio de sesión');
+        const errorMessage = result?.error || 'Credenciales inválidas. Por favor, inténtalo de nuevo.';
+        setErrors({ general: errorMessage });
+        toast.error(errorMessage);
       }
     } catch (error) {
       console.error('Error en el inicio de sesión:', error);
@@ -152,21 +163,31 @@ const LoginPage = () => {
 
   // Verificar si ya hay una sesión activa y redirigir según el rol
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAuth = () => {
       try {
         const token = localStorage.getItem('access_token');
-        const userRole = localStorage.getItem('user_rol');
+        const userRole = localStorage.getItem('user_rol')?.toLowerCase();
         const userId = localStorage.getItem('usuario_id');
         
         if (token && userRole && userId) {
+          // Redirigir según el rol del usuario
           if (userRole === 'administrador') {
             navigate(`/admin/${userId}`);
-          } else {
+          } else if (userRole === 'usuario') {
             navigate(`/usuario/${userId}`);
+          } else {
+            console.warn(`Rol no reconocido: ${userRole}, redirigiendo a página de inicio`);
+            navigate('/');
           }
         }
       } catch (error) {
         console.error('Error al verificar autenticación:', error);
+        // En caso de error, limpiar la sesión y redirigir al login
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('usuario_id');
+        localStorage.removeItem('user_email');
+        localStorage.removeItem('user_rol');
+        navigate('/login');
       }
     };
     
@@ -252,6 +273,10 @@ const LoginPage = () => {
           </div>
         )}
 
+        <div className="forgot-password-link">
+          <p><a href="/solicitar-restablecimiento">¿Olvidaste tu contraseña?</a></p>
+        </div>
+        
         <div className="register-link">
           <p>¿No tienes cuenta? <a href="/registro">Regístrate aquí</a></p>
         </div>

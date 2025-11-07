@@ -16,6 +16,8 @@ import Login from './Pages/Login';
 import Registro from './Pages/Registro';
 import VerificarEmail from './Pages/VerificarEmail';
 import VerificacionExitosa from './Pages/VerificacionExitosa';
+import SolicitarRestablecimiento from './Pages/SolicitarRestablecimiento';
+import NuevaContrasena from './Pages/NuevaContrasena';
 
 // Páginas protegidas
 import Dashboard from './Pages/Dashboard';
@@ -44,6 +46,8 @@ root.render(
             <Route path="registro" element={<Registro />} />
             <Route path="verificar-email" element={<VerificarEmail />} />
             <Route path="verificacion-exitosa" element={<VerificacionExitosa />} />
+            <Route path="solicitar-restablecimiento" element={<SolicitarRestablecimiento />} />
+            <Route path="nueva-contrasena" element={<NuevaContrasena />} />
 
             {/* Rutas protegidas para usuarios normales */}
             <Route element={<ProtectedRoute />}>

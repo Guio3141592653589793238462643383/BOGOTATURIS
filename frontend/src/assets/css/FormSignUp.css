@@ -8,6 +8,24 @@ body {
   padding: 20px 0;
 }
 
+/* Enlace de olvidé mi contraseña */
+.forgot-password-link {
+  text-align: center;
+  margin: 1rem 0;
+}
+
+.forgot-password-link a {
+  color: #3498db;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.forgot-password-link a:hover {
+  color: #2980b9;
+  text-decoration: underline;
+}
+
 /* 📦 Container principal mejorado - MÁS ESTRECHO */
 .container {
   max-width: 600px; /* Reducido de 750px a 600px */

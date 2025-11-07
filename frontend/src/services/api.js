@@ -1,4 +1,5 @@
-const API_URL = "http://localhost:8000/api";
+export const API_BASE_URL = "http://localhost:8000/api";
+const API_URL = API_BASE_URL; // Mantener compatibilidad con código existente
 
 // Registrar usuario
 export const registrarUsuario = async (data) => {

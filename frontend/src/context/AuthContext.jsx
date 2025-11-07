@@ -39,26 +39,36 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
 
       if (response.ok) {
-        // Normalizar el rol a minúsculas para evitar problemas de mayúsculas/minúsculas
+        // Asegurarse de que el rol esté en minúsculas y tenga un valor por defecto
         const rolNormalizado = data.rol ? data.rol.toLowerCase() : 'usuario';
+        const userId = data.usuario_id || data.id_usuario; // Asegurarse de obtener el ID del usuario
+        
+        if (!userId) {
+          console.error('ID de usuario no encontrado en la respuesta del servidor');
+          throw new Error('Error en la autenticación: ID de usuario no encontrado');
+        }
         
         // Guardar en localStorage
         localStorage.setItem("access_token", data.access_token);
-        localStorage.setItem("usuario_id", data.usuario_id);
-        localStorage.setItem("user_email", data.correo);
+        localStorage.setItem("usuario_id", userId);
+        localStorage.setItem("user_email", correo); // Usar el correo proporcionado si no viene en la respuesta
         localStorage.setItem("user_rol", rolNormalizado);
 
         // Actualizar el estado
         setToken(data.access_token);
         const userData = { 
-          id: data.usuario_id, 
-          email: data.correo,
+          id: userId, 
+          email: correo,
           rol: rolNormalizado
         };
         setUser(userData);
 
         console.log('Usuario autenticado:', userData);
-        return { success: true, user: userData };
+        return { 
+          success: true, 
+          user: userData,
+          redirectTo: rolNormalizado === 'administrador' ? `/admin/${userId}` : `/usuario/${userId}`
+        };
       } else {
         const errorMessage = data.detail || data.message || "Error en el inicio de sesión";
         toast.error(errorMessage);
@@ -75,7 +85,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("usuario_id");
     localStorage.removeItem("user_email");
-    localStorage.removeItem("user_role");
+    localStorage.removeItem("user_rol"); // Corregido de user_role a user_rol
     setToken(null);
     setUser(null);
     navigate("/login", { replace: true });
