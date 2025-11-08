@@ -1,5 +1,5 @@
-from sqlalchemy import Date, DateTime, Time, create_engine, String, BigInteger, Integer, ForeignKey, Boolean, Text
-from sqlalchemy.orm import DeclarativeBase, mapped_column, sessionmaker
+from sqlalchemy import CheckConstraint, Date, DateTime, Time, create_engine, String, BigInteger, Integer, ForeignKey, Boolean, Text, func, text
+from sqlalchemy.orm import DeclarativeBase, mapped_column, sessionmaker, relationship
 from datetime import datetime
 
 # URL de conexión con driver pymysql
@@ -35,6 +35,10 @@ class Usuario(Base):
     # Campos de verificación de email
     email_verificado = mapped_column(Boolean, nullable=False, default=False)
     fecha_verificacion_email = mapped_column(DateTime, nullable=True)
+    fecha_registro = mapped_column(DateTime, server_default=func.current_timestamp())
+    fecha_ultima_actualizacion = mapped_column(DateTime, server_default=func.current_timestamp(), onupdate=func.current_timestamp())
+    activo = mapped_column(Boolean, server_default=text("TRUE"))
+
 
 class Rol(Base):
     __tablename__ = 'rol'
@@ -43,10 +47,11 @@ class Rol(Base):
     rol = mapped_column(String(50), nullable=False)
 
 class Correo(Base):
-    __tablename__ = 'correo'
+    __tablename__ = "correo"
 
     id_correo = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    correo = mapped_column(String(255), nullable=False, unique=True)  
+    correo = mapped_column(String(255), nullable=False, unique=True)
+    fecha_creacion = mapped_column(DateTime, server_default=func.current_timestamp())
 
 class Nacionalidad(Base):
     __tablename__ = 'nacionalidad'
@@ -58,7 +63,15 @@ class Intereses(Base):
     __tablename__ = 'intereses'
 
     id_inte = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    interes = mapped_column(String(80), nullable=False, unique=True)  
+    interes = mapped_column(String(80), nullable=False, unique=True)
+
+class Categoria(Base):
+    __tablename__ = "categoria"
+
+    id_categoria = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    nombre_categoria = mapped_column(String(80), nullable=False)
+    tipos = relationship("TipoLugar", back_populates="categoria")
+
 
 class InteresCategoria(Base):
     __tablename__ = 'inte_categoria'
@@ -75,49 +88,58 @@ class InteresesUsuario(Base):
     id_inte = mapped_column(BigInteger, ForeignKey('intereses.id_inte'), nullable=False)
 
 class ReporteIncidente(Base):
-    __tablename__ = 'reporte_incidente'
+    __tablename__ = "reporte_incidente"
 
     id_report = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     descripcion = mapped_column(String(255), nullable=False)
     fecha_report = mapped_column(DateTime, nullable=False)
-    estado = mapped_column(String(80), nullable=False)
-    id_usuario = mapped_column(BigInteger, ForeignKey('usuario.id_usuario'), nullable=False)
+    estado = mapped_column(String(80), nullable=False, server_default=text("'Pendiente'"))
+    id_usuario = mapped_column(BigInteger, ForeignKey("usuario.id_usuario", ondelete="CASCADE"), nullable=False)
+    id_lugar = mapped_column(BigInteger, ForeignKey("lugar.id_lugar", ondelete="SET NULL"))
+    prioridad = mapped_column(String(20), server_default=text("'Media'"))
 
 class Comentarios(Base):
     __tablename__ = 'comentarios'
 
     id_com = mapped_column(BigInteger, primary_key=True, autoincrement=True)  
     tipo_com = mapped_column(String(50), nullable=False)
+    calificacion = mapped_column(Integer, CheckConstraint('calificacion BETWEEN 1 AND 5'), nullable=False)
     fecha_com = mapped_column(Date, nullable=False)
     id_usuario = mapped_column(BigInteger, ForeignKey('usuario.id_usuario'), nullable=False)
+    id_lugar = mapped_column(BigInteger, ForeignKey('lugar.id_lugar'), nullable=True)
+
+class TipoLugar(Base):
+    __tablename__ = 'tipo_lugar'
+    
+    id_tipo = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    nombre_tipo = mapped_column(String(60), nullable=False, unique=True)
+    id_categoria = mapped_column(BigInteger, ForeignKey("categoria.id_categoria"), nullable=True)
+    categoria = relationship("Categoria", back_populates="tipos")
+    lugares = relationship("Lugar", back_populates="tipo")
+
 
 class Lugar(Base):
-    __tablename__ = 'lugar'
+    __tablename__ = "lugar"
 
-    id_lugar = mapped_column(BigInteger, primary_key=True, autoincrement=True)  
+    id_lugar = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     nombre_lugar = mapped_column(String(60), nullable=False)
-    tipo_lugar = mapped_column(String(60), nullable=False)
-    direccion = mapped_column(String(255), nullable=False)
-    hora_aper = mapped_column(Time, nullable=True)  
-    hora_cierra = mapped_column(Time, nullable=True)
-    precios = mapped_column(Integer, nullable=True, default=0)  
-    id_usuario = mapped_column(BigInteger, ForeignKey('usuario.id_usuario'), nullable=False)
-
+    descripcion  = mapped_column(String(255), nullable=False)
+    direccion  = mapped_column(String(255), nullable=False)
+    hora_aper = mapped_column(Time, nullable=False)
+    hora_cierra  = mapped_column(Time, nullable=False)
+    precios  = mapped_column(Integer, nullable=False)
+    imagen_url = mapped_column(String(500), nullable=True)
+    id_tipo = mapped_column(BigInteger, ForeignKey("tipo_lugar.id_tipo"), nullable=True)
+    tipo = relationship("TipoLugar", back_populates="lugares")
 class Alerta(Base):
     __tablename__ = 'alerta'
 
     id_alerta = mapped_column(BigInteger, primary_key=True, autoincrement=True)  
     tipo_aler = mapped_column(String(255), nullable=False)
     fecha_alerta = mapped_column(Date, nullable=False)
+    id_usuario = mapped_column(BigInteger, ForeignKey('usuario.id_usuario'), nullable=False)
     id_lugar = mapped_column(BigInteger, ForeignKey('lugar.id_lugar'), nullable=False)
 
-class Rutas(Base):
-    __tablename__ = 'rutas'
-
-    id_ruta = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    inicio_ruta = mapped_column(String(50), nullable=False)
-    fin_ruta = mapped_column(String(50), nullable=False)
-    id_lugar = mapped_column(BigInteger, ForeignKey('lugar.id_lugar'), nullable=False)
 
 class HistorialAceptaciones(Base):
     __tablename__ = 'historial_aceptaciones'

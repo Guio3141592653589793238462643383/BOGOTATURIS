@@ -671,3 +671,59 @@ body {
     font-size: 0.8rem;
   }
 }
+/*Este es para la creacion de lugares*/
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  width: 400px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.form-crear-lugar label {
+  display: block;
+  margin-top: 10px;
+  font-weight: 600;
+}
+
+.form-crear-lugar input,
+.form-crear-lugar textarea {
+  width: 100%;
+  padding: 6px;
+  margin-top: 4px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.btn-guardar {
+  background-color: #4caf50;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+}
+
+.btn-cancelar {
+  background-color: #f44336;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+}

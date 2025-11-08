@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import NavbarView from "../components/NavbarView";
 import Logo from "../assets/img/BogotaTurisLogo.png";
-import logoUser from "../assets/img/user.png";
 import "../assets/css/UserView.css";
 
 export default function ProfilePage() {
@@ -10,7 +10,6 @@ export default function ProfilePage() {
   const usuarioId = userId || localStorage.getItem("usuario_id");
 
   const [usuarioData, setUsuarioData] = useState(null);
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
@@ -19,17 +18,88 @@ export default function ProfilePage() {
     primer_apellido: "",
     segundo_apellido: "",
     correo: "",
-    id_nac: "", // Aquí guardas el id de la nacionalidad
+    id_nac: "",
   });
-  // Estados para nacionalidades
+
+  // 🆕 Estado para el modal de éxito
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  const [fieldHelp, setFieldHelp] = useState({
+    primer_nombre: { message: "", type: "" },
+    segundo_nombre: { message: "", type: "" },
+    primer_apellido: { message: "", type: "" },
+    segundo_apellido: { message: "", type: "" },
+    id_nac: { message: "", type: "" },
+  });
+
   const [nacionalidades, setNacionalidades] = useState([]);
   const [loadingNacionalidades, setLoadingNacionalidades] = useState(false);
 
   useEffect(() => {
-    if (!usuarioId) {
-      navigate("/login");
-      return;
-    }
+    const validateField = (fieldName, value) => {
+      let message = "";
+      let type = "";
+
+      switch (fieldName) {
+        case "primer_nombre":
+        case "primer_apellido":
+          if (!value) {
+            message = "⚠️ Este campo es obligatorio";
+            type = "error";
+          } else if (value.length < 2) {
+            message = "⚠️ Debe tener al menos 2 caracteres";
+            type = "warning";
+          } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value)) {
+            message = "⚠️ Solo se permiten letras";
+            type = "error";
+          } else {
+            message = "✓ Correcto";
+            type = "success";
+          }
+          break;
+
+        case "segundo_nombre":
+        case "segundo_apellido":
+          if (value && value.length > 0) {
+            if (value.length < 2) {
+              message = "⚠️ Debe tener al menos 2 caracteres";
+              type = "warning";
+            } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value)) {
+              message = "⚠️ Solo se permiten letras";
+              type = "error";
+            } else {
+              message = "✓ Correcto";
+              type = "success";
+            }
+          } else {
+            message = "ℹ️ Campo opcional";
+            type = "info";
+          }
+          break;
+
+        case "id_nac":
+          if (!value) {
+            message = "ℹ️ Selecciona tu nacionalidad";
+            type = "info";
+          } else {
+            message = "✓ Nacionalidad seleccionada";
+            type = "success";
+          }
+          break;
+      }
+
+      setFieldHelp((prev) => ({
+        ...prev,
+        [fieldName]: { message, type },
+      }));
+    };
+
+    Object.keys(formData).forEach((key) => {
+      validateField(key, formData[key]);
+    });
+  }, [formData]);
+
+
 
     const fetchUsuarioData = async () => {
       try {
@@ -38,14 +108,13 @@ export default function ProfilePage() {
         );
         if (response.ok) {
           const data = await response.json();
-          setUsuarioData(data); // 🔧 Agregar esta línea
+          setUsuarioData(data);
           setFormData({
             primer_nombre: data.primer_nombre || "",
             segundo_nombre: data.segundo_nombre || "",
             primer_apellido: data.primer_apellido || "",
             segundo_apellido: data.segundo_apellido || "",
-            correo: data.correo || "",
-            id_nac: data.id_nac ? String(data.id_nac) : "", // Asegurar string para select
+            id_nac: data.id_nac ? String(data.id_nac) : "",
           });
         } else {
           alert("No se pudo cargar el perfil.");
@@ -56,9 +125,17 @@ export default function ProfilePage() {
         setLoading(false);
       }
     };
-
+      useEffect(() => {
+    if (!usuarioId) {
+      navigate("/login");
+      return;
+    }
     fetchUsuarioData();
-  }, [usuarioId, navigate]);
+}, [usuarioId, navigate]);
+    // 🔹 Refrescar datos (por ejemplo, usado por NavbarView)
+    const refreshUserData = () => {
+      if (usuarioId) fetchUsuarioData();
+    };
 
   useEffect(() => {
     const fetchNacionalidades = async () => {
@@ -86,18 +163,27 @@ export default function ProfilePage() {
   if (loading) return <h2 className="text-center mt-20">Cargando perfil...</h2>;
   if (error) return <h2 className="text-center mt-20 text-red-500">{error}</h2>;
 
-  //Funciones de navegacion
-  const handleCambiarPassword = () => {
-    navigate(`/usuario/${usuarioId}/cambiar-password`);
+  const isFormValid = () => {
+    return (
+      fieldHelp.primer_nombre.type === "success" &&
+      fieldHelp.primer_apellido.type === "success" &&
+      (fieldHelp.segundo_nombre.type === "success" ||
+        fieldHelp.segundo_nombre.type === "info") &&
+      (fieldHelp.segundo_apellido.type === "success" ||
+        fieldHelp.segundo_apellido.type === "info")
+    );
   };
 
-  const handleCambiarIntereses = () => {
-    navigate(`/usuario/${usuarioId}/cambiar-intereses`);
-  };
-
-  // 🔧 FUNCIÓN ACTUALIZADA - La clave está aquí
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!isFormValid()) {
+      alert(
+        "Por favor, corrige los errores en el formulario antes de continuar"
+      );
+      return;
+    }
+
     try {
       const response = await fetch(
         `http://localhost:8000/api/usuario/perfil/${usuarioId}`,
@@ -111,25 +197,22 @@ export default function ProfilePage() {
       );
 
       if (response.ok) {
-        // 🔧 1. Obtener los datos actualizados del servidor
         const updatedData = await response.json();
-
-        // 🔧 2. Actualizar el estado local
         setUsuarioData(updatedData);
-
-        // 🔧 3. Actualizar localStorage para sincronizar con UserView
         localStorage.setItem("usuarioData", JSON.stringify(updatedData));
 
-        // 🔧 4. Disparar evento personalizado para notificar a UserView
         const event = new CustomEvent("userDataUpdated", {
           detail: updatedData,
         });
         window.dispatchEvent(event);
 
-        alert("Perfil actualizado exitosamente");
+        // 🎉 Mostrar modal en lugar de alert
+        setShowSuccessModal(true);
 
-        // 🔧 5. Opcional: redirigir de vuelta al UserView
-        // navigate(`/usuario/${usuarioId}`);
+        // Auto-cerrar después de 3 segundos
+        setTimeout(() => {
+          setShowSuccessModal(false);
+        }, 3000);
       } else {
         alert("Error al actualizar el perfil");
       }
@@ -139,67 +222,52 @@ export default function ProfilePage() {
     }
   };
 
+  const FieldHelper = ({ fieldName }) => {
+    const help = fieldHelp[fieldName];
+    if (!help.message) return null;
+
+    const colorClass =
+      {
+        success: "text-green-600",
+        warning: "text-yellow-600",
+        error: "text-red-600",
+        info: "text-blue-600",
+      }[help.type] || "";
+
+    return (
+      <small className={`${colorClass} text-sm mt-1 block`}>
+        {help.message}
+      </small>
+    );
+  };
+
   return (
     <>
-      <nav className="nav">
-        <div className="container1">
-          <div className="logo">
-            <img src={Logo} alt="BogotaTuris Logo" />
-            <h1>BogotaTuris</h1>
-          </div>
-          <ul className="nav-links">
-            <li className="nav-item dropdown">
-              <a
-                className="nav-link dropdown-toggle"
-                href="#"
-                id="userDropdown"
-                role="button"
-              >
-                <strong className="user-section">
-                  {/* 🔧 Usar usuarioData actualizado */}
-                  Bienvenido{" "}
-                  {usuarioData?.correo || formData.correo || "Usuario"}
-                  <img
-                    src={logoUser}
-                    alt="Logo Usuario"
-                    className="user-logo"
-                  />
-                </strong>
-              </a>
-
-              {/* Dropdown siempre en el DOM, pero oculto con CSS */}
-<ul className="dropdown-menu enhanced-dropdown" aria-labelledby="userDropdown">
-                <li>
-                  <a className="dropdown-item" onClick={handleCambiarPassword}>
-                    <i className="bi bi-key me-2"></i> Cambiar Contraseña
-                  </a>
-                </li>
-                <li>
-                  <a className="dropdown-item" onClick={handleCambiarIntereses}>
-                    <i className="bi bi-heart me-2"></i> Cambiar Intereses
-                  </a>
-                </li>
-              </ul>
-            </li>
-          </ul>
-        </div>
-      </nav>
-
+      <NavbarView
+        usuarioData={usuarioData}
+        onRefreshUserData={refreshUserData}
+      />
       <div className="max-w-6xl mx-auto mt-10 grid grid-cols-1 md:grid-cols-2 gap-12 px-4">
-        {/* 📝 Formulario de edición */}
         <div className="form-container">
           <h2>Editar Información</h2>
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label>Primer Nombre</label>
+              <label>Primer Nombre *</label>
               <input
                 type="text"
                 value={formData.primer_nombre}
                 onChange={(e) =>
                   setFormData({ ...formData, primer_nombre: e.target.value })
                 }
+                className={
+                  fieldHelp.primer_nombre.type === "error"
+                    ? "border-red-500"
+                    : ""
+                }
               />
+              <FieldHelper fieldName="primer_nombre" />
             </div>
+
             <div className="form-group">
               <label>Segundo Nombre</label>
               <input
@@ -209,17 +277,26 @@ export default function ProfilePage() {
                   setFormData({ ...formData, segundo_nombre: e.target.value })
                 }
               />
+              <FieldHelper fieldName="segundo_nombre" />
             </div>
+
             <div className="form-group">
-              <label>Primer Apellido</label>
+              <label>Primer Apellido *</label>
               <input
                 type="text"
                 value={formData.primer_apellido}
                 onChange={(e) =>
                   setFormData({ ...formData, primer_apellido: e.target.value })
                 }
+                className={
+                  fieldHelp.primer_apellido.type === "error"
+                    ? "border-red-500"
+                    : ""
+                }
               />
+              <FieldHelper fieldName="primer_apellido" />
             </div>
+
             <div className="form-group">
               <label>Segundo Apellido</label>
               <input
@@ -229,16 +306,7 @@ export default function ProfilePage() {
                   setFormData({ ...formData, segundo_apellido: e.target.value })
                 }
               />
-            </div>
-            <div className="form-group">
-              <label>Correo</label>
-              <input
-                type="email"
-                value={formData.correo}
-                onChange={(e) =>
-                  setFormData({ ...formData, correo: e.target.value })
-                }
-              />
+              <FieldHelper fieldName="segundo_apellido" />
             </div>
             <div className="form-group">
               <label>Nacionalidad</label>
@@ -261,13 +329,19 @@ export default function ProfilePage() {
                   ))
                 )}
               </select>
+              <FieldHelper fieldName="id_nac" />
             </div>
 
-            <button type="submit">Guardar Cambios</button>
+            <button
+              type="submit"
+              disabled={!isFormValid()}
+              className={!isFormValid() ? "opacity-50 cursor-not-allowed" : ""}
+            >
+              Guardar Cambios
+            </button>
           </form>
         </div>
 
-        {/* Card del perfil */}
         <div className="profile-card">
           <h2>Mi Perfil</h2>
           <div className="profile-info">
@@ -280,9 +354,6 @@ export default function ProfilePage() {
               {formData.segundo_apellido}
             </p>
             <p>
-              <span>Correo:</span> {formData.correo}
-            </p>
-            <p>
               <span>Nacionalidad:</span>{" "}
               {nacionalidades.find((n) => String(n.id_nac) === formData.id_nac)
                 ?.nacionalidad || "No disponible"}
@@ -290,6 +361,55 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* 🎉 MODAL DE ÉXITO CON LOGO DE FONDO */}
+      {showSuccessModal && (
+        <div
+          className="success-modal-overlay"
+          onClick={() => setShowSuccessModal(false)}
+        >
+          <div
+            className="success-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="success-modal-logo-bg">
+              <img
+                src={Logo}
+                alt="BogotaTuris"
+                className="modal-logo-watermark"
+              />
+            </div>
+            <div className="success-modal-body">
+              <div className="success-icon">
+                <svg viewBox="0 0 52 52" className="checkmark">
+                  <circle
+                    className="checkmark-circle"
+                    cx="26"
+                    cy="26"
+                    r="25"
+                    fill="none"
+                  />
+                  <path
+                    className="checkmark-check"
+                    fill="none"
+                    d="M14.1 27.2l7.1 7.2 16.7-16.8"
+                  />
+                </svg>
+              </div>
+              <h2 className="success-title">¡Perfil Actualizado!</h2>
+              <p className="success-message">
+                Tus datos se han guardado exitosamente
+              </p>
+              <button
+                className="success-close-btn"
+                onClick={() => setShowSuccessModal(false)}
+              >
+                Continuar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -1,13 +1,11 @@
-import Logo from "../assets/img/BogotaTurisLogo.png";
-import logoUser from "../assets/img/user.png";
 import "../assets/css/UserView.css";
 import { useEffect, useState, useCallback } from "react";
 import Card from "../Pages/Card";
-import Data from "../utils/data";
 import Modal from "../Pages/Modal";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Chatbot from "../components/ChatBot";
+import NavbarView from "../components/NavbarView";
 
 export default function UserView() {
   const navigate = useNavigate();
@@ -18,6 +16,27 @@ export default function UserView() {
   const [usuarioData, setUsuarioData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [lugares, setLugares] = useState([]);
+  const [cargandoLugares, setCargandoLugares] = useState(true);
+  const [errorLugares, setErrorLugares] = useState(null);
+
+  useEffect(() => {
+    const fetchLugares = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/api/lugares/");
+        if (!response.ok) throw new Error("Error al cargar lugares");
+        const data = await response.json();
+        setLugares(data);
+      } catch (error) {
+        console.error("💥 Error al traer lugares:", error);
+        setErrorLugares("No se pudieron cargar los lugares");
+      } finally {
+        setCargandoLugares(false);
+      }
+    };
+
+    fetchLugares();
+  }, []);
 
   // ✅ Función para obtener datos del usuario
   const fetchUsuarioData = useCallback(
@@ -52,7 +71,6 @@ export default function UserView() {
     },
     [navigate]
   );
-
   const refreshUserData = useCallback(() => {
     if (usuarioId) fetchUsuarioData(usuarioId, true);
   }, [usuarioId, fetchUsuarioData]);
@@ -75,11 +93,13 @@ export default function UserView() {
 
         // 🔍 Validar que los datos guardados coincidan con el usuario logeado
         if (savedId !== usuarioId.toString()) {
-          console.log("⚠️ [USER] Usuario distinto, recargando desde servidor...");
+          console.log(
+            "⚠️ [USER] Usuario distinto, recargando desde servidor..."
+          );
           fetchUsuarioData(usuarioId, true); // Forzar refresh
         } else if (!parsedUser.correo || !parsedUser.primer_nombre) {
           console.log("⚠️ [USER] Datos incompletos, recargando...");
-          fetchUsuarioData(usuarioId, true);
+          fetch(usuarioId, true);
         } else {
           console.log("✅ [USER] Datos válidos desde localStorage");
           setUsuarioData(parsedUser);
@@ -108,30 +128,6 @@ export default function UserView() {
     return () =>
       window.removeEventListener("userDataUpdated", handleUserDataUpdate);
   }, []);
-
-  const handleLogout = () => {
-    localStorage.clear(); // ✅ Limpiar todo para evitar datos viejos
-    navigate("/login", { replace: true });
-
-    window.history.pushState(null, "", window.location.href);
-    window.onpopstate = function () {
-      navigate("/login", { replace: true });
-    };
-  };
-
-  const handleMiCuenta = () => navigate(`/usuario/${usuarioId}/perfil`);
-  const handleCambiarPassword = () =>
-    navigate(`/usuario/${usuarioId}/cambiar-password`);
-  const handleCambiarIntereses = () =>
-    navigate(`/usuario/${usuarioId}/cambiar-intereses`);
-
-  useEffect(() => {
-    const onKey = (e) => e.key === "Escape" && setSelectedCard(null);
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
-  const data = Data();
 
   if (loading && !usuarioData) {
     return (
@@ -185,53 +181,10 @@ export default function UserView() {
 
   return (
     <>
-      <nav className="nav">
-        <div className="container1">
-          <div className="logo">
-            <img src={Logo} alt="BogotaTuris Logo" />
-            <h1>BogotaTuris</h1>
-          </div>
-          <ul className="nav-links">
-            <li className="nav-item dropdown">
-              <a className="nav-link dropdown-toggle" href="#" id="userDropdown">
-                <strong className="user-section">
-                  Bienvenido {usuarioData?.correo || "Usuario"}
-                  <img
-                    src={logoUser}
-                    alt="Logo Usuario"
-                    className="user-logo"
-                  />
-                </strong>
-              </a>
-
-<ul className="dropdown-menu enhanced-dropdown" aria-labelledby="userDropdown">
-  <li>
-    <a className="dropdown-item" onClick={handleMiCuenta}>
-      <i className="bi bi-person-circle me-2"></i> Mi Cuenta
-    </a>
-  </li>
-  <li>
-    <a className="dropdown-item" onClick={handleCambiarPassword}>
-      <i className="bi bi-key me-2"></i> Cambiar Contraseña
-    </a>
-  </li>
-  <li>
-    <a className="dropdown-item" onClick={handleCambiarIntereses}>
-      <i className="bi bi-heart me-2"></i> Cambiar Intereses
-    </a>
-  </li>
-  <li className="logout-item">
-    <a className="dropdown-item" onClick={handleLogout}>
-      <i className="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
-    </a>
-  </li>
-</ul>
-
-            </li>
-          </ul>
-        </div>
-      </nav>
-
+      <NavbarView
+        usuarioData={usuarioData}
+        onRefreshUserData={refreshUserData}
+      />
       <div className="promo-section text-center px-6">
         <motion.h2
           className="text-4xl font-bold text-[#00438F] mb-4"
@@ -265,17 +218,25 @@ export default function UserView() {
         </motion.p>
 
         <div className="cards-container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
-          {data.map((item) => (
-            <Card
-              key={item.id_lugar}
-              imagen={item.imagen}
-              titulo={item.titulo}
-              descripcion={item.descripcion}
-              onClick={() => setSelectedCard(item)}
-            />
-          ))}
+          {cargandoLugares ? (
+            <p>Cargando lugares...</p>
+          ) : errorLugares ? (
+            <p>{errorLugares}</p>
+          ) : lugares.length > 0 ? (
+            lugares.map((lugar) => (
+              <Card
+                key={lugar.id_lugar}
+                imagen={lugar.imagen_url || "/default-image.png"} 
+                titulo={lugar.nombre_lugar}
+                descripcion={lugar.descripcion}
+                onClick={() => setSelectedCard(lugar)}
+              />
+            ))
+          ) : (
+            <p>No hay lugares disponibles</p>
+          )}
         </div>
-
+        {/* Modal fuera del grid */}
         <Modal
           open={!!selectedCard}
           onClose={() => setSelectedCard(null)}

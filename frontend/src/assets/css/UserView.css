@@ -708,6 +708,10 @@ p{
   text-align: center;
   animation: aparecer 0.8s ease;
 }
+.form-container1.intereses-container {
+  max-width: 600px;
+  padding: 40px 30px;
+}
 .form-container1::before {
   content: "";
   position: absolute;
@@ -832,101 +836,257 @@ p{
   color: #001f4d;
 }
 
+/* Estilos para el contenido de lista de intereses  */
+/* ======== CONTENEDOR DE TABLAS DE INTERESES ======== */
 .tablas-container {
   display: flex;
   flex-direction: row;
-  justify-content: flex-start;
-  gap: 32px;
-  flex-wrap: wrap;
-  margin-top: 20px;
-}
-
-/* Contenedor general */
-.contenedor-intereses {
-  display: flex;
   justify-content: center;
   align-items: flex-start;
-  gap: 80px; /* espacio entre las columnas */
-  flex-wrap: wrap; /* se acomoda si la pantalla es pequeña */
-  margin-top: 30px;
+  gap: 30px;
+  margin-top: 20px;
+  padding: 0;
 }
 
-/* Cada columna */
-.columna {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+/* Cada columna de tabla */
+.tabla-columna {
+  flex: 1;
+  max-width: 450px;
+  min-width: 0;
+}
+
+/* Tabla de intereses */
+.tabla-intereses {
+  width: 100%;
   background: white;
-  padding: 20px 25px;
-  border-radius: 20px;
-  box-shadow: 0 6px 20px rgba(0, 90, 160, 0.15);
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 90, 160, 0.12);
+  overflow: hidden;
   transition: all 0.3s ease;
-  width: 280px;
 }
 
-/* Efecto al pasar el mouse sobre la columna */
-.columna:hover {
-  box-shadow: 0 10px 25px rgba(0, 224, 255, 0.3);
-  transform: translateY(-4px);
+.tabla-intereses:hover {
+  box-shadow: 0 8px 20px rgba(0, 224, 255, 0.25);
+  transform: translateY(-3px);
 }
 
-/* Cada fila (interés individual) */
-.item-interes {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-family: "Poppins", sans-serif;
-  font-weight: 500;
-  font-size: 0.95rem;
-  color: #002855;
+/* Filas de intereses */
+.interes-row {
   cursor: pointer;
-  transition: color 0.3s ease;
+  transition: all 0.3s ease;
+  border-bottom: 1px solid rgba(0, 170, 255, 0.08);
 }
 
-/* Color al pasar el mouse sobre el texto */
-.item-interes:hover {
-  color: #00aaff;
+.interes-row:last-child {
+  border-bottom: none;
 }
 
-/* Checkbox personalizado */
-.item-interes input[type="checkbox"] {
+.interes-row:hover {
+  background-color: rgba(0, 170, 255, 0.06);
+  transform: translateX(4px);
+}
+
+.interes-row.selected {
+  background-color: rgba(0, 207, 255, 0.12);
+  border-left: 3px solid #00cfff;
+}
+
+/* Columna de checkbox */
+.checkbox-col {
+  width: 45px;
+  text-align: center;
+  padding: 12px 8px;
+  vertical-align: middle;
+}
+
+.checkbox-col input[type="checkbox"] {
   appearance: none;
   width: 18px;
   height: 18px;
   border: 2px solid #00aaff;
-  border-radius: 5px;
+  border-radius: 4px;
   background-color: #fff;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
+  margin: 0;
 }
 
-.item-interes input[type="checkbox"]:checked {
+.checkbox-col input[type="checkbox"]:checked {
   background-color: #00cfff;
-  box-shadow: 0 0 10px rgba(0, 224, 255, 0.6);
+  box-shadow: 0 0 8px rgba(0, 224, 255, 0.5);
   border-color: #00b8ff;
 }
 
-.item-interes input[type="checkbox"]:checked::after {
+.checkbox-col input[type="checkbox"]:checked::after {
   content: "✔";
   position: absolute;
   color: white;
   font-weight: bold;
-  top: -2px;
-  left: 3px;
-  font-size: 14px;
+  top: -3px;
+  left: 2px;
+  font-size: 13px;
 }
 
-/* Ajuste para móviles */
-@media (max-width: 768px) {
-  .contenedor-intereses {
-    flex-direction: column;
-    align-items: center;
-    gap: 25px;
+/* Columna de emoji */
+.emoji-col {
+  width: 45px;
+  text-align: center;
+  padding: 12px 6px;
+  vertical-align: middle;
+}
+
+.emoji-icon {
+  font-size: 22px;
+  display: inline-block;
+  transition: transform 0.3s ease, filter 0.3s ease;
+  filter: grayscale(40%);
+}
+
+.interes-row:hover .emoji-icon {
+  transform: scale(1.2) rotate(8deg);
+  filter: grayscale(0%);
+}
+
+.interes-row.selected .emoji-icon {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 6px rgba(0, 207, 255, 0.5)) grayscale(0%);
+  animation: bounceEmoji 0.4s ease;
+}
+
+@keyframes bounceEmoji {
+
+  0%,
+  100% {
+    transform: scale(1.1);
   }
 
-  .columna {
-    width: 90%;
+  50% {
+    transform: scale(1.25);
+  }
+}
+
+/* Columna de texto */
+.texto-col {
+  padding: 12px 16px 12px 8px;
+  font-size: 14px;
+  vertical-align: middle;
+  font-family: "Poppins", sans-serif;
+  font-weight: 500;
+  color: #002855;
+}
+
+.interes-text {
+  display: inline-block;
+  transition: color 0.3s ease;
+}
+
+.interes-row:hover .interes-text {
+  color: #00aaff;
+}
+
+.interes-row.selected .interes-text {
+  color: #00b8ff;
+  font-weight: 600;
+}
+
+/* Contador de intereses */
+.intereses-counter {
+  text-align: center;
+  margin-bottom: 20px;
+  animation: slideDown 0.5s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.counter-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #00aaff 0%, #00cfff 100%);
+  color: white;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 3px 12px rgba(0, 170, 255, 0.35);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    box-shadow: 0 3px 12px rgba(0, 170, 255, 0.35);
+  }
+
+  50% {
+    box-shadow: 0 3px 20px rgba(0, 207, 255, 0.55);
+  }
+}
+
+/* ======== RESPONSIVE ======== */
+
+/* Tablets */
+@media (max-width: 1024px) {
+  .form-container1.intereses-container {
+    max-width: 850px;
+    padding: 35px 25px;
+  }
+
+  .tablas-container {
+    gap: 20px;
+  }
+
+  .emoji-icon {
+    font-size: 20px;
+  }
+
+  .texto-col {
+    font-size: 13px;
+  }
+}
+
+/* Móviles */
+@media (max-width: 768px) {
+  .form-container1.intereses-container {
+    max-width: 95%;
+    padding: 30px 20px;
+    margin: 30px auto;
+  }
+
+  .tablas-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .tabla-columna {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .emoji-icon {
+    font-size: 18px;
+  }
+
+  .texto-col {
+    font-size: 13px;
+    padding: 10px 12px 10px 6px;
+  }
+
+  .checkbox-col,
+  .emoji-col {
+    width: 40px;
+    padding: 10px 6px;
   }
 }
 
@@ -1089,6 +1249,261 @@ button:hover {
   .tablas-container {
     flex-direction: column;
     gap: 30px;
+  }
+}
+
+/* Estilos para el perfil del usuario*/
+.border-red-500 {
+  border: 2px solid #ef4444 !important;
+}
+
+.text-green-600 {
+  color: #16a34a;
+}
+
+.text-yellow-600 {
+  color: #ca8a04;
+}
+
+.text-red-600 {
+  color: #dc2626;
+}
+
+.text-blue-600 {
+  color: #2563eb;
+}
+
+.opacity-50 {
+  opacity: 0.5;
+}
+
+.cursor-not-allowed {
+  cursor: not-allowed;
+}
+
+/* Estilos para el contenido de perfil de usuario  */
+/* Modal Overlay */
+.success-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* Modal Content */
+.success-modal-content {
+  position: relative;
+  background: white;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 450px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Logo de fondo */
+.success-modal-logo-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.modal-logo-watermark {
+  width: 400px;
+  height: 400px;
+  opacity: 0.08;
+  object-fit: contain;
+  animation: rotateLogo 20s linear infinite;
+}
+
+@keyframes rotateLogo {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Contenido del modal */
+.success-modal-body {
+  position: relative;
+  z-index: 1;
+  padding: 50px 30px 40px;
+  text-align: center;
+}
+
+/* Icono de check animado */
+.success-icon {
+  margin: 0 auto 25px;
+  width: 80px;
+  height: 80px;
+}
+
+.checkmark {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: block;
+  stroke-width: 3;
+  stroke: #4CAF50;
+  stroke-miterlimit: 10;
+  box-shadow: inset 0px 0px 0px #4CAF50;
+  animation: fill 0.4s ease-in-out 0.4s forwards, scale 0.3s ease-in-out 0.9s both;
+}
+
+.checkmark-circle {
+  stroke-dasharray: 166;
+  stroke-dashoffset: 166;
+  stroke-width: 3;
+  stroke-miterlimit: 10;
+  stroke: #4CAF50;
+  fill: none;
+  animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+}
+
+.checkmark-check {
+  transform-origin: 50% 50%;
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+}
+
+@keyframes stroke {
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes scale {
+
+  0%,
+  100% {
+    transform: none;
+  }
+
+  50% {
+    transform: scale3d(1.1, 1.1, 1);
+  }
+}
+
+@keyframes fill {
+  100% {
+    box-shadow: inset 0px 0px 0px 30px #4CAF50;
+  }
+}
+
+/* Texto */
+.success-title {
+  font-size: 28px;
+  font-weight: bold;
+  color: #2c5282;
+  margin-bottom: 15px;
+  animation: slideDown 0.5s ease-out 0.3s both;
+}
+
+.success-message {
+  font-size: 16px;
+  color: #4a5568;
+  margin-bottom: 30px;
+  animation: slideDown 0.5s ease-out 0.4s both;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Botón */
+.success-close-btn {
+  background: linear-gradient(135deg, #2c5282 0%, #2b6cb0 100%);
+  color: white;
+  border: none;
+  padding: 12px 40px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  animation: slideDown 0.5s ease-out 0.5s both;
+}
+
+.success-close-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(44, 82, 130, 0.4);
+}
+
+.success-close-btn:active {
+  transform: translateY(0);
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+  .success-modal-content {
+    width: 95%;
+    margin: 20px;
+  }
+
+  .success-modal-body {
+    padding: 40px 20px 30px;
+  }
+
+  .success-title {
+    font-size: 24px;
+  }
+
+  .success-icon {
+    width: 60px;
+    height: 60px;
+  }
+
+  .checkmark {
+    width: 60px;
+    height: 60px;
   }
 }
 

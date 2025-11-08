@@ -1,6 +1,7 @@
 import Logo from "../assets/img/BogotaTurisLogo.png";
 import logoUser from "../assets/img/user.png";
 import "../assets/css/AdminView.css";
+import ModalCrearLugar from "../Pages/ModalCrearLugar";
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -14,11 +15,13 @@ export default function AdminView() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const [modalCrear, setModalCrear] = useState(false);
+
   const [stats, setStats] = useState({
     total_usuarios: 0,
     total_lugares: 0,
     total_comentarios: 0,
-    total_reportes: 0
+    total_reportes: 0,
   });
 
   const [vistaActual, setVistaActual] = useState("dashboard");
@@ -26,7 +29,7 @@ export default function AdminView() {
   const [lugares, setLugares] = useState([]);
   const [comentarios, setComentarios] = useState([]);
   const [reportes, setReportes] = useState([]);
-  
+
   const [busqueda, setBusqueda] = useState("");
   const [filtroRol, setFiltroRol] = useState("");
   const [paginaActual, setPaginaActual] = useState(0);
@@ -38,7 +41,9 @@ export default function AdminView() {
 
   const cargarEstadisticas = useCallback(async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/admin/estadisticas");
+      const response = await fetch(
+        "http://localhost:8000/api/admin/estadisticas"
+      );
       if (response.ok) {
         const data = await response.json();
         setStats(data);
@@ -52,13 +57,15 @@ export default function AdminView() {
     try {
       const params = new URLSearchParams({
         skip: paginaActual * itemsPorPagina,
-        limit: itemsPorPagina
+        limit: itemsPorPagina,
       });
-      
+
       if (busqueda) params.append("buscar", busqueda);
       if (filtroRol) params.append("rol", filtroRol);
 
-      const response = await fetch(`http://localhost:8000/api/admin/usuarios?${params}`);
+      const response = await fetch(
+        `http://localhost:8000/api/admin/usuarios?${params}`
+      );
       if (response.ok) {
         const data = await response.json();
         setUsuarios(data.usuarios);
@@ -73,12 +80,14 @@ export default function AdminView() {
     try {
       const params = new URLSearchParams({
         skip: paginaActual * itemsPorPagina,
-        limit: itemsPorPagina
+        limit: itemsPorPagina,
       });
-      
+
       if (busqueda) params.append("buscar", busqueda);
 
-      const response = await fetch(`http://localhost:8000/api/admin/lugares?${params}`);
+      const response = await fetch(
+        `http://localhost:8000/api/admin/lugares?${params}`
+      );
       if (response.ok) {
         const data = await response.json();
         setLugares(data.lugares);
@@ -93,10 +102,12 @@ export default function AdminView() {
     try {
       const params = new URLSearchParams({
         skip: paginaActual * itemsPorPagina,
-        limit: itemsPorPagina
+        limit: itemsPorPagina,
       });
 
-      const response = await fetch(`http://localhost:8000/api/admin/comentarios?${params}`);
+      const response = await fetch(
+        `http://localhost:8000/api/admin/comentarios?${params}`
+      );
       if (response.ok) {
         const data = await response.json();
         setComentarios(data.comentarios);
@@ -111,10 +122,12 @@ export default function AdminView() {
     try {
       const params = new URLSearchParams({
         skip: paginaActual * itemsPorPagina,
-        limit: itemsPorPagina
+        limit: itemsPorPagina,
       });
 
-      const response = await fetch(`http://localhost:8000/api/admin/reportes?${params}`);
+      const response = await fetch(
+        `http://localhost:8000/api/admin/reportes?${params}`
+      );
       if (response.ok) {
         const data = await response.json();
         setReportes(data.reportes);
@@ -127,10 +140,13 @@ export default function AdminView() {
 
   const eliminarUsuario = async (id) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/admin/usuarios/${id}`, {
-        method: "DELETE"
-      });
-      
+      const response = await fetch(
+        `http://localhost:8000/api/admin/usuarios/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
       if (response.ok) {
         alert("Usuario eliminado exitosamente");
         cargarUsuarios();
@@ -147,10 +163,13 @@ export default function AdminView() {
 
   const eliminarLugar = async (id) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/admin/lugares/${id}`, {
-        method: "DELETE"
-      });
-      
+      const response = await fetch(
+        `http://localhost:8000/api/admin/lugares/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
       if (response.ok) {
         alert("Lugar eliminado exitosamente");
         cargarLugares();
@@ -164,10 +183,13 @@ export default function AdminView() {
 
   const eliminarComentario = async (id) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/admin/comentarios/${id}`, {
-        method: "DELETE"
-      });
-      
+      const response = await fetch(
+        `http://localhost:8000/api/admin/comentarios/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
       if (response.ok) {
         alert("Comentario eliminado exitosamente");
         cargarComentarios();
@@ -185,7 +207,9 @@ export default function AdminView() {
         if (usuarioData && !forceRefresh) return;
         setLoading(true);
 
-        const response = await fetch(`http://localhost:8000/api/usuario/perfil/${id}`);
+        const response = await fetch(
+          `http://localhost:8000/api/usuario/perfil/${id}`
+        );
 
         if (response.ok) {
           const data = await response.json();
@@ -242,7 +266,7 @@ export default function AdminView() {
 
   useEffect(() => {
     setPaginaActual(0);
-    
+
     if (vistaActual === "usuarios") cargarUsuarios();
     else if (vistaActual === "lugares") cargarLugares();
     else if (vistaActual === "comentarios") cargarComentarios();
@@ -280,7 +304,71 @@ export default function AdminView() {
       </div>
     );
   }
+  const handleCrearLugar = async (nuevoLugar) => {
+  try {
+    const formData = new FormData();
+    formData.append("nombre_lugar", nuevoLugar.nombre_lugar);
+    formData.append("descripcion", nuevoLugar.descripcion);
+    formData.append("direccion", nuevoLugar.direccion);
+    formData.append("hora_aper", nuevoLugar.hora_aper);
+    formData.append("hora_cierra", nuevoLugar.hora_cierra);
+    formData.append("precios", nuevoLugar.precios);
+    formData.append("id_tipo", nuevoLugar.id_tipo);
+    
+    // Si hay una imagen subida, agregamos
+    if (nuevoLugar.imagen) {
+      formData.append("imagen", nuevoLugar.imagen); // imagen es File
+    } else if (nuevoLugar.imagen_url) {
+      formData.append("imagen_url", nuevoLugar.imagen_url);
+    }
 
+    const response = await fetch("http://localhost:8000/api/lugares", {
+      method: "POST",
+      body: formData, // ⚠️ NO headers con JSON
+    });
+
+    if (!response.ok) throw new Error("Error al crear el lugar");
+
+    alert("✅ Lugar creado correctamente");
+    cargarLugares(); // Recarga la lista
+  } catch (error) {
+    console.error("Error:", error);
+    alert("❌ No se pudo crear el lugar");
+  }
+};
+
+  // En el return, donde tienes tu contenido principal:
+  {
+    modalCrear && (
+      <ModalCrearLugar
+        onClose={() => setModalCrear(false)}
+        onCreate={handleCrearLugar}
+      />
+    );
+  }
+  // Esta función se ejecuta cuando se crea un lugar nuevo
+  const handleCreateLugar = async (nuevoLugar) => {
+    try {
+      const response = await fetch("http://localhost:8000/api/lugares/", {
+        method: "POST",
+        body: new FormData(
+          Object.entries(nuevoLugar).reduce((fd, [key, val]) => {
+            fd.append(key, val);
+            return fd;
+          }, new FormData())
+        ),
+      });
+
+      if (!response.ok) throw new Error("Error al crear el lugar");
+
+      const data = await response.json();
+      console.log("Lugar creado:", data);
+      alert("✅ Lugar creado correctamente");
+    } catch (err) {
+      console.error(err);
+      alert("❌ Error al crear el lugar");
+    }
+  };
   return (
     <>
       <nav className="nav">
@@ -294,13 +382,37 @@ export default function AdminView() {
               <a className="nav-link dropdown-toggle" href="#" role="button">
                 <strong className="user-section">
                   Admin: {usuarioData?.correo || "Administrador"}
-                  <img src={logoUser} alt="Logo Usuario" className="user-logo" />
+                  <img
+                    src={logoUser}
+                    alt="Logo Usuario"
+                    className="user-logo"
+                  />
                 </strong>
               </a>
               <ul className="dropdown-menu">
-                <li><a className="dropdown-item" onClick={() => navigate(`/usuario/${usuarioId}/perfil`)}>Mi Cuenta</a></li>
-                <li><a className="dropdown-item" onClick={() => navigate(`/usuario/${usuarioId}/cambiar-password`)}>Cambiar Contraseña</a></li>
-                <li><a className="dropdown-item" onClick={handleLogout}>Cerrar Sesión</a></li>
+                <li>
+                  <a
+                    className="dropdown-item"
+                    onClick={() => navigate(`/usuario/${usuarioId}/perfil`)}
+                  >
+                    Mi Cuenta
+                  </a>
+                </li>
+                <li>
+                  <a
+                    className="dropdown-item"
+                    onClick={() =>
+                      navigate(`/usuario/${usuarioId}/cambiar-password`)
+                    }
+                  >
+                    Cambiar Contraseña
+                  </a>
+                </li>
+                <li>
+                  <a className="dropdown-item" onClick={handleLogout}>
+                    Cerrar Sesión
+                  </a>
+                </li>
               </ul>
             </li>
           </ul>
@@ -310,10 +422,15 @@ export default function AdminView() {
       <div className="admin-container">
         {vistaActual === "dashboard" && (
           <>
-            <motion.div className="admin-header" initial={{ opacity: 0, y: -30 }} animate={{ opacity: 1, y: 0 }}>
+            <motion.div
+              className="admin-header"
+              initial={{ opacity: 0, y: -30 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
               <h1 className="admin-title">Panel de Administración</h1>
               <p className="admin-subtitle">
-                Bienvenido, {usuarioData?.primer_nombre || "Administrador"}. Gestiona el sistema desde aquí.
+                Bienvenido, {usuarioData?.primer_nombre || "Administrador"}.
+                Gestiona el sistema desde aquí.
               </p>
             </motion.div>
 
@@ -346,19 +463,31 @@ export default function AdminView() {
             <motion.div className="actions-section">
               <h2 className="section-title">Acciones Rápidas</h2>
               <div className="actions-grid">
-                <button className="action-btn users-btn" onClick={() => setVistaActual("usuarios")}>
+                <button
+                  className="action-btn users-btn"
+                  onClick={() => setVistaActual("usuarios")}
+                >
                   <span className="action-icon">👤</span>
                   Gestionar Usuarios
                 </button>
-                <button className="action-btn places-btn" onClick={() => setVistaActual("lugares")}>
+                <button
+                  className="action-btn places-btn"
+                  onClick={() => setVistaActual("lugares")}
+                >
                   <span className="action-icon">🏛️</span>
                   Gestionar Lugares
                 </button>
-                <button className="action-btn comments-btn" onClick={() => setVistaActual("comentarios")}>
+                <button
+                  className="action-btn comments-btn"
+                  onClick={() => setVistaActual("comentarios")}
+                >
                   <span className="action-icon">💬</span>
                   Moderar Comentarios
                 </button>
-                <button className="action-btn reports-btn" onClick={() => setVistaActual("reportes")}>
+                <button
+                  className="action-btn reports-btn"
+                  onClick={() => setVistaActual("reportes")}
+                >
                   <span className="action-icon">📋</span>
                   Ver Reportes
                 </button>
@@ -371,7 +500,12 @@ export default function AdminView() {
           <div className="crud-section">
             <div className="crud-header">
               <h2>Gestión de Usuarios</h2>
-              <button className="btn-back" onClick={() => setVistaActual("dashboard")}>← Volver</button>
+              <button
+                className="btn-back"
+                onClick={() => setVistaActual("dashboard")}
+              >
+                ← Volver
+              </button>
             </div>
 
             <div className="filtros-container">
@@ -382,7 +516,11 @@ export default function AdminView() {
                 onChange={(e) => setBusqueda(e.target.value)}
                 className="input-busqueda"
               />
-              <select value={filtroRol} onChange={(e) => setFiltroRol(e.target.value)} className="select-filtro">
+              <select
+                value={filtroRol}
+                onChange={(e) => setFiltroRol(e.target.value)}
+                className="select-filtro"
+              >
                 <option value="">Todos los roles</option>
                 <option value="usuario">Usuario</option>
                 <option value="administrador">Administrador</option>
@@ -408,9 +546,13 @@ export default function AdminView() {
                       <td>{`${usuario.primer_nombre} ${usuario.primer_apellido}`}</td>
                       <td>{usuario.correo}</td>
                       <td>{usuario.nacionalidad}</td>
-                      <td><span className={`badge badge-${usuario.rol}`}>{usuario.rol}</span></td>
                       <td>
-                        <button 
+                        <span className={`badge badge-${usuario.rol}`}>
+                          {usuario.rol}
+                        </span>
+                      </td>
+                      <td>
+                        <button
                           className="btn-eliminar"
                           onClick={() => {
                             setItemSeleccionado(usuario);
@@ -427,17 +569,19 @@ export default function AdminView() {
             </div>
 
             <div className="paginacion">
-              <button 
+              <button
                 disabled={paginaActual === 0}
-                onClick={() => setPaginaActual(p => p - 1)}
+                onClick={() => setPaginaActual((p) => p - 1)}
                 className="btn-paginacion"
               >
                 ← Anterior
               </button>
-              <span>Página {paginaActual + 1} de {totalPaginas || 1}</span>
-              <button 
+              <span>
+                Página {paginaActual + 1} de {totalPaginas || 1}
+              </span>
+              <button
                 disabled={paginaActual >= totalPaginas - 1}
-                onClick={() => setPaginaActual(p => p + 1)}
+                onClick={() => setPaginaActual((p) => p + 1)}
                 className="btn-paginacion"
               >
                 Siguiente →
@@ -450,7 +594,15 @@ export default function AdminView() {
           <div className="crud-section">
             <div className="crud-header">
               <h2>Gestión de Lugares Turísticos</h2>
-              <button className="btn-back" onClick={() => setVistaActual("dashboard")}>← Volver</button>
+              <button
+                className="btn-back"
+                onClick={() => setVistaActual("dashboard")}
+              >
+                ← Volver
+              </button>
+              <button className="btn-crear" onClick={() => setModalCrear(true)}>
+                ➕ Crear Lugar
+              </button>
             </div>
 
             <div className="filtros-container">
@@ -484,7 +636,7 @@ export default function AdminView() {
                       <td>{lugar.direccion}</td>
                       <td>${lugar.precios || 0}</td>
                       <td>
-                        <button 
+                        <button
                           className="btn-eliminar"
                           onClick={() => {
                             setItemSeleccionado(lugar);
@@ -501,17 +653,19 @@ export default function AdminView() {
             </div>
 
             <div className="paginacion">
-              <button 
+              <button
                 disabled={paginaActual === 0}
-                onClick={() => setPaginaActual(p => p - 1)}
+                onClick={() => setPaginaActual((p) => p - 1)}
                 className="btn-paginacion"
               >
                 ← Anterior
               </button>
-              <span>Página {paginaActual + 1} de {totalPaginas || 1}</span>
-              <button 
+              <span>
+                Página {paginaActual + 1} de {totalPaginas || 1}
+              </span>
+              <button
                 disabled={paginaActual >= totalPaginas - 1}
-                onClick={() => setPaginaActual(p => p + 1)}
+                onClick={() => setPaginaActual((p) => p + 1)}
                 className="btn-paginacion"
               >
                 Siguiente →
@@ -524,7 +678,12 @@ export default function AdminView() {
           <div className="crud-section">
             <div className="crud-header">
               <h2>Moderación de Comentarios</h2>
-              <button className="btn-back" onClick={() => setVistaActual("dashboard")}>← Volver</button>
+              <button
+                className="btn-back"
+                onClick={() => setVistaActual("dashboard")}
+              >
+                ← Volver
+              </button>
             </div>
 
             <div className="tabla-container">
@@ -546,7 +705,7 @@ export default function AdminView() {
                       <td>{comentario.fecha_com}</td>
                       <td>{comentario.nombre_usuario}</td>
                       <td>
-                        <button 
+                        <button
                           className="btn-eliminar"
                           onClick={() => {
                             setItemSeleccionado(comentario);
@@ -563,17 +722,19 @@ export default function AdminView() {
             </div>
 
             <div className="paginacion">
-              <button 
+              <button
                 disabled={paginaActual === 0}
-                onClick={() => setPaginaActual(p => p - 1)}
+                onClick={() => setPaginaActual((p) => p - 1)}
                 className="btn-paginacion"
               >
                 ← Anterior
               </button>
-              <span>Página {paginaActual + 1} de {totalPaginas || 1}</span>
-              <button 
+              <span>
+                Página {paginaActual + 1} de {totalPaginas || 1}
+              </span>
+              <button
                 disabled={paginaActual >= totalPaginas - 1}
-                onClick={() => setPaginaActual(p => p + 1)}
+                onClick={() => setPaginaActual((p) => p + 1)}
                 className="btn-paginacion"
               >
                 Siguiente →
@@ -586,7 +747,12 @@ export default function AdminView() {
           <div className="crud-section">
             <div className="crud-header">
               <h2>Gestión de Reportes</h2>
-              <button className="btn-back" onClick={() => setVistaActual("dashboard")}>← Volver</button>
+              <button
+                className="btn-back"
+                onClick={() => setVistaActual("dashboard")}
+              >
+                ← Volver
+              </button>
             </div>
 
             <div className="tabla-container">
@@ -606,7 +772,11 @@ export default function AdminView() {
                       <td>{reporte.id_report}</td>
                       <td>{reporte.descripcion}</td>
                       <td>{reporte.fecha_report}</td>
-                      <td><span className={`badge badge-${reporte.estado}`}>{reporte.estado}</span></td>
+                      <td>
+                        <span className={`badge badge-${reporte.estado}`}>
+                          {reporte.estado}
+                        </span>
+                      </td>
                       <td>{reporte.nombre_usuario}</td>
                     </tr>
                   ))}
@@ -615,17 +785,19 @@ export default function AdminView() {
             </div>
 
             <div className="paginacion">
-              <button 
+              <button
                 disabled={paginaActual === 0}
-                onClick={() => setPaginaActual(p => p - 1)}
+                onClick={() => setPaginaActual((p) => p - 1)}
                 className="btn-paginacion"
               >
                 ← Anterior
               </button>
-              <span>Página {paginaActual + 1} de {totalPaginas || 1}</span>
-              <button 
+              <span>
+                Página {paginaActual + 1} de {totalPaginas || 1}
+              </span>
+              <button
                 disabled={paginaActual >= totalPaginas - 1}
-                onClick={() => setPaginaActual(p => p + 1)}
+                onClick={() => setPaginaActual((p) => p + 1)}
                 className="btn-paginacion"
               >
                 Siguiente →
@@ -635,21 +807,30 @@ export default function AdminView() {
         )}
 
         {modalEliminar && (
-          <div className="modal-overlay" onClick={() => setModalEliminar(false)}>
+          <div
+            className="modal-overlay"
+            onClick={() => setModalEliminar(false)}
+          >
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <h3>⚠️ Confirmar Eliminación</h3>
               <p>¿Estás seguro de que deseas eliminar este elemento?</p>
               <p className="modal-warning">Esta acción no se puede deshacer.</p>
               <div className="modal-actions">
-                <button className="btn-cancelar" onClick={() => setModalEliminar(false)}>
+                <button
+                  className="btn-cancelar"
+                  onClick={() => setModalEliminar(false)}
+                >
                   Cancelar
                 </button>
-                <button 
+                <button
                   className="btn-confirmar-eliminar"
                   onClick={() => {
-                    if (vistaActual === "usuarios") eliminarUsuario(itemSeleccionado.id_usuario);
-                    else if (vistaActual === "lugares") eliminarLugar(itemSeleccionado.id_lugar);
-                    else if (vistaActual === "comentarios") eliminarComentario(itemSeleccionado.id_com);
+                    if (vistaActual === "usuarios")
+                      eliminarUsuario(itemSeleccionado.id_usuario);
+                    else if (vistaActual === "lugares")
+                      eliminarLugar(itemSeleccionado.id_lugar);
+                    else if (vistaActual === "comentarios")
+                      eliminarComentario(itemSeleccionado.id_com);
                   }}
                 >
                   Eliminar
@@ -659,6 +840,12 @@ export default function AdminView() {
           </div>
         )}
       </div>
+      {modalCrear && (
+        <ModalCrearLugar
+          onClose={() => setModalCrear(false)}
+          onLugarCreado={handleCrearLugar} // ✅ función que guarda en BD
+        />
+      )}
     </>
   );
 }
