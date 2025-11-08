@@ -4,11 +4,16 @@ from sqlalchemy.exc import IntegrityError
 from pydantic import BaseModel, EmailStr, validator
 from typing import List, Optional
 import bcrypt
-from datetime import datetime
+from datetime import datetime, timedelta
 import re
 
 # Importar modelos correctos
-from app.BD.bd_Relacional.db_connection import get_db, Usuario, Correo, Nacionalidad, Intereses, InteresesUsuario
+from app.BD.bd_Relacional.db_connection import (
+    get_db, Usuario, Correo, Nacionalidad, Intereses, InteresesUsuario,
+    HistorialAceptaciones, VisualizacionPDF, TokenVerificacion
+)
+from app.services.email_service import email_service
+import secrets
 
 
 router = APIRouter(prefix="/api/usuario", tags=["usuario"])
@@ -23,7 +28,9 @@ class SignUpRequest(BaseModel):
     clave: str
     nacionalidad: str
     intereses: List[str]
-    terminos: bool
+    acepto_terminos: bool
+    acepto_tratamiento_datos: bool
+    session_id: str  # Para verificar que vio los PDFs
 
     @validator("clave")
     def validar_password(cls, v):
@@ -67,45 +74,123 @@ def validar_intereses(intereses: List[str], db: Session) -> List[int]:
 @router.post("/registro", response_model=SignUpResponse)
 def registrar_usuario(request: SignUpRequest, db: Session = Depends(get_db)):
     try:
-        # 1. Verificar correo
+        # 1. Verificar que aceptó ambas políticas
+        if not request.acepto_terminos or not request.acepto_tratamiento_datos:
+            raise HTTPException(
+                status_code=400, 
+                detail="Debes aceptar los términos y condiciones y el tratamiento de datos"
+            )
+        
+        # 2. Verificar que visualizó ambos PDFs
+        terminos_visto = db.query(VisualizacionPDF).filter(
+            VisualizacionPDF.session_id == request.session_id,
+            VisualizacionPDF.tipo_documento == 'terminos'
+        ).first()
+        
+        tratamiento_visto = db.query(VisualizacionPDF).filter(
+            VisualizacionPDF.session_id == request.session_id,
+            VisualizacionPDF.tipo_documento == 'tratamiento_datos'
+        ).first()
+        
+        if not terminos_visto or not tratamiento_visto:
+            raise HTTPException(
+                status_code=400,
+                detail="Debes visualizar los documentos de términos y condiciones y tratamiento de datos antes de registrarte"
+            )
+
+        # 3. Verificar correo
         correo_existente = db.query(Correo).filter(Correo.correo.ilike(request.correo)).first()
         if correo_existente:
             raise HTTPException(status_code=400, detail="Este correo ya está registrado")
 
-        # 2. Crear correo
+        # 4. Crear correo
         nuevo_correo = Correo(correo=request.correo.lower())
         db.add(nuevo_correo)
         db.flush()
 
-        # 3. Validar nacionalidad
+        # 5. Validar nacionalidad
         nacionalidad = buscar_nacionalidad(request.nacionalidad, db)
         if not nacionalidad:
             raise HTTPException(status_code=400, detail="Nacionalidad no válida")
 
-        # 4. Validar intereses
+        # 6. Validar intereses
         intereses_ids = validar_intereses(request.intereses, db)
 
-        # 5. Crear usuario
+        # 7. Crear usuario con campos de aceptación
+        fecha_actual = datetime.utcnow()
         nuevo_usuario = Usuario(
             primer_nombre=request.primer_nombre,
             segundo_nombre=request.segundo_nombre,
             primer_apellido=request.primer_apellido,
             segundo_apellido=request.segundo_apellido,
             clave=hash_password(request.clave),
-            id_rol=2, 
+            id_rol=2 , 
             id_correo=nuevo_correo.id_correo,
-            id_nac=nacionalidad.id_nac
+            id_nac=nacionalidad.id_nac,
+            acepto_terminos=request.acepto_terminos,
+            acepto_tratamiento_datos=request.acepto_tratamiento_datos,
+            fecha_aceptacion_terminos=fecha_actual,
+            fecha_aceptacion_tratamiento=fecha_actual
         )
         db.add(nuevo_usuario)
         db.flush()
 
-        # 6. Asociar intereses
+        # 8. Asociar intereses
         for interes_id in intereses_ids:
             db.add(InteresesUsuario(id_usuario=nuevo_usuario.id_usuario, id_inte=interes_id))
 
-        db.commit()
+        # 9. Registrar en historial de aceptaciones
+        historial_terminos = HistorialAceptaciones(
+            id_usuario=nuevo_usuario.id_usuario,
+            tipo_documento='terminos',
+            acepto=True,
+            fecha_accion=fecha_actual
+        )
+        historial_tratamiento = HistorialAceptaciones(
+            id_usuario=nuevo_usuario.id_usuario,
+            tipo_documento='tratamiento_datos',
+            acepto=True,
+            fecha_accion=fecha_actual
+        )
+        db.add(historial_terminos)
+        db.add(historial_tratamiento)
+        
+        # 10. Actualizar visualizaciones con el id_usuario
+        if terminos_visto:
+            terminos_visto.id_usuario = nuevo_usuario.id_usuario
+        if tratamiento_visto:
+            tratamiento_visto.id_usuario = nuevo_usuario.id_usuario
+        
+        # 11. Crear token de verificación
+        token = secrets.token_urlsafe(32)
+        fecha_expiracion = datetime.utcnow() + timedelta(hours=24)
+        
+        token_verificacion = TokenVerificacion(
+            id_usuario=nuevo_usuario.id_usuario,
+            token=token,
+            fecha_expiracion=fecha_expiracion
+        )
+        db.add(token_verificacion)
 
-        return SignUpResponse(success=True, message="Usuario registrado exitosamente", usuario_id=nuevo_usuario.id_usuario)
+        db.commit()
+        
+        # 12. Enviar correo de verificación
+        nombre_completo = f"{request.primer_nombre} {request.primer_apellido}"
+        try:
+            email_service.send_verification_email(
+                to_email=request.correo,
+                usuario_nombre=nombre_completo,
+                token=token
+            )
+        except Exception as e:
+            print(f"Error al enviar email de verificación: {e}")
+            # No fallar el registro si el email no se envía
+
+        return SignUpResponse(
+            success=True, 
+            message="Usuario registrado exitosamente. Por favor verifica tu correo electrónico", 
+            usuario_id=nuevo_usuario.id_usuario
+        )
 
     except HTTPException:
         db.rollback()

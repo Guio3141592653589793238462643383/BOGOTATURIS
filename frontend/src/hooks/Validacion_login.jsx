@@ -4,12 +4,13 @@ import { useNavigate } from "react-router-dom";
 const useLoginValidation = () => {
   const [formData, setFormData] = useState({ correo: "", clave: "" });
   const [errors, setErrors] = useState({ correo: "", clave: "", general: "" });
+  const [touched, setTouched] = useState({ correo: false, clave: false });
   const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [usuarioId, setUsuarioId] = useState(null);
   const navigate = useNavigate();
 
-  // ✅ CORREGIDO: Sin el "1" extra
+  // CORREGIDO: Sin el "1" extra
   const LOGIN_ENDPOINT = "http://localhost:8000/api/usuario/login";
 
   const validateCorreo = useCallback((value) => {
@@ -31,10 +32,12 @@ const useLoginValidation = () => {
       setErrors((prev) => ({ ...prev, clave: "La contraseña es obligatoria" }));
       return false;
     }
+    // Solo validar la longitud mínima
     if (value.length < 8) {
-      setErrors((prev) => ({ ...prev, clave: "Debe tener al menos 8 caracteres" }));
+      setErrors((prev) => ({ ...prev, clave: "La contraseña debe tener al menos 8 caracteres" }));
       return false;
     }
+    // Limpiar cualquier error de contraseña
     setErrors((prev) => ({ ...prev, clave: "" }));
     return true;
   }, []);
@@ -46,6 +49,11 @@ const useLoginValidation = () => {
     setSuccessMessage("");
   }, []);
 
+  const handleBlur = useCallback((e) => {
+    const { name } = e.target;
+    setTouched((prev) => ({ ...prev, [name]: true }));
+  }, []);
+
   const validateAllFields = useCallback(() => {
     const correoValid = validateCorreo(formData.correo);
     const claveValid = validateClave(formData.clave);
@@ -53,30 +61,36 @@ const useLoginValidation = () => {
   }, [formData.correo, formData.clave, validateCorreo, validateClave]);
 
   
-  // ✅ FUNCIÓN ACTUALIZADA para manejar login exitoso
+  // FUNCIÓN ACTUALIZADA para manejar login exitoso
   const handleLoginSuccess = useCallback((userData) => {
-  console.log("✅ Login exitoso, guardando datos:", userData);
+    console.log("✅ Login exitoso, guardando datos:", userData);
+    console.log("🔍 ROL RECIBIDO:", userData.rol);
+    console.log("🔍 TIPO DE ROL:", typeof userData.rol);
+    console.log("🔍 DATOS COMPLETOS:", JSON.stringify(userData, null, 2));
       
     // 🔧 CAMBIO: Usar localStorage en lugar de sessionStorage para consistencia con UserView
     localStorage.setItem("usuario_id", userData.usuario_id.toString());
     localStorage.setItem("user_email", formData.correo);
+    localStorage.setItem("user_rol", userData.rol || "usuario");
     localStorage.setItem("loginTime", Date.now().toString());
-        if (userData.access_token) {
-      localStorage.setItem("token", userData.access_token);
-    }
-        if (userData.access_token) {
+    if (userData.access_token) {
       localStorage.setItem("token", userData.access_token);
     }
     
     setUsuarioId(userData.usuario_id);
     setSuccessMessage(userData.message || "¡Login exitoso! Redirigiendo...");
 
-    // ✅ Redirigir a UserView después de 1 segundo
+    // Redirigir según el rol del usuario
     setTimeout(() => {
-      console.log(`🔄 Redirigiendo a /usuario/${userData.usuario_id}`);
-      navigate(`/usuario/${userData.usuario_id}`);
+      if (userData.rol === "administrador") {
+        console.log(`Redirigiendo a panel de administrador /admin/${userData.usuario_id}`);
+        navigate(`/admin/${userData.usuario_id}`);
+      } else {
+        console.log(`Redirigiendo a vista de usuario /usuario/${userData.usuario_id}`);
+        navigate(`/usuario/${userData.usuario_id}`);
+      }
     }, 1000);
-  }, [navigate, formData.correo]); // Agregar formData.correo como dependencia
+  }, [navigate, formData.correo]);
 
 
   const handleSubmit = useCallback(
@@ -166,10 +180,12 @@ const useLoginValidation = () => {
   return {
     formData,
     errors,
+    touched,
     successMessage,
     isLoading,
     usuarioId,
     handleInputChange,
+    handleBlur,
     handleSubmit,
     logout,
   };

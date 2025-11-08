@@ -3,9 +3,8 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(0, 38, 255, 0.665);
-  background-color: #242424;
+  color: #333;
+  background-color: #ffffff;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -625,4 +624,132 @@ button {
 }
 .animate-scaleIn {
   animation: scaleIn 0.4s ease forwards;
+}
+/* Estilos para el sistema de bloqueo */
+
+.block-alert {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+  color: white;
+  padding: 25px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+  text-align: center;
+  border: 2px solid #ff5252;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+  animation: slideDown 0.3s ease-out;
+}
+
+.block-alert h3 {
+  margin: 10px 0 15px 0;
+  font-size: 1.3em;
+  font-weight: 600;
+}
+
+.block-alert p {
+  margin: 10px 0;
+  line-height: 1.6;
+  font-size: 0.95em;
+}
+
+.block-icon {
+  font-size: 3em;
+  margin-bottom: 10px;
+  animation: shake 0.5s ease-in-out;
+}
+
+.time-remaining {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 12px 20px;
+  border-radius: 8px;
+  margin: 15px 0;
+  font-size: 1.1em;
+}
+
+.time-remaining strong {
+  font-size: 1.3em;
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 1px;
+}
+
+.help-text {
+  font-size: 0.9em;
+  opacity: 0.9;
+  font-style: italic;
+}
+
+/* Botón bloqueado */
+button.blocked {
+  background: #95a5a6;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+button.blocked:hover {
+  background: #95a5a6;
+  transform: none;
+}
+
+/* Nota de seguridad */
+.security-note {
+  margin-top: 20px;
+  padding: 12px 15px;
+  background: #f8f9fa;
+  border-left: 4px solid #3498db;
+  border-radius: 4px;
+}
+
+.security-note p {
+  margin: 0;
+  font-size: 0.85em;
+  color: #555;
+  line-height: 1.5;
+}
+
+/* Inputs deshabilitados cuando está bloqueado */
+input:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Animaciones */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-10deg); }
+  75% { transform: rotate(10deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .block-alert {
+    padding: 20px 15px;
+  }
+  
+  .block-alert h3 {
+    font-size: 1.1em;
+  }
+  
+  .block-icon {
+    font-size: 2.5em;
+  }
+  
+  .time-remaining {
+    padding: 10px 15px;
+  }
+  
+  .security-note {
+    font-size: 0.8em;
+  }
 }

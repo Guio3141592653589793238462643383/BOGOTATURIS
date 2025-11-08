@@ -13,12 +13,15 @@ export default function CrearComentario({onComentarioCreado }) {
   const token = localStorage.getItem("token");
   const usuarioId = userId || localStorage.getItem("usuario_id");
 
-  // 🔹 Si no hay sesión activa, redirige al login
-  useEffect(() => {
-    if (!usuarioId || !token) {
+useEffect(() => {
+  // Si se usa dentro de un modal, no redirige
+  if (!usuarioId || !token) {
+    if (!onComentarioCreado) {
       navigate("/login");
     }
-  }, [usuarioId, token, navigate]);
+  }
+}, [usuarioId, token, navigate, onComentarioCreado]);
+
 
 const handleSubmit = async (e) => {
   e.preventDefault();

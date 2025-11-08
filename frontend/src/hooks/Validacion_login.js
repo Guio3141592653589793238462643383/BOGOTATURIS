@@ -153,17 +153,23 @@ const useLoginValidation = () => {
       setSuccessMessage('¡Inicio de sesión exitoso!');
       setErrors({});
 
-      // Guardar el token en localStorage
+      // Guardar los datos del usuario en localStorage
       localStorage.setItem('access_token', data.access_token);
       localStorage.setItem('usuario_id', data.usuario_id);
-
+      localStorage.setItem('user_rol', data.rol);
+      localStorage.setItem('id_rol', data.id_rol);
+      
       console.log('Login exitoso:', data);
-
-      // Redirigir al perfil del usuario después de 1 segundo
-setTimeout(() => {
-  window.location.href = `/usuario/${data.usuario_id}`;
-}, 1000);
-
+      
+      // Redirigir según el rol del usuario después de 1 segundo
+      setTimeout(() => {
+        if (data.rol && data.rol.toLowerCase() === 'administrador') {
+          window.location.href = `/admin/${data.usuario_id}`;
+        } else {
+          window.location.href = `/usuario/${data.usuario_id}`;
+        }
+      }, 1000);
+      
     } catch (error) {
       console.error('Error en login:', error);
       setErrors({

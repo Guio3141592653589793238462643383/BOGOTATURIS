@@ -1,7 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from 'react';
 import backgroundVideo from '../assets/img/Bogota2.mov';
-//para video 
 const Inicio = () => {
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);

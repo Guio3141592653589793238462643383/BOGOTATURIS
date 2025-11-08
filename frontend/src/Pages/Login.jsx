@@ -1,22 +1,203 @@
-import useLoginValidation from "../hooks/Validacion_login";
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { toast } from 'react-toastify';
 
 const LoginPage = () => {
-  const {
-    formData,
-    errors,
-    touched,
-    successMessage,
-    isLoading,
-    handleInputChange,
-    handleBlur,
-    handleSubmit,
-  } = useLoginValidation();
+  const [formData, setFormData] = useState({
+    correo: '',
+    clave: ''
+  });
+  const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    // Limpiar el error del campo cuando el usuario escribe
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
+  const validateField = (name, value) => {
+    const newErrors = { ...errors };
+    
+    if (name === 'correo') {
+      if (!value) {
+        newErrors.correo = 'El correo es obligatorio';
+      } else if (!/\S+@\S+\.\S+/.test(value)) {
+        newErrors.correo = 'El correo no es válido';
+      } else {
+        delete newErrors.correo;
+      }
+    }
+    
+    if (name === 'clave') {
+      if (!value) {
+        newErrors.clave = 'La contraseña es obligatoria';
+      } else if (value.length < 6) {
+        newErrors.clave = 'La contraseña debe tener al menos 6 caracteres';
+      } else {
+        delete newErrors.clave;
+      }
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    setTouched(prev => ({
+      ...prev,
+      [name]: true
+    }));
+    validateField(name, value);
+  };
+
+  const validatePassword = (password) => {
+    const hasMinLength = password.length >= 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    
+    if (!hasMinLength) return 'La contraseña debe tener al menos 8 caracteres';
+    if (!hasUpperCase) return 'La contraseña debe contener al menos una letra mayúscula';
+    if (!hasLowerCase) return 'La contraseña debe contener al menos una letra minúscula';
+    if (!hasNumbers) return 'La contraseña debe contener al menos un número';
+    if (!hasSpecialChar) return 'La contraseña debe contener al menos un carácter especial';
+    return '';
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    // Validación de correo
+    if (!formData.correo) {
+      newErrors.correo = 'El correo es obligatorio';
+    } else if (!/\S+@\S+\.\S+/.test(formData.correo)) {
+      newErrors.correo = 'El correo no es válido';
+    }
+    
+    // Validación de contraseña
+    if (!formData.clave) {
+      newErrors.clave = 'La contraseña es obligatoria';
+    } else {
+      const passwordError = validatePassword(formData.clave);
+      if (passwordError) {
+        newErrors.clave = passwordError;
+      }
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
+    setIsLoading(true);
+    setErrors({});
+    setSuccessMessage('');
+    
+    try {
+      const result = await login(formData.correo, formData.clave);
+      
+      if (result?.success) {
+        setSuccessMessage('Inicio de sesión exitoso');
+        toast.success('Inicio de sesión exitoso');
+        
+        // Obtener el rol del usuario del contexto de autenticación
+        const userRole = result.user?.rol?.toLowerCase() || localStorage.getItem('user_rol')?.toLowerCase();
+        const userId = result.user?.id || localStorage.getItem('usuario_id');
+        
+        // Validar que el rol sea válido
+        if (!userRole) {
+          console.error('Rol de usuario no encontrado');
+          toast.error('Error al determinar el rol del usuario');
+          return;
+        }
+        
+        // Redirigir según el rol del usuario
+        if (userRole === 'administrador') {
+          navigate(`/admin/${userId}`);
+        } else if (userRole === 'usuario') {
+          navigate(`/usuario/${userId}`);
+        } else {
+          // Si el rol no es reconocido, redirigir a una página por defecto
+          console.warn(`Rol no reconocido: ${userRole}, redirigiendo a página de inicio`);
+          navigate('/');
+        }
+      } else {
+        const errorMessage = result?.error || 'Credenciales inválidas. Por favor, inténtalo de nuevo.';
+        setErrors({ general: errorMessage });
+        toast.error(errorMessage);
+      }
+    } catch (error) {
+      console.error('Error en el inicio de sesión:', error);
+      setErrors({
+        general: 'Error al conectar con el servidor. Por favor, inténtalo más tarde.'
+      });
+      toast.error('Error de conexión con el servidor');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Verificar si ya hay una sesión activa y redirigir según el rol
+  useEffect(() => {
+    const checkAuth = () => {
+      try {
+        const token = localStorage.getItem('access_token');
+        const userRole = localStorage.getItem('user_rol')?.toLowerCase();
+        const userId = localStorage.getItem('usuario_id');
+        
+        if (token && userRole && userId) {
+          // Redirigir según el rol del usuario
+          if (userRole === 'administrador') {
+            navigate(`/admin/${userId}`);
+          } else if (userRole === 'usuario') {
+            navigate(`/usuario/${userId}`);
+          } else {
+            console.warn(`Rol no reconocido: ${userRole}, redirigiendo a página de inicio`);
+            navigate('/');
+          }
+        }
+      } catch (error) {
+        console.error('Error al verificar autenticación:', error);
+        // En caso de error, limpiar la sesión y redirigir al login
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('usuario_id');
+        localStorage.removeItem('user_email');
+        localStorage.removeItem('user_rol');
+        navigate('/login');
+      }
+    };
+    
+    checkAuth();
+  }, [navigate]);
 
   return (
     <div className="login-wrapper">
       <div className="login-box">
         <h1>Iniciar Sesión</h1>
-
         <form onSubmit={handleSubmit} noValidate>
           <div className="input-group">
             <label htmlFor="correo">Correo Electrónico *</label>
@@ -33,11 +214,9 @@ const LoginPage = () => {
               autoComplete="email"
               required
             />
-            {/* Mostrar error si existe */}
             {errors.correo && (
               <p className="error">{errors.correo}</p>
             )}
-            {/* Mostrar éxito SOLO si NO hay error y el campo tiene contenido válido */}
             {!errors.correo && formData.correo && touched.correo && (
               <p className="success">✓ Email válido</p>
             )}
@@ -58,11 +237,9 @@ const LoginPage = () => {
               autoComplete="current-password"
               required
             />
-            {/* Mostrar error si existe */}
             {errors.clave && (
               <p className="error">{errors.clave}</p>
             )}
-            {/* Mostrar éxito SOLO si NO hay error y el campo tiene contenido válido */}
             {!errors.clave && formData.clave && touched.clave && (
               <p className="success">✓ Contraseña válida</p>
             )}
@@ -96,6 +273,10 @@ const LoginPage = () => {
           </div>
         )}
 
+        <div className="forgot-password-link">
+          <p><a href="/solicitar-restablecimiento">¿Olvidaste tu contraseña?</a></p>
+        </div>
+        
         <div className="register-link">
           <p>¿No tienes cuenta? <a href="/registro">Regístrate aquí</a></p>
         </div>

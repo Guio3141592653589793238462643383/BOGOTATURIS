@@ -1,11 +1,15 @@
 import "../assets/css/FormSignUp.css";
-import useFormValidation from "../Hooks/useFormValidation";
-import React, { useState } from 'react';
+import useFormValidation from "../hooks/useFormValidation.jsx";
+import usePoliticas from "../hooks/usePoliticas";
+import PDFModal from "../components/PDFModal";
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'; 
 
 const FormSignUp = () => {
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const navigate = useNavigate();
+  const [showTerminosModal, setShowTerminosModal] = useState(false); 
+  const [showTratamientoModal, setShowTratamientoModal] = useState(false);
   const {
     formData,
     validationState,
@@ -26,34 +30,119 @@ const FormSignUp = () => {
     calcularProgreso,
     formularioCompleto,
     validarTodoElFormulario,
-    resetForm
+    resetForm,
+    updateValidationState
   } = useFormValidation();
+
+  // Hook de políticas
+  const {
+    pdfVisualizado,
+    sessionId,
+    politicasAceptadas,
+    mensajesPoliticas,
+    registrarVisualizacionPDF,
+    handlePoliticaChange,
+    validarPoliticas,
+    politicasCompletas,
+    resetPoliticas
+  } = usePoliticas();
+
+  // Sincronizar el estado de políticas con validationState
+  useEffect(() => {
+    // Actualizar acepto_terminos
+    if (pdfVisualizado.terminos && politicasAceptadas.acepto_terminos) {
+      updateValidationState('acepto_terminos', true);
+    } else {
+      updateValidationState('acepto_terminos', null);
+    }
+  }, [pdfVisualizado.terminos, politicasAceptadas.acepto_terminos, updateValidationState]);
+
+  useEffect(() => {
+    // Actualizar acepto_tratamiento_datos
+    if (pdfVisualizado.tratamiento_datos && politicasAceptadas.acepto_tratamiento_datos) {
+      updateValidationState('acepto_tratamiento_datos', true);
+    } else {
+      updateValidationState('acepto_tratamiento_datos', null);
+    }
+  }, [pdfVisualizado.tratamiento_datos, politicasAceptadas.acepto_tratamiento_datos, updateValidationState]);
 
   // Manejador de envío del formulario (mejorado)
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validar todo el formulario primero
-    const esValido = await validarTodoElFormulario();
+    // Validar políticas primero
+    if (!validarPoliticas()) {
+      alert("Debes leer y aceptar las políticas antes de registrarte");
+      return;
+    }
+
+    // Validar todo el formulario
+    const esValido = await validarTodoElFormulario(politicasAceptadas);
 
     if (!esValido) {
       alert("Por favor completa todos los campos requeridos correctamente");
       return;
     }
 
+    // Verificar que las contraseñas coincidan
+    if (formData.clave !== formData.confirmarClave) {
+      alert("Las contraseñas no coinciden");
+      return;
+    }
+
+    // Crear objeto con los datos del formulario
+    // Asegurarse de que sessionId esté definido
+    if (!sessionId) {
+      console.error('Error: sessionId no está definido');
+      alert('Error de sesión. Por favor, recarga la página e inténtalo de nuevo.');
+      return;
+    }
+
+    // Asegurarse de que todos los campos requeridos tengan valores válidos
+    if (!formData.primer_nombre || !formData.primer_apellido || !formData.correo || !formData.clave || !formData.nacionalidad) {
+      alert('Por favor completa todos los campos requeridos');
+      return;
+    }
+
+    // Validar que se hayan seleccionado intereses
+    if (!formData.intereses || formData.intereses.length === 0) {
+      alert('Por favor selecciona al menos un interés');
+      return;
+    }
+
+    // Validar que se hayan aceptado los términos
+    if (!politicasAceptadas.acepto_terminos || !politicasAceptadas.acepto_tratamiento_datos) {
+      alert('Debes aceptar los términos y condiciones y la política de tratamiento de datos');
+      return;
+    }
+
+    // Validar que la contraseña tenga al menos 8 caracteres
+    if (formData.clave.length < 8) {
+      alert('La contraseña debe tener al menos 8 caracteres');
+      return;
+    }
+
+    // Validar que las contraseñas coincidan
+    if (formData.clave !== formData.confirmarClave) {
+      alert('Las contraseñas no coinciden');
+      return;
+    }
+
     const datosFormulario = {
-      primer_nombre: formData.primer_nombre,
-      segundo_nombre: formData.segundo_nombre || null,
-      primer_apellido: formData.primer_apellido,
-      segundo_apellido: formData.segundo_apellido || null,
-      correo: formData.correo,
+      primer_nombre: formData.primer_nombre.trim(),
+      segundo_nombre: formData.segundo_nombre ? formData.segundo_nombre.trim() : null,
+      primer_apellido: formData.primer_apellido.trim(),
+      segundo_apellido: formData.segundo_apellido ? formData.segundo_apellido.trim() : null,
+      correo: formData.correo.trim().toLowerCase(),
       clave: formData.clave,
       nacionalidad: formData.nacionalidad,
       intereses: Array.isArray(formData.intereses) ? formData.intereses : [],
-      terminos: formData.terminos
+      acepto_terminos: politicasAceptadas.acepto_terminos,
+      acepto_tratamiento_datos: politicasAceptadas.acepto_tratamiento_datos,
+      session_id: sessionId
     };
-
-
+    
+    console.log('Datos a enviar al servidor:', JSON.stringify(datosFormulario, null, 2));
 
     try {
       const response = await fetch("http://localhost:8000/api/usuario/registro", {
@@ -65,29 +154,61 @@ const FormSignUp = () => {
         body: JSON.stringify(datosFormulario),
       })
 
-      const resultado = await response.json();
+      let resultado;
+      try {
+        resultado = await response.json();
+      } catch (error) {
+        console.error('Error al analizar la respuesta JSON:', error);
+        throw new Error('Error al procesar la respuesta del servidor');
+      }
 
       if (response.ok) {
         console.log('Usuario registrado exitosamente:', resultado);
         setShowWelcomeModal(true);
 
-        // Limpiar formulario después del éxito
+        // Limpiar formulario y políticas después del éxito
         resetForm();
+        resetPoliticas();
 
-        // Opcional: redirigir a otra página
-        // window.location.href = '/login';
+        // Mostrar mensaje de éxito y redirigir al login después de 3 segundos
+        alert('¡Registro exitoso! Por favor verifica tu correo electrónico para activar tu cuenta.');
+        
+        // Redirigir al login después de mostrar el mensaje
+        setTimeout(() => {
+          navigate('/login');
+        }, 3000);
 
       } else {
-        console.error('Error del servidor:', resultado);
+        console.error('Error del servidor:', {
+          status: response.status,
+          statusText: response.statusText,
+          data: resultado
+        });
 
         // Manejar diferentes tipos de errores del backend
-        let mensajeError = 'Error en el registro. Verifica los datos.';
-
-        if (resultado.detail) {
+        let mensajeError = 'Error en el registro. ';
+        
+        // Si es un error 422, mostrar detalles de validación
+        if (response.status === 422 && resultado.detail) {
+          if (Array.isArray(resultado.detail)) {
+            // Error de validación de Pydantic
+            const errores = resultado.detail.map(e => {
+              const campo = e.loc ? e.loc.join('.') : 'campo_desconocido';
+              return `- ${campo}: ${e.msg}`;
+            }).join('\n');
+            mensajeError = `Error de validación:\n${errores}`;
+          } else if (typeof resultado.detail === 'string') {
+            mensajeError = resultado.detail;
+          } else if (resultado.detail.detail) {
+            mensajeError = resultado.detail.detail;
+          }
+        } 
+        // Otros tipos de errores
+        else if (resultado.detail) {
           if (typeof resultado.detail === 'object') {
             // Error con información de campo específico
             if (resultado.detail.detail) {
-              mensajeError = resultado.detail.detail;
+              mensajeError += resultado.detail.detail;
             }
             if (resultado.detail.campo) {
               mensajeError += ` (Campo: ${resultado.detail.campo})`;
@@ -97,7 +218,7 @@ const FormSignUp = () => {
           }
         }
 
-        alert(`Error: ${mensajeError}`);
+        alert(`Error (${response.status}): ${mensajeError}`);
       }
     } catch (error) {
       console.error('Error de conexión:', error);
@@ -233,10 +354,7 @@ const FormSignUp = () => {
                   id="primer_nombre"
                   name="primer_nombre"
                   value={formData.primer_nombre}
-                  onChange={(e) => {
-                    handleInputChange(e);
-                    validatePrimerNombre(e.target.value);
-                  }}
+                  onChange={handleInputChange}
                   required
                   placeholder="Ej: Emily"
                   pattern="[A-Za-zÁÉÍÓÚáéíúóÑñÜü ]{2,40}"
@@ -270,10 +388,7 @@ const FormSignUp = () => {
                   id="segundo_nombre"
                   name="segundo_nombre"
                   value={formData.segundo_nombre || ""}
-                  onChange={(e) => {
-                    handleInputChange(e);
-                    validateSegundoNombre(e.target.value);
-                  }}
+                  onChange={handleInputChange}
                   placeholder="Ej: Andrea"
                   pattern="[A-Za-zÁÉÍÓÚáéíúóÑñÜü ]{2,40}"
                   className={
@@ -306,10 +421,7 @@ const FormSignUp = () => {
                   id="primer_apellido"
                   name="primer_apellido"
                   value={formData.primer_apellido}
-                  onChange={(e) => {
-                    handleInputChange(e);
-                    validatePrimerApellido(e.target.value);
-                  }}
+                  onChange={handleInputChange}
                   required
                   placeholder="Ej: Remicio"
                   pattern="[A-Za-zÁÉÍÓÚáéíúóÑñÜü ]{2,40}"
@@ -343,10 +455,7 @@ const FormSignUp = () => {
                   id="segundo_apellido"
                   name="segundo_apellido"
                   value={formData.segundo_apellido || ""}
-                  onChange={(e) => {
-                    handleInputChange(e);
-                    validateSegundoApellido(e.target.value);
-                  }}
+                  onChange={handleInputChange}
                   placeholder="Ej: López"
                   pattern="[A-Za-zÁÉÍÓÚáéíúóÑñÜü ]{2,40}"
                   className={
@@ -383,7 +492,6 @@ const FormSignUp = () => {
                 onChange={handleInputChange}
                 required
                 placeholder="usuario@dominio.com"
-                pattern="^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$"
                 className={
                   validationState.correo === true
                     ? "valido"
@@ -639,44 +747,151 @@ const FormSignUp = () => {
               </div>
             </div>
 
-            {/* Términos y condiciones */}
+            {/* Políticas y Consentimientos */}
             <div className="form-group">
-              <label
-                htmlFor="terminos"
-                style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-              >
-                <input
-                  type="checkbox"
-                  id="terminos"
-                  name="terminos"
-                  required
-                  checked={formData.terminos}
-                  onChange={handleInputChange}
-                />
-                Acepto los términos y condiciones *
+              <label style={{ 
+                fontSize: '1.1rem', 
+                fontWeight: '600', 
+                color: '#2c3e50',
+                marginBottom: '15px',
+                display: 'block'
+              }}>
+                Políticas y Consentimientos *
               </label>
-              <div
-                className="mensaje-error"
-                style={{ display: messages.errorTerminos ? "block" : "none" }}
-              >
-                {messages.errorTerminos}
+              
+              {/* Términos y Condiciones */}
+              <div style={{ 
+                marginBottom: '20px', 
+                padding: '15px', 
+                border: '1px solid #e0e0e0', 
+                borderRadius: '8px', 
+                backgroundColor: '#f9f9f9' 
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', justifyContent: 'space-between' }}>
+                  <input
+                    type="checkbox"
+                    checked={politicasAceptadas.acepto_terminos}
+                    onChange={(e) => handlePoliticaChange('acepto_terminos', e.target.checked)}
+                    disabled={!pdfVisualizado.terminos}
+                    style={{ flexShrink: 0, width: '20px', height: '20px', cursor: 'pointer' }}
+                  />
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontWeight: '500', color: '#333', fontSize: '0.95rem' }}>
+                      Acepto los términos y condiciones *
+                    </span>
+                    {pdfVisualizado.terminos && (
+                      <span style={{ color: '#28a745', fontSize: '0.85rem', fontWeight: '500', whiteSpace: 'nowrap' }}>
+                        ✓ Visualizado
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowTerminosModal(true)}
+                    style={{
+                      padding: '8px 16px',
+                      fontSize: '0.9rem',
+                      backgroundColor: '#667eea',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontWeight: '500',
+                      textTransform: 'none',
+                      letterSpacing: 'normal',
+                      boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
+                      width: 'auto',
+                      marginTop: '0',
+                      flexShrink: 0,
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    📄 Leer documento
+                  </button>
+                </div>
+                {mensajesPoliticas.errorTerminos && (
+                  <div className="mensaje-error" style={{ marginTop: '8px' }}>
+                    {mensajesPoliticas.errorTerminos}
+                  </div>
+                )}
+                {mensajesPoliticas.exitoTerminos && (
+                  <div className="mensaje-exito" style={{ marginTop: '8px' }}>
+                    {mensajesPoliticas.exitoTerminos}
+                  </div>
+                )}
               </div>
-              <div
-                className="mensaje-exito"
-                style={{ display: messages.exitoTerminos ? "block" : "none" }}
-              >
-                {messages.exitoTerminos}
+
+              {/* Tratamiento de Datos */}
+              <div style={{ 
+                padding: '15px', 
+                border: '1px solid #e0e0e0', 
+                borderRadius: '8px', 
+                backgroundColor: '#f9f9f9' 
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', justifyContent: 'space-between' }}>
+                  <input
+                    type="checkbox"
+                    checked={politicasAceptadas.acepto_tratamiento_datos}
+                    onChange={(e) => handlePoliticaChange('acepto_tratamiento_datos', e.target.checked)}
+                    disabled={!pdfVisualizado.tratamiento_datos}
+                    style={{ flexShrink: 0, width: '20px', height: '20px', cursor: 'pointer' }}
+                  />
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontWeight: '500', color: '#333', fontSize: '0.95rem' }}>
+                      Acepto el tratamiento de datos personales *
+                    </span>
+                    {pdfVisualizado.tratamiento_datos && (
+                      <span style={{ color: '#28a745', fontSize: '0.85rem', fontWeight: '500', whiteSpace: 'nowrap' }}>
+                        ✓ Visualizado
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowTratamientoModal(true)}
+                    style={{
+                      padding: '8px 16px',
+                      fontSize: '0.9rem',
+                      backgroundColor: '#667eea',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontWeight: '500',
+                      textTransform: 'none',
+                      letterSpacing: 'normal',
+                      boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
+                      width: 'auto',
+                      marginTop: '0',
+                      flexShrink: 0,
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    📄 Leer documento
+                  </button>
+                </div>
+                {mensajesPoliticas.errorTratamientoDatos && (
+                  <div className="mensaje-error" style={{ marginTop: '8px' }}>
+                    {mensajesPoliticas.errorTratamientoDatos}
+                  </div>
+                )}
+                {mensajesPoliticas.exitoTratamientoDatos && (
+                  <div className="mensaje-exito" style={{ marginTop: '8px' }}>
+                    {mensajesPoliticas.exitoTratamientoDatos}
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Botón de envío */}
             <div className="form-group">
+
               <button
                 type="submit"
                 id="btnEnviar"
-                disabled={!formularioCompleto() || validatingEmail || validatingNacionalidad}
+                disabled={!formularioCompleto() || !politicasCompletas() || validatingEmail || validatingNacionalidad}
                 className={
-                  (formularioCompleto() && !validatingEmail && !validatingNacionalidad)
+                  (formularioCompleto() && politicasCompletas() && !validatingEmail && !validatingNacionalidad)
                     ? "btn-habilitado"
                     : "btn-deshabilitado"
                 }
@@ -696,13 +911,55 @@ const FormSignUp = () => {
             <div className="welcome-icon">🎉</div>
             <h2>¡Registro Exitoso!</h2>
             <p>Bienvenido a <strong>BogotaTuris</strong></p>
-            <p>¡Descubre los mejores lugares de nuestra hermosa ciudad!</p>
+            
+            <div style={{
+              background: '#e3f2fd',
+              padding: '20px',
+              borderRadius: '10px',
+              margin: '20px 0',
+              borderLeft: '4px solid #2196f3'
+            }}>
+              <h3 style={{ margin: '0 0 10px 0', color: '#1976d2', fontSize: '1.2rem' }}>
+                📧 Verifica tu correo electrónico
+              </h3>
+              <p style={{ margin: '0', color: '#424242', lineHeight: '1.6' }}>
+                Te hemos enviado un correo de verificación a <strong>{formData.correo}</strong>.
+                <br />
+                Por favor revisa tu bandeja de entrada y haz clic en el enlace de verificación.
+              </p>
+            </div>
+            
+            <p style={{ fontSize: '0.9rem', color: '#666' }}>
+              ¡Descubre los mejores lugares de nuestra hermosa ciudad!
+            </p>
             <button onClick={handleWelcomeClose}>
-              Comenzar mi aventura
+              Ir al Login
             </button>
           </div>
         </div>
       )}
+
+      {/* Modal de Términos y Condiciones */}
+      <PDFModal
+        isOpen={showTerminosModal}
+        onClose={() => setShowTerminosModal(false)}
+        pdfUrl="http://localhost:8000/api/politicas/pdf/terminos"
+        titulo="Términos y Condiciones"
+        onVisualizacionCompleta={(tiempo) => {
+          registrarVisualizacionPDF('terminos', tiempo);
+        }}
+      />
+
+      {/* Modal de Tratamiento de Datos */}
+      <PDFModal
+        isOpen={showTratamientoModal}
+        onClose={() => setShowTratamientoModal(false)}
+        pdfUrl="http://localhost:8000/api/politicas/pdf/tratamiento-datos"
+        titulo="Tratamiento de Datos Personales"
+        onVisualizacionCompleta={(tiempo) => {
+          registrarVisualizacionPDF('tratamiento_datos', tiempo);
+        }}
+      />
       </div>
     </>
   );
