@@ -12,7 +12,7 @@ import bcrypt
 
 from app.BD.bd_Relacional.db_connection import (
     get_db, Usuario, Correo, Nacionalidad, Rol, 
-    Lugar, Comentarios, ReporteIncidente, Intereses, InteresesUsuario
+    Lugar, Comentarios, ReporteIncidente, Intereses, InteresesUsuario, TipoLugar
 )
 
 router = APIRouter(
@@ -298,7 +298,6 @@ def eliminar_usuario(usuario_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Error al eliminar usuario: {str(e)}")
 
 # ==================== GESTIÓN DE LUGARES ====================
-
 @router.get("/lugares")
 def listar_lugares(
     skip: int = Query(0, ge=0),
@@ -307,10 +306,16 @@ def listar_lugares(
     tipo: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
-    """Listar lugares turísticos con filtros"""
+    """
+    Listar lugares turísticos con filtros:
+    - buscar: nombre o dirección
+    - tipo: nombre del tipo de lugar
+    - paginación: skip y limit
+    """
     try:
         query = db.query(Lugar)
-        
+
+        # Búsqueda por nombre o dirección
         if buscar:
             query = query.filter(
                 or_(
@@ -318,33 +323,44 @@ def listar_lugares(
                     Lugar.direccion.ilike(f"%{buscar}%")
                 )
             )
-        
+
+        # Filtrado por tipo de lugar (incluye lugares sin tipo)
         if tipo:
-            query = query.filter(Lugar.tipo_lugar.ilike(f"%{tipo}%"))
-        
-        total = query.count()
+            query = query.join(Lugar.tipo, isouter=True).filter(
+            TipoLugar.nombre_tipo.ilike(f"%{tipo}%")
+        )
+
+
+        total = query.count()  # total de registros filtrados
         lugares = query.offset(skip).limit(limit).all()
-        
+
+        # Respuesta serializada
         return {
             "total": total,
             "lugares": [
                 {
                     "id_lugar": l.id_lugar,
                     "nombre_lugar": l.nombre_lugar,
-                    "tipo_lugar": l.tipo_lugar,
+                    "descripcion": l.descripcion,
                     "direccion": l.direccion,
-                    "hora_aper": str(l.hora_aper) if l.hora_aper else None,
-                    "hora_cierra": str(l.hora_cierra) if l.hora_cierra else None,
+                    "hora_aper": str(l.hora_aper),
+                    "hora_cierra": str(l.hora_cierra),
                     "precios": l.precios,
-                    "id_usuario": l.id_usuario
+                    "imagen_url": l.imagen_url,
+                    "id_tipo": l.id_tipo,
+                    "tipo_lugar": l.tipo.nombre_tipo if l.tipo else None
                 }
                 for l in lugares
             ],
             "skip": skip,
             "limit": limit
         }
+
     except Exception as e:
+        import traceback
+        print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=f"Error al listar lugares: {str(e)}")
+
 
 @router.delete("/lugares/{lugar_id}")
 def eliminar_lugar(lugar_id: int, db: Session = Depends(get_db)):

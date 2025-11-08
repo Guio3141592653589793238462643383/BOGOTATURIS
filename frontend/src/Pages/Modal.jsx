@@ -10,11 +10,16 @@ import {
   XCircle,
   Info,
   RefreshCw,
+  MapPin,
+  Clock,
+  DollarSign,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import ConfirmModal from "../components/ConfirmModal";
 
-export default function Modal({ open, onClose, card }) {
+export default function Modal({ open, onClose, card, lugar }) {
   const [modoEdicion, setModoEdicion] = useState(false);
   const [comentarioEditId, setComentarioEditId] = useState(null);
   const [modoEdicionAlerta, setModoEdicionAlerta] = useState(false);
@@ -31,6 +36,7 @@ export default function Modal({ open, onClose, card }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState(() => () => {});
   const [confirmMessage, setConfirmMessage] = useState("");
+  const [mostrarDetalles, setMostrarDetalles] = useState(false);
 
   // 🧁 Sistema de toasts (notificaciones flotantes)
   const [toasts, setToasts] = useState([]);
@@ -88,7 +94,6 @@ export default function Modal({ open, onClose, card }) {
     try {
       let response;
       if (modoEdicion && comentarioEditId) {
-        // ✅ Actualizar comentario existente
         response = await fetch(
           `http://127.0.0.1:8000/api/usuario/comentario/${comentarioEditId}`,
           {
@@ -104,7 +109,6 @@ export default function Modal({ open, onClose, card }) {
           }
         );
       } else {
-        // ✅ Crear nuevo comentario
         response = await fetch(
           "http://127.0.0.1:8000/api/usuario/comentarios",
           {
@@ -150,7 +154,6 @@ export default function Modal({ open, onClose, card }) {
           showToast(" Comentario publicado exitosamente", "success");
         }
 
-        // Limpiar formulario
         setNuevoComentario("");
         setCalificacion(0);
         setModoEdicion(false);
@@ -240,7 +243,6 @@ export default function Modal({ open, onClose, card }) {
       let response;
 
       if (modoEdicionAlerta && alertaEditId) {
-        // Actualizar alerta existente
         response = await fetch(
           `http://127.0.0.1:8000/api/usuario/alerta/${alertaEditId}`,
           {
@@ -253,7 +255,6 @@ export default function Modal({ open, onClose, card }) {
           }
         );
       } else {
-        // Crear nueva alerta
         response = await fetch("http://127.0.0.1:8000/api/usuario/alertas", {
           method: "POST",
           headers: {
@@ -281,11 +282,10 @@ export default function Modal({ open, onClose, card }) {
           );
           showToast("✏️ Alerta actualizada", "success");
         } else {
-          await fetchAlertas(); // recarga la lista
+          await fetchAlertas();
           showToast("🚨 Alerta registrada correctamente", "success");
         }
 
-        // Limpiar formulario
         setNuevoAlerta("");
         setModoEdicionAlerta(false);
         setAlertaEditId(null);
@@ -297,6 +297,7 @@ export default function Modal({ open, onClose, card }) {
       showToast("❌ Error de conexión", "error");
     }
   };
+
   const handleActualizarComentario = (id_com) => {
     const comentario = comentarios.find((c) => c.id_com === id_com);
     if (!comentario) return;
@@ -305,7 +306,6 @@ export default function Modal({ open, onClose, card }) {
     setCalificacion(comentario.calificacion);
     setComentarioEditId(id_com);
     setModoEdicion(true);
-    // Scroll al formulario si quieres
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -389,33 +389,38 @@ export default function Modal({ open, onClose, card }) {
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               onClick={(e) => e.stopPropagation()}
             >
+
               {/* LADO IZQUIERDO: Imagen y descripción */}
               <div className="w-1/2 flex flex-col bg-gradient-to-br from-blue-900 via-blue-800 to-blue-950">
-                <div className="relative h-2/3">
-                  <img
-                    src={card.imagen}
-                    alt={card.titulo}
+                <div className="relative h-2/3 overflow-hidden group">
+                  <motion.img
+                    src={
+                      card.imagen_url?.startsWith("http")
+                        ? card.imagen_url
+                        : `http://localhost:8000/${card.imagen_url}`
+                    }
+                    alt={card.nombre}
                     className="w-full h-full object-cover"
+                    initial={{ scale: 1.1 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.6 }}
                   />
-
-                  <motion.h2
-                    className="absolute bottom-6 left-6 text-4xl font-bold text-white drop-shadow-2xl"
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
+                  <div className="absolute inset-0 bg-gradient-to-t from-blue-950/90 via-blue-900/40 to-transparent"></div>
+                  
+                  {/* Título flotante sobre la imagen */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    style={{
-                      color: "#FFFFFF",
-                      textShadow:
-                        "0 6px 16px rgba(0,0,0,0.9), 0 3px 8px rgba(0,0,0,0.8), 0 1px 4px rgba(0,0,0,0.7), 0 0 40px rgba(0,0,0,0.5)",
-                      fontWeight: "800",
-                      letterSpacing: "-0.5px",
-                    }}
+                    className="absolute bottom-6 left-6 right-6"
                   >
-                    {card.nombre_lugar}
-                  </motion.h2>
+                    <h2 className="text-3xl font-black text-white drop-shadow-2xl tracking-tight">
+                      {card.nombre}
+                    </h2>
+                  </motion.div>
                 </div>
 
-                <div className="flex-1 px-6 py-4 bg-gradient-to-b from-blue-900/50 to-blue-950/80">
+                <div className="flex-1 px-6 py-4 bg-gradient-to-b from-blue-900/50 to-blue-950/80 overflow-y-auto">
                   <h3 className="text-lg font-extrabold text-white mb-3 flex items-center gap-2.5 drop-shadow-lg tracking-tight">
                     <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full shadow-lg shadow-blue-400/50"></div>
                     Descripción
@@ -424,28 +429,102 @@ export default function Modal({ open, onClose, card }) {
                     {card.descripcion}
                   </p>
 
-                  <div className="flex gap-2 flex-wrap">
-                    <span className="px-3.5 py-1.5 bg-gradient-to-r from-blue-500/30 to-blue-600/30 text-blue-100 rounded-full text-xs font-semibold border border-blue-400/40 hover:border-blue-300/60 hover:bg-blue-500/40 transition-all backdrop-blur-sm tracking-wide">
-                      #Turismo
+                  {/* Botón Ver más detalles */}
+                  <motion.button
+                    onClick={() => setMostrarDetalles(!mostrarDetalles)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full mb-4 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 hover:from-cyan-500/30 hover:to-blue-500/30 backdrop-blur-sm border border-cyan-400/40 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-between group"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Info size={18} className="text-cyan-300" />
+                      {mostrarDetalles ? "Ocultar detalles" : "Ver más detalles"}
                     </span>
-                    <span className="px-3.5 py-1.5 bg-gradient-to-r from-cyan-500/30 to-cyan-600/30 text-cyan-100 rounded-full text-xs font-semibold border border-cyan-400/40 hover:border-cyan-300/60 hover:bg-cyan-500/40 transition-all backdrop-blur-sm tracking-wide">
-                      #Naturaleza
-                    </span>
-                    <span className="px-3.5 py-1.5 bg-gradient-to-r from-teal-500/30 to-teal-600/30 text-teal-100 rounded-full text-xs font-semibold border border-teal-400/40 hover:border-teal-300/60 hover:bg-teal-500/40 transition-all backdrop-blur-sm tracking-wide">
-                      #Bogotá
-                    </span>
-                  </div>
+                    <motion.div
+                      animate={{ rotate: mostrarDetalles ? 180 : 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <ChevronDown size={20} className="text-cyan-300" />
+                    </motion.div>
+                  </motion.button>
+
+                  {/* Detalles expandibles con animación */}
+                  <AnimatePresence>
+                    {mostrarDetalles && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="space-y-3 mb-4">
+                          {/* Dirección */}
+                          <motion.div
+                            initial={{ x: -20, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            transition={{ delay: 0.1 }}
+                            className="flex items-start gap-3 bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20 hover:bg-white/15 transition-all duration-300"
+                          >
+                            <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg">
+                              <MapPin size={20} className="text-white" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-xs font-semibold text-cyan-300 mb-1">Dirección</p>
+                              <p className="text-sm text-white font-medium leading-snug">{card.direccion}</p>
+                            </div>
+                          </motion.div>
+
+                          {/* Horario */}
+                          <motion.div
+                            initial={{ x: -20, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            transition={{ delay: 0.2 }}
+                            className="flex items-start gap-3 bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20 hover:bg-white/15 transition-all duration-300"
+                          >
+                            <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg">
+                              <Clock size={20} className="text-white" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-xs font-semibold text-purple-300 mb-1">Horario</p>
+                              <p className="text-sm text-white font-medium">
+                                {card.hora_aper} - {card.hora_cierra}
+                              </p>
+                            </div>
+                          </motion.div>
+
+                          {/* Precios */}
+                          <motion.div
+                            initial={{ x: -20, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            transition={{ delay: 0.3 }}
+                            className="flex items-start gap-3 bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20 hover:bg-white/15 transition-all duration-300"
+                          >
+                            <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg">
+                              <DollarSign size={20} className="text-white" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-xs font-semibold text-green-300 mb-1">Precio</p>
+                              <p className="text-sm text-white font-medium">${card.precios}</p>
+                            </div>
+                          </motion.div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
                 </div>
               </div>
 
               {/* LADO DERECHO: Comentarios / Alertas */}
               <div className="w-1/2 flex flex-col bg-gradient-to-br from-gray-50 to-gray-100/50 perspective-[2000px]">
-                {/* Encabezado con pestañas */}
+                {/* Encabezado con pestañas mejorado */}
                 <div className="px-4 py-3 bg-white/80 backdrop-blur-sm border-b border-gray-200/80 flex justify-between items-center">
                   <div className="flex gap-6">
-                    {/* Título Comentarios */}
-                    <h3
+                    <motion.h3
                       onClick={() => setModo("comentarios")}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       className={`relative text-lg font-bold cursor-pointer transition-all duration-300 ${
                         modo === "comentarios"
                           ? "text-blue-700 drop-shadow-sm after:absolute after:bottom-[-6px] after:left-0 after:w-full after:h-[2px] after:bg-blue-600 after:rounded-full"
@@ -456,11 +535,12 @@ export default function Modal({ open, onClose, card }) {
                       <span className="text-base text-gray-500">
                         ({comentarios.length})
                       </span>
-                    </h3>
+                    </motion.h3>
 
-                    {/* Título Alertas */}
-                    <h3
+                    <motion.h3
                       onClick={() => setModo("alertas")}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       className={`relative text-lg font-bold cursor-pointer transition-all duration-300 ${
                         modo === "alertas"
                           ? "text-red-600 drop-shadow-sm after:absolute after:bottom-[-6px] after:left-0 after:w-full after:h-[2px] after:bg-red-600 after:rounded-full"
@@ -471,7 +551,7 @@ export default function Modal({ open, onClose, card }) {
                       <span className="text-base text-gray-500">
                         ({alertas?.length || 0})
                       </span>
-                    </h3>
+                    </motion.h3>
                   </div>
                 </div>
 
@@ -485,8 +565,6 @@ export default function Modal({ open, onClose, card }) {
                   >
                     {/* Cara frontal → COMENTARIOS */}
                     <div className="absolute inset-0 backface-hidden flex flex-col">
-                      {/* === LISTA DE COMENTARIOS === */}
-                      {/* Lista de comentarios OPTIMIZADA */}
                       <div className="flex-1 overflow-y-auto px-3 py-2 space-y-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
                         {loadingComentarios ? (
                           <div className="flex flex-col items-center justify-center h-full">
@@ -530,15 +608,12 @@ export default function Modal({ open, onClose, card }) {
                                 transition={{ duration: 0.3 }}
                                 className="relative bg-white p-4 rounded-2xl shadow-sm border border-gray-200 hover:shadow-lg hover:border-blue-200 transition-all duration-300 group"
                               >
-                                {/* Header con avatar y botón de eliminar */}
                                 <div className="flex items-start gap-3 mb-3">
-                                  {/* Avatar */}
                                   <div className="w-11 h-11 bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md ring-2 ring-blue-100 transition-transform duration-200 group-hover:scale-105 flex-shrink-0">
                                     {comentario.nombre?.[0]?.toUpperCase() ||
                                       "?"}
                                   </div>
 
-                                  {/* Info del usuario */}
                                   <div className="flex-1 min-w-0">
                                     <p className="font-semibold text-gray-800 text-[15px] truncate">
                                       {comentario.nombre || "Usuario"}{" "}
@@ -554,7 +629,6 @@ export default function Modal({ open, onClose, card }) {
                                       })}
                                     </p>
                                   </div>
-                                  {/* Indicador de comentario editado */}
                                   {comentario.editado && (
                                     <div className="inline-flex items-center gap-1 mb-2 text-green-600 bg-green-50 border border-green-200 px-2 py-1 rounded-full text-xs font-semibold w-fit">
                                       <span className="w-2 h-2 bg-green-500 rounded-full"></span>
@@ -562,7 +636,6 @@ export default function Modal({ open, onClose, card }) {
                                     </div>
                                   )}
 
-                                  {/* Botón eliminar MEJORADO */}
                                   {comentario.id_usuario === usuarioId && (
                                     <motion.button
                                       whileHover={{ scale: 1.15 }}
@@ -585,7 +658,6 @@ export default function Modal({ open, onClose, card }) {
                                       />
                                     </motion.button>
                                   )}
-                                  {/* Botón actualizar */}
                                   {comentario.id_usuario === usuarioId && (
                                     <motion.button
                                       whileHover={{ scale: 1.15 }}
@@ -610,12 +682,10 @@ export default function Modal({ open, onClose, card }) {
                                   )}
                                 </div>
 
-                                {/* Contenido del comentario */}
                                 <p className="text-gray-700 mb-3 leading-relaxed text-[15px]">
                                   {comentario.tipo_com}
                                 </p>
 
-                                {/* Calificación */}
                                 <div className="flex items-center gap-2 bg-gradient-to-r from-amber-50 to-orange-50 px-3 py-2 rounded-xl w-fit border border-amber-100">
                                   <div className="flex gap-0.5">
                                     {renderStars(comentario.calificacion)}
@@ -630,64 +700,62 @@ export default function Modal({ open, onClose, card }) {
                         )}
                       </div>
 
-                      {/* === FORMULARIO DE COMENTARIO === */}
-                      <div className="p-3 bg-white/90 backdrop-blur-sm border-t border-gray-200">
-                        <div className="space-y-2">
-                          <label className="block text-[11px] font-bold text-gray-800 mb-1.5 flex items-center gap-1">
-                            <div className="w-0.5 h-2.5 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
-                            Tu comentario
-                          </label>
-                          <textarea
-                            value={nuevoComentario}
-                            onChange={(e) => setNuevoComentario(e.target.value)}
-                            placeholder="Comparte tu experiencia..."
-                            className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition-all text-sm"
-                            rows="2"
-                            disabled={loading}
-                          />
-                          <div className="bg-gradient-to-r from-amber-50 to-orange-50 px-3 py-2 rounded-lg border border-amber-200/50">
-                            {renderStars(calificacion, true)}
-                          </div>
-                          <motion.button
-                            onClick={handleSubmitComentario}
-                            whileHover={{ scale: loading ? 1 : 1.02 }}
-                            whileTap={{ scale: loading ? 1 : 0.98 }}
-                            disabled={loading}
-                            type="button"
-                            className={`w-full font-bold py-2 rounded-lg shadow-lg transition-all inline-flex items-center justify-center gap-2 text-xs ${
-                              loading
-                                ? "bg-gray-400 cursor-not-allowed text-white"
-                                : "bg-gradient-to-r from-blue-600 via-blue-700 to-purple-700 text-white hover:shadow-xl hover:from-blue-700 hover:via-blue-800 hover:to-purple-800"
-                            }`}
-                          >
-                            {loading ? (
-                              <>
-                                <Loader2 className="animate-spin" size={16} />{" "}
-                                {modoEdicion
-                                  ? "Actualizando..."
-                                  : "Publicando..."}
-                              </>
-                            ) : (
-                              <>
-                                {modoEdicion ? (
-                                  <>
-                                    <RefreshCw size={16} /> Actualizar
-                                    comentario
-                                  </>
-                                ) : (
-                                  <>
-                                    <Send size={16} /> Publicar comentario
-                                  </>
-                                )}
-                              </>
-                            )}
-                          </motion.button>
-                        </div>
-                      </div>
+                      <div className="p-2 bg-white/80 backdrop-blur-sm border-t border-gray-200">
+  <div className="space-y-1.5">
+    <label className="block text-[10px] font-semibold text-gray-800 mb-1 flex items-center gap-1">
+      <div className="w-0.5 h-2 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
+      Tu comentario
+    </label>
+
+    <textarea
+      value={nuevoComentario}
+      onChange={(e) => setNuevoComentario(e.target.value)}
+      placeholder="Comparte tu experiencia..."
+      className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 resize-none transition-all text-[12px] leading-snug"
+      rows="2"
+      disabled={loading}
+    />
+
+    <div className="bg-gradient-to-r from-amber-50 to-orange-50 px-2 py-1.5 rounded-md border border-amber-200/50 text-[12px]">
+      {renderStars(calificacion, true)}
+    </div>
+
+    <motion.button
+      onClick={handleSubmitComentario}
+      whileHover={{ scale: loading ? 1 : 1.02 }}
+      whileTap={{ scale: loading ? 1 : 0.98 }}
+      disabled={loading}
+      type="button"
+      className={`w-full font-semibold py-1.5 rounded-md shadow-md transition-all inline-flex items-center justify-center gap-1.5 text-[11px] ${
+        loading
+          ? "bg-gray-400 cursor-not-allowed text-white"
+          : "bg-gradient-to-r from-blue-600 via-blue-700 to-purple-700 text-white hover:shadow-lg hover:from-blue-700 hover:via-blue-800 hover:to-purple-800"
+      }`}
+    >
+      {loading ? (
+        <>
+          <Loader2 className="animate-spin" size={14} />{" "}
+          {modoEdicion ? "Actualizando..." : "Publicando..."}
+        </>
+      ) : (
+        <>
+          {modoEdicion ? (
+            <>
+              <RefreshCw size={14} /> Actualizar
+            </>
+          ) : (
+            <>
+              <Send size={14} /> Publicar
+            </>
+          )}
+        </>
+      )}
+    </motion.button>
+  </div>
+</div>
                     </div>
 
                     <div className="absolute inset-0 backface-hidden rotate-y-180 bg-gradient-to-br from-red-50 to-red-100/70 flex flex-col">
-                      {/* Lista de alertas */}
                       <div className="flex-1 overflow-y-auto px-3 py-2 space-y-3">
                         {alertas && alertas.length > 0 ? (
                           alertas.map((alerta) => (
@@ -697,14 +765,11 @@ export default function Modal({ open, onClose, card }) {
                               animate={{ opacity: 1, y: 0 }}
                               className="bg-white border border-red-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-300 group"
                             >
-                              {/* Header con avatar, nombre, fecha y botón eliminar */}
                               <div className="flex items-start gap-3 mb-2">
-                                {/* Avatar circular */}
                                 <div className="w-11 h-11 bg-gradient-to-br from-red-500 via-orange-500 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md ring-2 ring-red-100 transition-transform duration-200 group-hover:scale-105 flex-shrink-0">
                                   {alerta.usuario?.[0]?.toUpperCase() || "?"}
                                 </div>
 
-                                {/* Info del usuario */}
                                 <div className="flex-1 min-w-0">
                                   <p className="font-semibold text-gray-800 text-[15px] truncate">
                                     {alerta.usuario || "Usuario desconocido"}
@@ -723,7 +788,6 @@ export default function Modal({ open, onClose, card }) {
                                 </div>
                               </div>
 
-                              {/* Contenido principal de la alerta */}
                               <div className="pl-[3.3rem]">
                                 <p className="text-sm font-medium text-red-700 leading-tight">
                                   🚨 {alerta.tipo_aler}
@@ -747,7 +811,6 @@ export default function Modal({ open, onClose, card }) {
                         )}
                       </div>
 
-                      {/* Crear nueva alerta */}
                       <div className="p-3 bg-white/90 backdrop-blur-sm border-t border-gray-200">
                         <textarea
                           value={nuevoAlerta}

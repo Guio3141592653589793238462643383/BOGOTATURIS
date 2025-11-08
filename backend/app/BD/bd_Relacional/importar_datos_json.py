@@ -28,7 +28,8 @@ class TipoLugar(Base):
     
     id_tipo = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     nombre_tipo = mapped_column(String(60), nullable=False, unique=True)
-
+    
+    d_categoria = mapped_column(BigInteger, ForeignKey("categoria.id_categoria"))
 class Rol(Base):
     __tablename__ = 'rol'
     
@@ -200,8 +201,8 @@ def main():
     print("\n2. Importando nacionalidades...")
     importar_nacionalidades()
     
-    print("\n3. Importando tipos de lugar...")
-    importar_tipo_lugar()
+# print("\n3. Importando tipos de lugar...")
+# importar_tipo_lugar()
     
     print("\n4. Creando rol usuario...")
     crear_rol_usuario()

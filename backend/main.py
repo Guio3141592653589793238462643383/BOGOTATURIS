@@ -16,8 +16,11 @@ from app.api.routers_.notificaciones_router import router as notificaciones_rout
 from app.api.routers_.verificacion_router import router as verificacion_router
 from app.api.routers_.lugares_router import router as lugares_router
 from app.api.routers_.tipo_lugar_router import router as tipo_lugar_router
+from app.api.routers_.recomendacion_router import router as recomendacion_router
 from fastapi.templating import Jinja2Templates
-
+# -----------------------------
+# Configuración general
+# -----------------------------
 load_dotenv()
 
 api_key = os.getenv("OPENAI_API_KEY")
@@ -30,7 +33,9 @@ app = FastAPI(
 )
 
 templates = Jinja2Templates(directory="templates")
-
+# -----------------------------
+# CORS
+# -----------------------------
 origins = [
     "http://localhost:5173",  # Frontend Vite
     "http://127.0.0.1:5173",  # Frontend Vite alternativo
@@ -53,11 +58,14 @@ coleccion = db["inventario"]
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     return templates.TemplateResponse("asistente.html", {"request": request})
-# Montar la carpeta uploads para servir archivos estáticos
-# Nota: la ruta relativa se resuelve desde el working directory al arrancar uvicorn
+# -----------------------------
+# Archivos estáticos
+# -----------------------------
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+# -----------------------------
+# Routers
+# -----------------------------
 app.include_router(tipo_lugar_router)
-# Incluir routers
 app.include_router(chat_router)
 #app.include_router(historial_router)
 app.include_router(signUp_router)
@@ -67,6 +75,7 @@ app.include_router(politicas_router)
 app.include_router(notificaciones_router)
 app.include_router(verificacion_router)
 app.include_router(lugares_router, prefix="/api/lugares", tags=["lugares"])
+app.include_router(recomendacion_router)
 
 
 

@@ -64,21 +64,29 @@ class Intereses(Base):
 
     id_inte = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     interes = mapped_column(String(80), nullable=False, unique=True)
-
+    # Relación con InteresCategoria
+    categorias = relationship("InteresCategoria", back_populates="interes")
 class Categoria(Base):
     __tablename__ = "categoria"
 
     id_categoria = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     nombre_categoria = mapped_column(String(80), nullable=False)
+    # Relación con tipo_lugar
     tipos = relationship("TipoLugar", back_populates="categoria")
+    inte_categorias = relationship("InteresCategoria", back_populates="categoria")
 
 
 class InteresCategoria(Base):
     __tablename__ = 'inte_categoria'
 
     id_inte_cate = mapped_column(BigInteger, primary_key=True, autoincrement=True)
-    categoria = mapped_column(String(80), nullable=False)
+    id_categoria = mapped_column(BigInteger, ForeignKey('categoria.id_categoria'), nullable=False)
     id_inte = mapped_column(BigInteger, ForeignKey('intereses.id_inte'), nullable=False)
+
+    # Relaciones
+    categoria = relationship("Categoria", back_populates="inte_categorias")
+    interes = relationship("Intereses", back_populates="categorias")
+
 
 class InteresesUsuario(Base):
     __tablename__ = 'intereses_usuario'
@@ -113,7 +121,8 @@ class TipoLugar(Base):
     
     id_tipo = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     nombre_tipo = mapped_column(String(60), nullable=False, unique=True)
-    id_categoria = mapped_column(BigInteger, ForeignKey("categoria.id_categoria"), nullable=True)
+    id_categoria = mapped_column(BigInteger, ForeignKey("categoria.id_categoria"))
+    # Relaciones
     categoria = relationship("Categoria", back_populates="tipos")
     lugares = relationship("Lugar", back_populates="tipo")
 
@@ -131,6 +140,7 @@ class Lugar(Base):
     imagen_url = mapped_column(String(500), nullable=True)
     id_tipo = mapped_column(BigInteger, ForeignKey("tipo_lugar.id_tipo"), nullable=True)
     tipo = relationship("TipoLugar", back_populates="lugares")
+
 class Alerta(Base):
     __tablename__ = 'alerta'
 

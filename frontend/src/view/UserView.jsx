@@ -16,27 +16,33 @@ export default function UserView() {
   const [usuarioData, setUsuarioData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [lugares, setLugares] = useState([]);
-  const [cargandoLugares, setCargandoLugares] = useState(true);
-  const [errorLugares, setErrorLugares] = useState(null);
+  const [recomendaciones, setRecomendaciones] = useState([]);
+  const [cargandoRecomendaciones, setCargandoRecomendaciones] = useState(true);
+  const [errorRecomendaciones, setErrorRecomendaciones] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
+  // Filtrar las recomendaciones por nombre
+  const filteredRecomendaciones = recomendaciones.filter((lugar) =>
+    lugar.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+  );
   useEffect(() => {
-    const fetchLugares = async () => {
-      try {
-        const response = await fetch("http://localhost:8000/api/lugares/");
-        if (!response.ok) throw new Error("Error al cargar lugares");
-        const data = await response.json();
-        setLugares(data);
-      } catch (error) {
-        console.error("💥 Error al traer lugares:", error);
-        setErrorLugares("No se pudieron cargar los lugares");
-      } finally {
-        setCargandoLugares(false);
-      }
-    };
+  const fetchRecomendaciones = async () => {
+    if (!usuarioId) return;
+    try {
+      const response = await fetch(`http://localhost:8000/api/recomendaciones/${usuarioId}`);
+      if (!response.ok) throw new Error("Error al cargar recomendaciones");
+      const data = await response.json();
+      setRecomendaciones(data);
+    } catch (error) {
+      console.error("💥 Error al traer recomendaciones:", error);
+      setErrorRecomendaciones("No se pudieron cargar las recomendaciones");
+    } finally {
+      setCargandoRecomendaciones(false);
+    }
+  };
 
-    fetchLugares();
-  }, []);
+  fetchRecomendaciones();
+}, [usuarioId]);
 
   // ✅ Función para obtener datos del usuario
   const fetchUsuarioData = useCallback(
@@ -185,65 +191,132 @@ export default function UserView() {
         usuarioData={usuarioData}
         onRefreshUserData={refreshUserData}
       />
-      <div className="promo-section text-center px-6">
-        <motion.h2
-          className="text-4xl font-bold text-[#00438F] mb-4"
-          style={{ fontFamily: "Lobster Two, cursive" }}
-          initial={{ opacity: 0, y: -30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          whileHover={{
-            scale: 1.08,
-            textShadow:
-              "0px 0px 15px rgba(0,67,143,0.7), 0px 0px 25px rgba(0,0,0,0.4)",
-          }}
-        >
-          ¡Descubre la belleza de Bogotá,{" "}
-          {usuarioData?.primer_nombre || "Usuario"}!
-        </motion.h2>
+     <div className="promo-section px-6">
+  {/* Sección de Bienvenida */}
+  <motion.h2
+    className="text-4xl font-bold text-[#00438F] mb-4 text-center"
+    style={{ fontFamily: "Lobster Two, cursive" }}
+    initial={{ opacity: 0, y: -30 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.8, ease: "easeOut" }}
+    whileHover={{
+      scale: 1.08,
+      textShadow:
+        "0px 0px 15px rgba(0,67,143,0.7), 0px 0px 25px rgba(0,0,0,0.4)",
+    }}
+  >
+    ¡Descubre la belleza de Bogotá,{" "}
+    {usuarioData?.primer_nombre || "Usuario"}!
+  </motion.h2>
 
-        <motion.p
-          className="text-gray-700 mb-10 text-lg"
-          style={{ fontFamily: "Poppins, sans-serif" }}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.3 }}
-          whileHover={{
-            scale: 1.03,
-            textShadow: "0px 0px 10px rgba(0,0,0,0.3)",
-          }}
-        >
-          Este lugar es imperdible. Ven y explora todo lo que tiene para
-          ofrecer.
-        </motion.p>
+  <motion.p
+    className="text-gray-700 mb-10 text-lg text-center"
+    style={{ fontFamily: "Poppins, sans-serif" }}
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 1, delay: 0.3 }}
+    whileHover={{
+      scale: 1.03,
+      textShadow: "0px 0px 10px rgba(0,0,0,0.3)",
+    }}
+  >
+    Hemos seleccionado estos lugares especialmente para ti. ¡Explora y 
+    disfruta tu próxima aventura!
+  </motion.p>
 
-        <div className="cards-container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
-          {cargandoLugares ? (
-            <p>Cargando lugares...</p>
-          ) : errorLugares ? (
-            <p>{errorLugares}</p>
-          ) : lugares.length > 0 ? (
-            lugares.map((lugar) => (
-              <Card
-                key={lugar.id_lugar}
-                imagen={lugar.imagen_url || "/default-image.png"} 
-                titulo={lugar.nombre_lugar}
-                descripcion={lugar.descripcion}
-                onClick={() => setSelectedCard(lugar)}
-              />
-            ))
-          ) : (
-            <p>No hay lugares disponibles</p>
-          )}
-        </div>
-        {/* Modal fuera del grid */}
-        <Modal
-          open={!!selectedCard}
-          onClose={() => setSelectedCard(null)}
-          card={selectedCard}
+  {/* Header con ícono, título y línea - Similar a la imagen */}
+  <div className="flex items-center gap-4 mb-8 mt-12">
+    {/* Ícono */}
+    <div className="flex-shrink-0">
+      <svg 
+        className="w-12 h-12 text-[#00438F]" 
+        fill="none" 
+        stroke="currentColor" 
+        viewBox="0 0 24 24"
+      >
+        <path 
+          strokeLinecap="round" 
+          strokeLinejoin="round" 
+          strokeWidth={2} 
+          d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" 
         />
-      </div>
-      <Chatbot />
-    </>
-  );
+      </svg>
+    </div>
+    
+    {/* Título */}
+    <motion.h2
+    className="text-4xl font-bold text-[#00438F] mb-4 text-center"
+    style={{ fontFamily: "Lobster Two, cursive" }}
+    initial={{ opacity: 0, y: -30 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.8, ease: "easeOut" }}
+    whileHover={{
+      scale: 1.08,
+      textShadow:
+        "0px 0px 15px rgba(0,67,143,0.7), 0px 0px 25px rgba(0,0,0,0.4)",
+    }}
+  >
+      Recomendaciones para ti
+    </motion.h2>
+    
+    {/* Línea horizontal */}
+    <div className="flex-grow h-[4px] bg-[#00438F]"></div>
+<div className="w-full flex justify-center mb-4 mt-2">
+  <input
+    type="text"
+    placeholder="Buscar lugar..."
+    value={searchTerm}
+    onChange={(e) => setSearchTerm(e.target.value)}
+    className="w-1/2 px-4 py-2 border border-[#00438F] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00438F] focus:border-transparent transition-all duration-200 placeholder-gray-500 shadow-sm"
+  />
+</div>
+  </div>
+
+
+  {cargandoRecomendaciones ? (
+  <p className="text-center text-gray-600">Cargando recomendaciones...</p>
+) : errorRecomendaciones ? (
+  <p className="text-center text-red-600">{errorRecomendaciones}</p>
+) : recomendaciones.length > 0 ? (
+  <>
+    <div className="cards-container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
+      {recomendaciones
+        .filter((lugar) =>
+          lugar.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        .map((lugar) => (
+          <Card
+            key={`rec-${lugar.id_lugar}`}
+            imagen={lugar.imagen_url || "/default-image.png"}
+            titulo={lugar.nombre}
+            descripcion={lugar.descripcion}
+            onClick={() => setSelectedCard(lugar)}
+          />
+        ))}
+    </div>
+
+    {/* Si no hay coincidencias con el filtro */}
+    {recomendaciones.filter((lugar) =>
+      lugar.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+    ).length === 0 && searchTerm !== "" && (
+      <p className="text-center text-gray-600 mt-4">
+        No se encontraron lugares con ese nombre.
+      </p>
+    )}
+  </>
+) : (
+  <p className="text-center text-gray-600">
+    No hay recomendaciones personalizadas por ahora.
+  </p>
+)}
+</div>
+      {/* Modal fuera del grid */}
+      <Modal
+        open={!!selectedCard}
+        onClose={() => setSelectedCard(null)}
+        card={selectedCard}
+      />
+    <Chatbot />
+  </>
+);
 }

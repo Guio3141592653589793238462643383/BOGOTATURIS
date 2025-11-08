@@ -2,6 +2,7 @@ import os
 import uuid
 from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException
 from fastapi.staticfiles import StaticFiles
+from datetime import time
 from sqlalchemy.orm import Session
 from app.BD.bd_Relacional.db_connection import Lugar, get_db 
 
@@ -9,6 +10,7 @@ router = APIRouter()
 
 # Carpeta donde se guardarán las imágenes
 UPLOAD_DIR = "uploads/lugares"
+BASE_URL = "http://localhost:8000"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # Generar nombres seguros y únicos
@@ -33,6 +35,9 @@ async def crear_lugar(
     imagen: UploadFile = File(None), 
     db: Session = Depends(get_db)
 ):
+
+    hora_aper_obj = time.fromisoformat(hora_aper) if hora_aper else None
+    hora_cierra_obj = time.fromisoformat(hora_cierra) if hora_cierra else None
     final_imagen_url = imagen_url
 
     # Si viene una imagen nueva subida
@@ -45,15 +50,15 @@ async def crear_lugar(
         path = os.path.join(UPLOAD_DIR, filename)
         with open(path, "wb") as f:
             f.write(content)
-        final_imagen_url = f"/uploads/lugares/{filename}"
+        final_imagen_url = f"{BASE_URL}/uploads/lugares/{filename}"
 
     # Crear registro en la BD
     nuevo = Lugar(
         nombre_lugar=nombre_lugar,
         descripcion=descripcion,
         direccion=direccion,
-        hora_aper=hora_aper,
-        hora_cierra=hora_cierra,
+        hora_aper=hora_aper_obj,  
+        hora_cierra=hora_cierra_obj,
         precios=precios,
         imagen_url=final_imagen_url,
         id_tipo=id_tipo
@@ -106,7 +111,7 @@ def listar_imagenes():
     archivos = os.listdir(UPLOAD_DIR)
     imagenes = [
         {"nombre": archivo, "url": f"uploads/lugares/{archivo}"}
-        for archivo in archivos if archivo.endswith((".jpg", ".png", ".jpeg"))
+        for archivo in archivos if archivo.endswith((".jpg", ".png", ".jpeg", "webp"))
     ]
     return imagenes
 

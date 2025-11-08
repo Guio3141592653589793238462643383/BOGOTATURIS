@@ -14,6 +14,14 @@ export default function NavbarView({
   const location = useLocation();
   const usuarioId = userId || localStorage.getItem("usuario_id");
   const dropdownRef = useRef(null);
+  const menuToggle = document.querySelector('.menu-toggle');
+  const navLinks = document.querySelector('.nav-links');
+
+if (menuToggle) {
+  menuToggle.addEventListener('click', () => {
+    navLinks.classList.toggle('open');
+  });
+}
 
   // Hook para cerrar dropdown al hacer click fuera y con tecla ESC
   useEffect(() => {
@@ -71,7 +79,25 @@ export default function NavbarView({
 
   // Determinar si "Inicio" está activo
   const isInicioActive = location.pathname === `/usuario/${usuarioId}`;
+  useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      const menu = document.querySelector('.user-dropdown-menu');
+      const button = document.querySelector('.user-dropdown-btn');
+      
+      if (menu?.classList.contains('show')) {
+        menu.classList.remove('show');
+        button?.setAttribute('aria-expanded', 'false');
+      }
+    }
+  };
 
+  document.addEventListener('click', handleClickOutside);
+  
+  return () => {
+    document.removeEventListener('click', handleClickOutside);
+  };
+}, []);
   return (
     <nav className="nav">
       <div className="container1">
@@ -100,25 +126,26 @@ export default function NavbarView({
             </li>
           )}
 
-          <li className="nav-item dropdown" ref={dropdownRef}>
-            <button
-              className="nav-link dropdown-toggle"
-              type="button"
-              id="userDropdown"
-              aria-haspopup="true"
-              aria-expanded="false"
-              onClick={(e) => {
-                e.preventDefault();
-                const menu = e.currentTarget.nextElementSibling;
-                if (menu) {
-                  menu.classList.toggle("show");
-                  e.currentTarget.setAttribute(
-                    "aria-expanded",
-                    menu.classList.contains("show")
-                  );
-                }
-              }}
-            >
+        <li className="nav-item dropdown user-dropdown" ref={dropdownRef}>
+        <button
+          className="nav-link dropdown-toggle user-dropdown-btn"
+          type="button"
+          id="userDropdown"
+          aria-haspopup="true"
+          aria-expanded="false"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const menu = e.currentTarget.nextElementSibling;
+            if (menu) {
+              menu.classList.toggle("show");
+              e.currentTarget.setAttribute(
+                "aria-expanded",
+                menu.classList.contains("show")
+              );
+            }
+          }}
+        >
               <strong className="user-section">
                 {showWelcome && "Bienvenido"} {getNombreUsuario()}
                 <img src={logoUser} alt="Logo Usuario" className="user-logo" />

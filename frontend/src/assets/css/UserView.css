@@ -6,47 +6,6 @@ body {
   min-height: 100vh;
 }
 
-/* Navbar */
-.nav {
-  background: linear-gradient(135deg, #00438F 0%, #5E90A6 100%);
-  width: 100%;
-  padding: 15px 25px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-  top: 0;
-  z-index: 100;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-family: 'Poppins', sans-serif; 
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 40px; 
-  
-}
-
-.logo img {
-  max-height: 90px;
-  transition: transform 0.3s ease;
-}
-
-.logo img:hover {
-  transform: scale(1.05);
-}
-
-.logo h1 {
-  font-family: "Lobster Two", cursive;
-  font-size: 2rem;
-  font-weight: 700;
-  color: #fff;
-  margin: 0;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
-  
-}
-
-
 .user-section {
   display: flex;
   align-items: center;

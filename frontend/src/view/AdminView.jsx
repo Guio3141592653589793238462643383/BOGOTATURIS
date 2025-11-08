@@ -21,14 +21,12 @@ export default function AdminView() {
     total_usuarios: 0,
     total_lugares: 0,
     total_comentarios: 0,
-    total_reportes: 0,
   });
 
   const [vistaActual, setVistaActual] = useState("dashboard");
   const [usuarios, setUsuarios] = useState([]);
   const [lugares, setLugares] = useState([]);
   const [comentarios, setComentarios] = useState([]);
-  const [reportes, setReportes] = useState([]);
 
   const [busqueda, setBusqueda] = useState("");
   const [filtroRol, setFiltroRol] = useState("");
@@ -115,26 +113,6 @@ export default function AdminView() {
       }
     } catch (error) {
       console.error("Error al cargar comentarios:", error);
-    }
-  }, [paginaActual]);
-
-  const cargarReportes = useCallback(async () => {
-    try {
-      const params = new URLSearchParams({
-        skip: paginaActual * itemsPorPagina,
-        limit: itemsPorPagina,
-      });
-
-      const response = await fetch(
-        `http://localhost:8000/api/admin/reportes?${params}`
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setReportes(data.reportes);
-        setTotalItems(data.total);
-      }
-    } catch (error) {
-      console.error("Error al cargar reportes:", error);
     }
   }, [paginaActual]);
 
@@ -270,14 +248,12 @@ export default function AdminView() {
     if (vistaActual === "usuarios") cargarUsuarios();
     else if (vistaActual === "lugares") cargarLugares();
     else if (vistaActual === "comentarios") cargarComentarios();
-    else if (vistaActual === "reportes") cargarReportes();
   }, [vistaActual, busqueda, filtroRol]);
 
   useEffect(() => {
     if (vistaActual === "usuarios") cargarUsuarios();
     else if (vistaActual === "lugares") cargarLugares();
     else if (vistaActual === "comentarios") cargarComentarios();
-    else if (vistaActual === "reportes") cargarReportes();
   }, [paginaActual]);
 
   const handleLogout = () => {
@@ -452,12 +428,6 @@ export default function AdminView() {
                 <h3 className="stat-number">{stats.total_comentarios}</h3>
                 <p className="stat-label">Comentarios</p>
               </motion.div>
-
-              <motion.div className="stat-card" whileHover={{ scale: 1.05 }}>
-                <div className="stat-icon reports-icon">⚠️</div>
-                <h3 className="stat-number">{stats.total_reportes}</h3>
-                <p className="stat-label">Reportes</p>
-              </motion.div>
             </div>
 
             <motion.div className="actions-section">
@@ -483,13 +453,6 @@ export default function AdminView() {
                 >
                   <span className="action-icon">💬</span>
                   Moderar Comentarios
-                </button>
-                <button
-                  className="action-btn reports-btn"
-                  onClick={() => setVistaActual("reportes")}
-                >
-                  <span className="action-icon">📋</span>
-                  Ver Reportes
                 </button>
               </div>
             </motion.div>
@@ -632,7 +595,7 @@ export default function AdminView() {
                     <tr key={lugar.id_lugar}>
                       <td>{lugar.id_lugar}</td>
                       <td>{lugar.nombre_lugar}</td>
-                      <td>{lugar.tipo_lugar}</td>
+                      <td>{lugar.tipo_lugar || "Sin tipo"}</td>
                       <td>{lugar.direccion}</td>
                       <td>${lugar.precios || 0}</td>
                       <td>
@@ -715,69 +678,6 @@ export default function AdminView() {
                           🗑️ Eliminar
                         </button>
                       </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="paginacion">
-              <button
-                disabled={paginaActual === 0}
-                onClick={() => setPaginaActual((p) => p - 1)}
-                className="btn-paginacion"
-              >
-                ← Anterior
-              </button>
-              <span>
-                Página {paginaActual + 1} de {totalPaginas || 1}
-              </span>
-              <button
-                disabled={paginaActual >= totalPaginas - 1}
-                onClick={() => setPaginaActual((p) => p + 1)}
-                className="btn-paginacion"
-              >
-                Siguiente →
-              </button>
-            </div>
-          </div>
-        )}
-
-        {vistaActual === "reportes" && (
-          <div className="crud-section">
-            <div className="crud-header">
-              <h2>Gestión de Reportes</h2>
-              <button
-                className="btn-back"
-                onClick={() => setVistaActual("dashboard")}
-              >
-                ← Volver
-              </button>
-            </div>
-
-            <div className="tabla-container">
-              <table className="tabla-crud">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Descripción</th>
-                    <th>Fecha</th>
-                    <th>Estado</th>
-                    <th>Usuario</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {reportes.map((reporte) => (
-                    <tr key={reporte.id_report}>
-                      <td>{reporte.id_report}</td>
-                      <td>{reporte.descripcion}</td>
-                      <td>{reporte.fecha_report}</td>
-                      <td>
-                        <span className={`badge badge-${reporte.estado}`}>
-                          {reporte.estado}
-                        </span>
-                      </td>
-                      <td>{reporte.nombre_usuario}</td>
                     </tr>
                   ))}
                 </tbody>

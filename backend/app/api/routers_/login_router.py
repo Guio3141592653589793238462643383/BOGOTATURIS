@@ -6,7 +6,7 @@ from pydantic import BaseModel, EmailStr, Field
 import jwt
 from datetime import date, datetime, timedelta
 
-from app.BD.bd_Relacional.db_connection import Intereses, InteresesUsuario, Usuario, Correo, get_db, Nacionalidad, Comentarios, Lugar
+from app.BD.bd_Relacional.db_connection import Intereses, InteresesUsuario, Usuario, Correo, get_db, Nacionalidad, Comentarios, Lugar, Alerta
 
 router = APIRouter(
     prefix="/api/usuario",
