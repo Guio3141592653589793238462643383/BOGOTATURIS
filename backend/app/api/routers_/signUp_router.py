@@ -232,3 +232,100 @@ def validar_campo(data: dict, db: Session = Depends(get_db)):
 
     return {"valido": True}
 
+# ---------- Restablecimiento de contraseña ----------
+
+class SolicitarRestablecimientoRequest(BaseModel):
+    correo: EmailStr
+
+class RestablecerPasswordRequest(BaseModel):
+    token: str
+    nueva_password: str
+
+@router.post("/solicitar-restablecimiento")
+def solicitar_restablecimiento(req: SolicitarRestablecimientoRequest, db: Session = Depends(get_db)):
+    try:
+        # Buscar correo y usuario asociados (no revelar si no existe)
+        correo_db = db.query(Correo).filter(Correo.correo.ilike(req.correo)).first()
+        if correo_db:
+            usuario = db.query(Usuario).filter(Usuario.id_correo == correo_db.id_correo).first()
+        else:
+            usuario = None
+
+        if usuario:
+            # Generar token válido por 1 hora, eliminando tokens previos sin usar
+            db.query(TokenVerificacion).filter(
+                TokenVerificacion.id_usuario == usuario.id_usuario,
+                TokenVerificacion.usado == False
+            ).delete()
+
+            token = secrets.token_urlsafe(32)
+            fecha_expiracion = datetime.utcnow() + timedelta(hours=1)
+
+            token_reset = TokenVerificacion(
+                id_usuario=usuario.id_usuario,
+                token=token,
+                fecha_expiracion=fecha_expiracion
+            )
+            db.add(token_reset)
+            db.commit()
+
+            # Enviar correo
+            nombre_completo = f"{usuario.primer_nombre} {usuario.primer_apellido}" if usuario else "Usuario"
+            try:
+                email_service.send_password_reset_email(
+                    to_email=correo_db.correo,
+                    usuario_nombre=nombre_completo,
+                    token=token
+                )
+            except Exception as e:
+                print(f"Error al enviar email de restablecimiento: {e}")
+
+        # Responder siempre éxito para no permitir enumeración de correos
+        return {"success": True, "message": "Si el correo existe, se enviará un enlace para restablecer la contraseña"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error al solicitar restablecimiento: {str(e)}")
+
+@router.get("/verificar-token/{token}")
+def verificar_token(token: str, db: Session = Depends(get_db)):
+    token_db = db.query(TokenVerificacion).filter(TokenVerificacion.token == token).first()
+    if not token_db:
+        raise HTTPException(status_code=400, detail={"message": "Token inválido"})
+    if token_db.usado:
+        raise HTTPException(status_code=400, detail={"message": "El token ya fue utilizado"})
+    if datetime.utcnow() > token_db.fecha_expiracion:
+        raise HTTPException(status_code=400, detail={"message": "El token ha expirado"})
+    return {"success": True}
+
+@router.post("/restablecer-password")
+def restablecer_password(req: RestablecerPasswordRequest, db: Session = Depends(get_db)):
+    try:
+        # Validar token
+        token_db = db.query(TokenVerificacion).filter(TokenVerificacion.token == req.token).first()
+        if not token_db:
+            raise HTTPException(status_code=400, detail={"message": "Token inválido"})
+        if token_db.usado:
+            raise HTTPException(status_code=400, detail={"message": "El token ya fue utilizado"})
+        if datetime.utcnow() > token_db.fecha_expiracion:
+            raise HTTPException(status_code=400, detail={"message": "El token ha expirado"})
+
+        # Validar y actualizar contraseña
+        if len(req.nueva_password) < 8 or not re.search(r"[A-Z]", req.nueva_password) or not re.search(r"[0-9]", req.nueva_password):
+            raise HTTPException(status_code=400, detail={"message": "La contraseña no cumple los requisitos"})
+
+        usuario = db.query(Usuario).filter(Usuario.id_usuario == token_db.id_usuario).first()
+        if not usuario:
+            raise HTTPException(status_code=404, detail={"message": "Usuario no encontrado"})
+
+        usuario.clave = hash_password(req.nueva_password)
+        token_db.usado = True
+        token_db.fecha_uso = datetime.utcnow()
+        db.commit()
+
+        return {"success": True, "message": "Contraseña actualizada correctamente", "redirect_to": "/login"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error al restablecer contraseña: {str(e)}")
+

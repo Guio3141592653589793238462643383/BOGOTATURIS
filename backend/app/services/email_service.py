@@ -326,5 +326,114 @@ class EmailService:
         
         return self.send_email(to_email, subject, html_content, text_content)
 
+    def send_password_reset_email(self, to_email: str, usuario_nombre: str, token: str):
+        """
+        Envía correo con enlace para restablecer contraseña
+        """
+        reset_url = f"http://localhost:5173/nueva-contrasena?token={token}"
+        subject = "Restablece tu contraseña - BogotaTuris"
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body {{
+                    font-family: Arial, sans-serif;
+                    line-height: 1.6;
+                    color: #333;
+                }}
+                .container {{
+                    max-width: 600px;
+                    margin: 0 auto;
+                    padding: 20px;
+                }}
+                .header {{
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 40px;
+                    text-align: center;
+                    border-radius: 10px 10px 0 0;
+                }}
+                .content {{
+                    background: #ffffff;
+                    padding: 40px;
+                    border: 1px solid #e0e0e0;
+                }}
+                .button {{
+                    display: inline-block;
+                    padding: 15px 40px;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white !important;
+                    text-decoration: none;
+                    border-radius: 8px;
+                    margin-top: 20px;
+                    font-weight: bold;
+                    font-size: 16px;
+                }}
+                .button:hover {{
+                    opacity: 0.9;
+                }}
+                .footer {{
+                    text-align: center;
+                    margin-top: 30px;
+                    padding: 20px;
+                    color: #666;
+                    font-size: 12px;
+                    background: #f9f9f9;
+                    border-radius: 0 0 10px 10px;
+                }}
+                .warning {{
+                    background: #fff3cd;
+                    border-left: 4px solid #ffc107;
+                    padding: 15px;
+                    margin-top: 20px;
+                    border-radius: 4px;
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🔐 Restablecer contraseña</h1>
+                </div>
+                <div class="content">
+                    <p>Hola <strong>{usuario_nombre}</strong>,</p>
+                    <p>Hemos recibido una solicitud para restablecer tu contraseña.</p>
+                    <p>Si fuiste tú, haz clic en el siguiente botón para crear una nueva contraseña:</p>
+                    <center>
+                        <a href="{reset_url}" class="button">
+                            Restablecer contraseña
+                        </a>
+                    </center>
+                    <p style="margin-top: 30px; font-size: 14px; color: #666;">
+                        Si el botón no funciona, copia y pega este enlace en tu navegador:<br>
+                        <a href="{reset_url}" style="color: #667eea; word-break: break-all;">{reset_url}</a>
+                    </p>
+                    <div class="warning">
+                        <strong>Importante:</strong> Este enlace expirará en <strong>1 hora</strong>. Si no solicitaste este cambio, ignora este correo.
+                    </div>
+                </div>
+                <div class="footer">
+                    <p>Este es un correo automático, por favor no respondas a este mensaje.</p>
+                    <p>© 2025 BogotaTuris. Todos los derechos reservados.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        text_content = f"""
+        Hola {usuario_nombre},
+
+        Para restablecer tu contraseña, visita el siguiente enlace (válido por 1 hora):
+
+        {reset_url}
+
+        Si no solicitaste este cambio, ignora este mensaje.
+
+        Saludos,
+        El equipo de BogotaTuris
+        """
+        return self.send_email(to_email, subject, html_content, text_content)
+
 # Instancia global del servicio
 email_service = EmailService()

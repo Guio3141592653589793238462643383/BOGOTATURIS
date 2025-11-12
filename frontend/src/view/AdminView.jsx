@@ -2,7 +2,7 @@ import Logo from "../assets/img/BogotaTurisLogo.png";
 import logoUser from "../assets/img/user.png";
 import "../assets/css/AdminView.css";
 import ModalCrearLugar from "../Pages/ModalCrearLugar";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -37,6 +37,8 @@ export default function AdminView() {
   const [modalEliminar, setModalEliminar] = useState(false);
   const [itemSeleccionado, setItemSeleccionado] = useState(null);
 
+  const [menuAbierto, setMenuAbierto] = useState(false);
+  const menuRef = useRef(null);
   const cargarEstadisticas = useCallback(async () => {
     try {
       const response = await fetch(
@@ -345,55 +347,86 @@ export default function AdminView() {
       alert("❌ Error al crear el lugar");
     }
   };
+  // Cierra el menú al hacer clic fuera
+useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (menuRef.current && !menuRef.current.contains(event.target)) {
+      setMenuAbierto(false);
+    }
+  };
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, []);
   return (
     <>
-      <nav className="nav">
-        <div className="container1">
-          <div className="logo">
-            <img src={Logo} alt="BogotaTuris Logo" />
-            <h1>BogotaTuris - Admin</h1>
-          </div>
-          <ul className="nav-links">
-            <li className="nav-item dropdown">
-              <a className="nav-link dropdown-toggle" href="#" role="button">
-                <strong className="user-section">
-                  Admin: {usuarioData?.correo || "Administrador"}
-                  <img
-                    src={logoUser}
-                    alt="Logo Usuario"
-                    className="user-logo"
-                  />
-                </strong>
-              </a>
-              <ul className="dropdown-menu">
-                <li>
-                  <a
-                    className="dropdown-item"
-                    onClick={() => navigate(`/usuario/${usuarioId}/perfil`)}
-                  >
-                    Mi Cuenta
-                  </a>
-                </li>
-                <li>
-                  <a
-                    className="dropdown-item"
-                    onClick={() =>
-                      navigate(`/usuario/${usuarioId}/cambiar-password`)
-                    }
-                  >
-                    Cambiar Contraseña
-                  </a>
-                </li>
-                <li>
-                  <a className="dropdown-item" onClick={handleLogout}>
-                    Cerrar Sesión
-                  </a>
-                </li>
-              </ul>
-            </li>
-          </ul>
-        </div>
-      </nav>
+<nav className="nav">
+  <div className="container1">
+    <div className="logo">
+      <img src={Logo} alt="BogotaTuris Logo" />
+      <h1>BogotaTuris - Admin</h1>
+    </div>
+
+    <ul className="nav-links">
+      <li className="nav-item dropdown" ref={menuRef}>
+        {/* Cambiamos <a> por <button> para que no recargue la página */}
+        <button
+          type="button"
+          className="nav-link dropdown-toggle"
+          onClick={() => setMenuAbierto(!menuAbierto)}
+        >
+          <strong className="user-section">
+            Admin: {usuarioData?.correo || "Administrador"}
+            <img
+              src={logoUser}
+              alt="Logo Usuario"
+              className="user-logo"
+            />
+          </strong>
+        </button>
+
+        {/* Menú visible solo si está abierto */}
+        <ul className={`dropdown-menu ${menuAbierto ? "show" : ""}`}>
+          <li>
+            <button
+              className="dropdown-item"
+              onClick={() => {
+                navigate(`/usuario/${usuarioId}/perfil`);
+                setMenuAbierto(false);
+              }}
+            >
+              Mi Cuenta
+            </button>
+          </li>
+          <li>
+            <button
+              className="dropdown-item"
+              onClick={() => {
+                navigate(`/usuario/${usuarioId}/cambiar-password`);
+                setMenuAbierto(false);
+              }}
+            >
+              Cambiar Contraseña
+            </button>
+          </li>
+          <li>
+            <button
+              className="dropdown-item"
+              onClick={() => {
+                handleLogout();
+                setMenuAbierto(false);
+              }}
+            >
+              Cerrar Sesión
+            </button>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+</nav>
+
 
       <div className="admin-container">
         {vistaActual === "dashboard" && (
