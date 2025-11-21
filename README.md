@@ -120,11 +120,3 @@ Gestión	Trello
 Control de defectos	GitHub Issues
 Estadísticas PSP	Google Sheets
 📑 Postmortem y PPIP
-
-Incluye:
-
-Lecciones aprendidas
-
-Identificación de errores comunes
-
-Acciones de mejora para estimación, revisión, pruebas y documentación
