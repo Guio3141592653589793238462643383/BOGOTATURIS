@@ -439,6 +439,7 @@ def actualizar_comentario(
     db.commit()
     db.refresh(comentario)
     return comentario
+    
 @router.get("/", summary="Obtener todos los lugares")
 def obtener_lugares(db: Session = Depends(get_db)):
     lugares = db.query(Lugar).all()

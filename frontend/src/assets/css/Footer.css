@@ -1,120 +1,44 @@
+/* ===== IMPORTS DE FUENTES ===== */
 @import url('https://fonts.googleapis.com/css2?family=Lobster+Two:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
+/* Estilos adicionales para efectos que Tailwind no cubre completamente */
 footer {
-    font-family: 'Lobster Two', cursive !important;
+  margin-top: auto;
+  position: relative;
 }
 
-footer h3 {
-    font-family: 'Lobster Two', cursive !important;
-}
-
-footer p {
-    font-family: 'Lobster Two', cursive !important;
-}
-
+/* Efecto hover mejorado para los enlaces */
 footer a {
-    font-family: 'Lobster Two', cursive !important;
+  position: relative;
+  display: inline-block;
 }
-/* Navbar con colores pasteles */
-.navbar {
-  /* Propiedades para hacerlo fijo */
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
+
+/* Animación suave para el título */
+footer h3 {
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+footer h3:hover {
+  filter: drop-shadow(0 0 20px rgba(143, 179, 226, 0.8)) !important;
+}
+
+/* Responsive adicional */
+@media (max-width: 640px) {
+  footer {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
   
-  /* Tus estilos originales con colores pasteles */
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  background: linear-gradient(135deg, #FFB6D9 0%, #D4A5FF 50%, #A5D8FF 100%);
-  padding: 10px 30px; /* Reducido de 15px a 10px */
- 
-  border-bottom: 2px solid rgba(255,255,255,0.3);
-  font-family: 'Segoe UI', sans-serif;
+  footer h3 {
+    font-size: 1.3rem !important;
+  }
   
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-
-.navbar .logo {
-  display: flex;
-  align-items: center;
-  gap: 0.8rem; 
-}
-
-.navbar .logo img {
-  width: 70px;   /* Reducido de 100px */
-  height: 84px;  /* Reducido de 120px (mantiene proporción) */
+  footer p {
+    font-size: 0.8rem !important;
+  }
   
-  transition: transform 0.3s ease;
-}
-
-
-.navbar .logo img:hover {
-  transform: scale(1.05);
-}
-
-.navbar .logo h1 {
-  margin: 0;
-  font-size: 1.5rem; /* Reducido de 2rem */
- 
-  font-family: "Lobster Two", cursive;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  
-  color: #8B5CF6;
-
-  text-shadow: 2px 2px 4px rgba(255,255,255,0.5);
-
-  
-  background: linear-gradient(90deg, #EC4899, #8B5CF6, #3B82F6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-
-  transition: transform 0.3s ease, text-shadow 0.3s ease;
-}
-
-.navbar .logo h1:hover {
-  transform: scale(1.05);
-  text-shadow: 3px 3px 6px rgba(255,255,255,0.7);
-}
-
-
-.navbar-links {
-  display: flex;
-  gap: 20px; /* Reducido de 25px */
-}
-
-.navbar-links a {
-  text-decoration: none;
-  
-  color: #8B5CF6;  
-  font-weight: 600;       
-  font-size: 1rem; /* Reducido de 1.2rem */     
-  transition: all 0.3s ease;
- 
-  padding: 6px 12px; /* Reducido de 8px 15px */
-  border-radius: 20px;
- 
-  text-shadow: 1px 1px 2px rgba(255,255,255,0.3);
-}
-
-.navbar-links a:hover {
-  
-  color: #6D28D9;
-  background-color: rgba(255,255,255,0.4);
-  transform: translateY(-2px);
-  text-shadow: 2px 2px 4px rgba(255,255,255,0.5);
-}
-
-.navbar-links .activo {
-  
-  background-color: rgba(255,255,255,0.5);
-  border-bottom: 3px solid #EC4899;
-  padding-bottom: 6px; /* Reducido de 8px */
-  font-weight: 700;
-  box-shadow: 0 2px 8px rgba(236,72,153,0.3);
-  color: #DB2777;
+  footer a {
+    font-size: 0.8rem !important;
+    padding: 0.3rem 0.6rem !important;
+  }
 }

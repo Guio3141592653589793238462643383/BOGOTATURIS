@@ -35,12 +35,15 @@ def lugares_recomendados(id_usuario: int, db: Session = Depends(get_db)):
 
     # 5️⃣ Devolver el resultado
     return [
-        {
-            "id_lugar": l.id_lugar,
-            "nombre": l.nombre_lugar,
-            "descripcion": l.descripcion,
-            "direccion": l.direccion,
-            "imagen_url": l.imagen_url,
-        }
-        for l in lugares
-    ]
+    {
+        "id_lugar": l.id_lugar,
+        "nombre": l.nombre_lugar,
+        "descripcion": l.descripcion,
+        "direccion": l.direccion,
+        "hora_aper": str(l.hora_aper) if l.hora_aper else None,
+        "hora_cierra": str(l.hora_cierra) if l.hora_cierra else None,
+        "precios": l.precios,
+        "imagen_url": l.imagen_url,
+    }
+    for l in lugares
+]

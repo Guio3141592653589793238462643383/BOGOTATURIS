@@ -14,12 +14,13 @@ import {
   Clock,
   DollarSign,
   ChevronDown,
-  ChevronUp,
+  MessageSquare,
+  AlertCircle,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import ConfirmModal from "../components/ConfirmModal";
 
-export default function Modal({ open, onClose, card, lugar }) {
+export default function Modal({ open, onClose, card }) {
   const [modoEdicion, setModoEdicion] = useState(false);
   const [comentarioEditId, setComentarioEditId] = useState(null);
   const [modoEdicionAlerta, setModoEdicionAlerta] = useState(false);
@@ -36,9 +37,6 @@ export default function Modal({ open, onClose, card, lugar }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState(() => () => {});
   const [confirmMessage, setConfirmMessage] = useState("");
-  const [mostrarDetalles, setMostrarDetalles] = useState(false);
-
-  // 🧁 Sistema de toasts (notificaciones flotantes)
   const [toasts, setToasts] = useState([]);
 
   const showToast = (message, type = "info") => {
@@ -52,7 +50,6 @@ export default function Modal({ open, onClose, card, lugar }) {
   const usuarioId = parseInt(localStorage.getItem("usuario_id"));
   const token = localStorage.getItem("token");
 
-  // ✅ Cargar comentarios
   useEffect(() => {
     if (!card || !open || !card?.id_lugar) return;
 
@@ -80,7 +77,6 @@ export default function Modal({ open, onClose, card, lugar }) {
     fetchComentarios();
   }, [open, card?.id_lugar, token]);
 
-  // ✅ Crear nuevo comentario
   const handleSubmitComentario = async (e) => {
     e.preventDefault();
 
@@ -143,7 +139,7 @@ export default function Modal({ open, onClose, card, lugar }) {
                 : c
             )
           );
-          showToast(" Comentario actualizado", "success");
+          showToast("Comentario actualizado", "success");
         } else {
           const comentarioConUsuario = {
             ...data,
@@ -151,7 +147,7 @@ export default function Modal({ open, onClose, card, lugar }) {
             apellido: localStorage.getItem("primer_apellido"),
           };
           setComentarios([comentarioConUsuario, ...comentarios]);
-          showToast(" Comentario publicado exitosamente", "success");
+          showToast("Comentario publicado exitosamente", "success");
         }
 
         setNuevoComentario("");
@@ -161,19 +157,18 @@ export default function Modal({ open, onClose, card, lugar }) {
       } else {
         const error = await response.json();
         showToast(
-          `❌ Error: ${error.detail || "No se pudo publicar el comentario"}`,
+          `Error: ${error.detail || "No se pudo publicar el comentario"}`,
           "error"
         );
       }
     } catch (error) {
       console.error("Error al crear/actualizar comentario:", error);
-      showToast("❌ Error de conexión con el servidor", "error");
+      showToast("Error de conexión con el servidor", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ Eliminar comentario
   const handleEliminarComentario = async (id_com) => {
     setConfirmMessage("¿Deseas eliminar este comentario?");
     setConfirmAction(() => async () => {
@@ -190,24 +185,23 @@ export default function Modal({ open, onClose, card, lugar }) {
 
         if (response.ok) {
           setComentarios(comentarios.filter((c) => c.id_com !== id_com));
-          showToast("🗑️ Comentario eliminado", "success");
+          showToast("Comentario eliminado", "success");
         } else if (response.status === 404) {
           showToast(
-            "❌ No tienes permiso para eliminar este comentario",
+            "No tienes permiso para eliminar este comentario",
             "error"
           );
         } else {
-          showToast("❌ Error al eliminar el comentario", "error");
+          showToast("Error al eliminar el comentario", "error");
         }
       } catch (error) {
         console.error("Error al eliminar:", error);
-        showToast("❌ Error de conexión", "error");
+        showToast("Error de conexión", "error");
       }
     });
     setConfirmOpen(true);
   };
 
-  // ✅ Cargar alertas
   useEffect(() => {
     if (open && card?.id_lugar) {
       fetchAlertas();
@@ -232,7 +226,6 @@ export default function Modal({ open, onClose, card, lugar }) {
     }
   };
 
-  // ✅ Crear alerta
   const handleSubmitAlerta = async () => {
     if (!nuevoAlerta.trim()) {
       showToast("Por favor escribe la alerta", "error");
@@ -280,21 +273,21 @@ export default function Modal({ open, onClose, card, lugar }) {
                 : a
             )
           );
-          showToast("✏️ Alerta actualizada", "success");
+          showToast("Alerta actualizada", "success");
         } else {
           await fetchAlertas();
-          showToast("🚨 Alerta registrada correctamente", "success");
+          showToast("Alerta registrada correctamente", "success");
         }
 
         setNuevoAlerta("");
         setModoEdicionAlerta(false);
         setAlertaEditId(null);
       } else {
-        showToast("❌ Error al registrar/actualizar alerta", "error");
+        showToast("Error al registrar/actualizar alerta", "error");
       }
     } catch (error) {
       console.error(error);
-      showToast("❌ Error de conexión", "error");
+      showToast("Error de conexión", "error");
     }
   };
 
@@ -309,25 +302,24 @@ export default function Modal({ open, onClose, card, lugar }) {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // ⭐ Renderizar estrellas
   const renderStars = (rating, isInteractive = false) => (
     <div className="flex gap-1">
       {[1, 2, 3, 4, 5].map((star) => (
         <Star
           key={star}
-          size={isInteractive ? 24 : 16}
+          size={isInteractive ? 20 : 14}
           className={`transition-all duration-200 ${
             isInteractive ? "cursor-pointer" : ""
           }`}
           fill={
             star <= (isInteractive ? hoverStar || calificacion : rating)
-              ? "#FFD700"
+              ? "#FBBF24"
               : "none"
           }
           stroke={
             star <= (isInteractive ? hoverStar || calificacion : rating)
-              ? "#FFD700"
-              : "#cbd5e0"
+              ? "#FBBF24"
+              : "#D1D5DB"
           }
           onClick={() => isInteractive && setCalificacion(star)}
           onMouseEnter={() => isInteractive && setHoverStar(star)}
@@ -337,7 +329,6 @@ export default function Modal({ open, onClose, card, lugar }) {
     </div>
   );
 
-  // 🌟 Toast visual component
   const ToastContainer = () => (
     <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2">
       <AnimatePresence>
@@ -348,21 +339,21 @@ export default function Modal({ open, onClose, card, lugar }) {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 50 }}
             transition={{ duration: 0.3 }}
-            className={`flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-sm font-semibold text-white ${
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg shadow-lg text-sm font-medium text-white ${
               type === "success"
-                ? "bg-gradient-to-r from-green-500 to-emerald-600"
+                ? "bg-green-600"
                 : type === "error"
-                ? "bg-gradient-to-r from-red-500 to-rose-600"
+                ? "bg-red-600"
                 : type === "warning"
-                ? "bg-gradient-to-r from-yellow-400 to-amber-500 text-black"
-                : "bg-gradient-to-r from-blue-500 to-indigo-600"
+                ? "bg-amber-500"
+                : "bg-blue-600"
             }`}
           >
-            {type === "success" && <CheckCircle2 size={18} />}
-            {type === "error" && <XCircle size={18} />}
-            {type === "warning" && <AlertTriangle size={18} />}
-            {type === "info" && <Info size={18} />}
-            <span>{message}</span>
+            {type === "success" && <CheckCircle2 size={16} />}
+            {type === "error" && <XCircle size={16} />}
+            {type === "warning" && <AlertTriangle size={16} />}
+            {type === "info" && <Info size={16} />}
+            <span className="font-normal">{message}</span>
           </motion.div>
         ))}
       </AnimatePresence>
@@ -375,24 +366,24 @@ export default function Modal({ open, onClose, card, lugar }) {
       <AnimatePresence>
         {open && (
           <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+            className="fixed inset-0 z-[1100] flex items-start md:items-center justify-center bg-black/60 backdrop-blur-sm px-3 sm:px-4 pt-24 md:pt-0 pb-8 overflow-y-auto"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
           >
             <motion.div
-              className="relative bg-white rounded-3xl shadow-2xl overflow-hidden max-w-5xl w-full max-h-[90vh] flex"
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative mt-2 bg-white/95 rounded-3xl shadow-2xl w-full max-w-xl lg:max-w-3xl max-h-[80vh] md:max-h-[80vh] flex flex-col sm:flex-row border border-white/40 overflow-y-auto sm:overflow-hidden"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               onClick={(e) => e.stopPropagation()}
             >
-
-              {/* LADO IZQUIERDO: Imagen y descripción */}
-              <div className="w-1/2 flex flex-col bg-gradient-to-br from-blue-900 via-blue-800 to-blue-950">
-                <div className="relative h-2/3 overflow-hidden group">
+              {/* Panel izquierdo: Información del lugar */}
+              <div className="w-full sm:w-5/12 md:w-1/2 lg:w-1/2 flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+                {/* Imagen */}
+                <div className="relative h-56 sm:h-64 lg:h-72 overflow-hidden">
                   <motion.img
                     src={
                       card.imagen_url?.startsWith("http")
@@ -405,195 +396,117 @@ export default function Modal({ open, onClose, card, lugar }) {
                     animate={{ scale: 1 }}
                     transition={{ duration: 0.6 }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-blue-950/90 via-blue-900/40 to-transparent"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
                   
-                  {/* Título flotante sobre la imagen */}
-                  <motion.div
+                  <motion.h2
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="absolute bottom-6 left-6 right-6"
+                    className="absolute bottom-4 left-4 right-4 text-xl sm:text-2xl lg:text-3xl font-bold text-white tracking-tight"
                   >
-                    <h2 className="text-3xl font-black text-white drop-shadow-2xl tracking-tight">
-                      {card.nombre}
-                    </h2>
-                  </motion.div>
+                    {card.nombre}
+                  </motion.h2>
                 </div>
 
-                <div className="flex-1 px-6 py-4 bg-gradient-to-b from-blue-900/50 to-blue-950/80 overflow-y-auto">
-                  <h3 className="text-lg font-extrabold text-white mb-3 flex items-center gap-2.5 drop-shadow-lg tracking-tight">
-                    <div className="w-1 h-5 bg-gradient-to-b from-blue-400 to-cyan-400 rounded-full shadow-lg shadow-blue-400/50"></div>
-                    Descripción
-                  </h3>
-                  <p className="text-white/95 leading-relaxed text-sm drop-shadow-md font-normal tracking-normal mb-4">
-                    {card.descripcion}
-                  </p>
+                {/* Contenido sin scroll interno */}
+                <div className="flex-1 px-4 py-3 space-y-3">
 
-                  {/* Botón Ver más detalles */}
-                  <motion.button
-                    onClick={() => setMostrarDetalles(!mostrarDetalles)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full mb-4 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 hover:from-cyan-500/30 hover:to-blue-500/30 backdrop-blur-sm border border-cyan-400/40 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-between group"
-                  >
-                    <span className="flex items-center gap-2">
-                      <Info size={18} className="text-cyan-300" />
-                      {mostrarDetalles ? "Ocultar detalles" : "Ver más detalles"}
-                    </span>
-                    <motion.div
-                      animate={{ rotate: mostrarDetalles ? 180 : 0 }}
-                      transition={{ duration: 0.3 }}
-                    >
-                      <ChevronDown size={20} className="text-cyan-300" />
-                    </motion.div>
-                  </motion.button>
-
-                  {/* Detalles expandibles con animación */}
-                  <AnimatePresence>
-                    {mostrarDetalles && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="space-y-3 mb-4">
-                          {/* Dirección */}
-                          <motion.div
-                            initial={{ x: -20, opacity: 0 }}
-                            animate={{ x: 0, opacity: 1 }}
-                            transition={{ delay: 0.1 }}
-                            className="flex items-start gap-3 bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20 hover:bg-white/15 transition-all duration-300"
-                          >
-                            <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg">
-                              <MapPin size={20} className="text-white" />
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-xs font-semibold text-cyan-300 mb-1">Dirección</p>
-                              <p className="text-sm text-white font-medium leading-snug">{card.direccion}</p>
-                            </div>
-                          </motion.div>
-
-                          {/* Horario */}
-                          <motion.div
-                            initial={{ x: -20, opacity: 0 }}
-                            animate={{ x: 0, opacity: 1 }}
-                            transition={{ delay: 0.2 }}
-                            className="flex items-start gap-3 bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20 hover:bg-white/15 transition-all duration-300"
-                          >
-                            <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg">
-                              <Clock size={20} className="text-white" />
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-xs font-semibold text-purple-300 mb-1">Horario</p>
-                              <p className="text-sm text-white font-medium">
-                                {card.hora_aper} - {card.hora_cierra}
-                              </p>
-                            </div>
-                          </motion.div>
-
-                          {/* Precios */}
-                          <motion.div
-                            initial={{ x: -20, opacity: 0 }}
-                            animate={{ x: 0, opacity: 1 }}
-                            transition={{ delay: 0.3 }}
-                            className="flex items-start gap-3 bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20 hover:bg-white/15 transition-all duration-300"
-                          >
-                            <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg">
-                              <DollarSign size={20} className="text-white" />
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-xs font-semibold text-green-300 mb-1">Precio</p>
-                              <p className="text-sm text-white font-medium">${card.precios}</p>
-                            </div>
-                          </motion.div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
+                  {/* Detalles compactos */}
+                  <div>
+                    <p className="text-[9px] sm:text-[10px] md:text-xs text-slate-100 leading-snug space-y-1 max-h-24 overflow-y-auto pr-1">
+                      <span className="block">
+                        <span className="font-semibold text-white mr-1">Descripción:</span>
+                        <span className="text-slate-50">{card.descripcion}</span>
+                      </span>
+                      <span className="block">
+                        <span className="font-semibold text-white mr-1">Dirección:</span>
+                        <span className="text-slate-50">{card.direccion}</span>
+                      </span>
+                      <span className="block">
+                        <span className="font-semibold text-white mr-1">Horario:</span>
+                        <span className="text-slate-50">{card.hora_aper} - {card.hora_cierra}</span>
+                      </span>
+                      <span className="block">
+                        <span className="font-semibold text-white mr-1">Precio:</span>
+                        <span className="text-slate-50">{card.precios}</span>
+                      </span>
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              {/* LADO DERECHO: Comentarios / Alertas */}
-              <div className="w-1/2 flex flex-col bg-gradient-to-br from-gray-50 to-gray-100/50 perspective-[2000px]">
-                {/* Encabezado con pestañas mejorado */}
-                <div className="px-4 py-3 bg-white/80 backdrop-blur-sm border-b border-gray-200/80 flex justify-between items-center">
-                  <div className="flex gap-6">
-                    <motion.h3
+              {/* Panel derecho: Comentarios y Alertas */}
+              <div className="w-full sm:w-7/12 md:w-1/2 lg:w-1/2 flex flex-col bg-gray-50/60">
+                {/* Pestañas */}
+                <div className="flex items-center justify-between border-b border-gray-200 px-3 sm:px-4 pt-2 sm:pt-3 pb-1.5 bg-gray-50/50 gap-3 sm:gap-4 w-full">
+                  <motion.h3
                       onClick={() => setModo("comentarios")}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className={`relative text-lg font-bold cursor-pointer transition-all duration-300 ${
+                      className={`relative text-sm sm:text-base lg:text-lg font-bold cursor-pointer transition-all duration-300 ${
                         modo === "comentarios"
                           ? "text-blue-700 drop-shadow-sm after:absolute after:bottom-[-6px] after:left-0 after:w-full after:h-[2px] after:bg-blue-600 after:rounded-full"
                           : "text-gray-500 hover:text-blue-600"
                       }`}
                     >
-                      Comentarios{" "}
-                      <span className="text-base text-gray-500">
-                        ({comentarios.length})
+                    <span className="inline-flex items-center gap-2">
+                      <MessageSquare size={16} />
+                      <span>Comentarios</span>
+                      <span
+                        className={`text-xs px-1.5 py-0.5 rounded-full ${
+                          modo === "comentarios" ? "bg-blue-500" : "bg-gray-200"
+                        }`}
+                      >
+                        {comentarios.length}
                       </span>
-                    </motion.h3>
+                    </span>
+                  </motion.h3>
 
-                    <motion.h3
-                      onClick={() => setModo("alertas")}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className={`relative text-lg font-bold cursor-pointer transition-all duration-300 ${
-                        modo === "alertas"
-                          ? "text-red-600 drop-shadow-sm after:absolute after:bottom-[-6px] after:left-0 after:w-full after:h-[2px] after:bg-red-600 after:rounded-full"
-                          : "text-gray-500 hover:text-red-500"
-                      }`}
-                    >
-                      ⚠️ Alertas{" "}
-                      <span className="text-base text-gray-500">
-                        ({alertas?.length || 0})
+<motion.h3
+  onClick={() => setModo("alertas")}
+  whileHover={{ scale: 1.05 }}
+  whileTap={{ scale: 0.95 }}
+  className={`relative ml-3 sm:ml-5 text-sm sm:text-base lg:text-lg font-bold cursor-pointer transition-all duration-300 ${
+    modo === "alertas"
+      ? "text-red-600 drop-shadow-sm after:absolute after:bottom-[-6px] after:left-0 after:w-full after:h-[2px] after:bg-red-600 after:rounded-full"
+      : "text-gray-500 hover:text-red-500"
+  }`}
+>
+                    <span className="inline-flex items-center gap-2">
+                      <AlertCircle size={16} />
+                      <span>Alertas</span>
+                      <span
+                        className={`text-xs px-1.5 py-0.5 rounded-full ${
+                          modo === "alertas" ? "bg-red-500" : "bg-gray-200"
+                        }`}
+                      >
+                        {alertas?.length || 0}
                       </span>
-                    </motion.h3>
-                  </div>
+                    </span>
+                  </motion.h3>
                 </div>
 
-                {/* Contenedor giratorio */}
-                <div className="relative flex-1 overflow-hidden">
-                  <motion.div
-                    className="absolute inset-0 w-full h-full transition-transform"
-                    style={{ transformStyle: "preserve-3d" }}
-                    animate={{ rotateY: modo === "alertas" ? 180 : 0 }}
-                    transition={{ duration: 0.8, ease: "easeInOut" }}
-                  >
-                    {/* Cara frontal → COMENTARIOS */}
-                    <div className="absolute inset-0 backface-hidden flex flex-col">
-                      <div className="flex-1 overflow-y-auto px-3 py-2 space-y-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                {/* Contenido principal */}
+                <div className="flex-1 overflow-hidden flex flex-col items-center px-2 sm:px-4 pb-2">
+                  {modo === "comentarios" ? (
+                    <>
+                      {/* Lista de comentarios */}
+                      <div className="flex-1 w-full max-w-md overflow-y-auto py-1.5 space-y-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
                         {loadingComentarios ? (
                           <div className="flex flex-col items-center justify-center h-full">
-                            <div className="relative">
-                              <Loader2
-                                className="animate-spin text-blue-500"
-                                size={48}
-                              />
-                              <div className="absolute inset-0 animate-ping">
-                                <Loader2
-                                  className="text-blue-300 opacity-30"
-                                  size={48}
-                                />
-                              </div>
-                            </div>
-                            <p className="text-gray-600 mt-4 font-medium">
-                              Cargando comentarios...
-                            </p>
+                            <Loader2 className="animate-spin text-blue-600 mb-3" size={36} />
+                            <p className="text-gray-500 text-sm font-medium">Cargando comentarios...</p>
                           </div>
                         ) : comentarios.length === 0 ? (
                           <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                            <div className="w-20 h-20 bg-gradient-to-br from-gray-200 to-gray-300 rounded-full flex items-center justify-center mb-4">
-                              <Send size={32} className="text-gray-400" />
+                            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                              <MessageSquare size={28} className="text-gray-400" />
                             </div>
-                            <p className="text-lg font-semibold text-gray-500">
-                              Aún no hay comentarios
+                            <p className="text-base font-semibold text-gray-600 mb-1">
+                              No hay comentarios aún
                             </p>
                             <p className="text-sm text-gray-400">
-                              ¡Sé el primero en compartir tu experiencia!
+                              Sé el primero en comentar
                             </p>
                           </div>
                         ) : (
@@ -602,97 +515,70 @@ export default function Modal({ open, onClose, card, lugar }) {
                               <motion.div
                                 key={comentario.id_com}
                                 layout
-                                initial={{ opacity: 0, y: 20 }}
+                                initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, x: -100, height: 0 }}
-                                transition={{ duration: 0.3 }}
-                                className="relative bg-white p-4 rounded-2xl shadow-sm border border-gray-200 hover:shadow-lg hover:border-blue-200 transition-all duration-300 group"
+                                exit={{ opacity: 0, x: -50 }}
+                                className="bg-gray-50 p-3 rounded-xl border border-gray-200 hover:border-blue-200 hover:shadow-sm transition-all group"
                               >
-                                <div className="flex items-start gap-3 mb-3">
-                                  <div className="w-11 h-11 bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md ring-2 ring-blue-100 transition-transform duration-200 group-hover:scale-105 flex-shrink-0">
-                                    {comentario.nombre?.[0]?.toUpperCase() ||
-                                      "?"}
+                                <div className="flex items-start gap-2 mb-1.5">
+                                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-xs shadow-sm flex-shrink-0">
+                                    {comentario.nombre?.[0]?.toUpperCase() || "?"}
                                   </div>
 
                                   <div className="flex-1 min-w-0">
-                                    <p className="font-semibold text-gray-800 text-[15px] truncate">
-                                      {comentario.nombre || "Usuario"}{" "}
-                                      {comentario.apellido || ""}
+                                    <p className="font-semibold text-gray-800 text-xs sm:text-sm md:text-base leading-snug">
+                                      {comentario.nombre || "Usuario"} {comentario.apellido || ""}
                                     </p>
-                                    <p className="text-xs text-gray-500 font-medium">
-                                      {new Date(
-                                        comentario.fecha_com
-                                      ).toLocaleDateString("es-CO", {
+                                    <p className="text-[10px] sm:text-xs text-gray-500 text-right">
+                                      {new Date(comentario.fecha_com).toLocaleDateString("es-CO", {
                                         day: "numeric",
                                         month: "short",
                                         year: "numeric",
                                       })}
                                     </p>
                                   </div>
+
                                   {comentario.editado && (
-                                    <div className="inline-flex items-center gap-1 mb-2 text-green-600 bg-green-50 border border-green-200 px-2 py-1 rounded-full text-xs font-semibold w-fit">
-                                      <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                                    <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
                                       Editado
-                                    </div>
+                                    </span>
                                   )}
 
                                   {comentario.id_usuario === usuarioId && (
-                                    <motion.button
-                                      whileHover={{ scale: 1.15 }}
-                                      whileTap={{ scale: 0.9 }}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleEliminarComentario(
-                                          comentario.id_com
-                                        );
-                                      }}
-                                      type="button"
-                                      className="!w-9 !h-9 !min-w-[36px] !max-w-[36px] !min-h-[36px] !max-h-[36px] rounded-full bg-red-50 hover:bg-red-500 text-red-500 hover:text-white inline-flex items-center justify-center flex-shrink-0 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-sm hover:shadow-md !p-0"
-                                      title="Eliminar comentario"
-                                      aria-label="Eliminar comentario"
-                                    >
-                                      <Trash2
-                                        size={16}
-                                        strokeWidth={2.5}
-                                        className="pointer-events-none"
-                                      />
-                                    </motion.button>
-                                  )}
-                                  {comentario.id_usuario === usuarioId && (
-                                    <motion.button
-                                      whileHover={{ scale: 1.15 }}
-                                      whileTap={{ scale: 0.9 }}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleActualizarComentario(
-                                          comentario.id_com
-                                        );
-                                      }}
-                                      type="button"
-                                      className="!w-9 !h-9 !min-w-[36px] !max-w-[36px] !min-h-[36px] !max-h-[36px] rounded-full bg-blue-50 hover:bg-blue-500 text-blue-500 hover:text-white inline-flex items-center justify-center flex-shrink-0 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-sm hover:shadow-md !p-0"
-                                      title="Actualizar comentario"
-                                      aria-label="Actualizar comentario"
-                                    >
-                                      <RefreshCw
-                                        size={16}
-                                        strokeWidth={2.5}
-                                        className="pointer-events-none"
-                                      />
-                                    </motion.button>
+                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <motion.button
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={() => handleActualizarComentario(comentario.id_com)}
+                                        className="w-7 h-7 rounded-lg bg-blue-50 hover:bg-blue-500 text-blue-500 hover:text-white flex items-center justify-center transition-colors"
+                                      >
+                                        <RefreshCw size={14} />
+                                      </motion.button>
+                                      <motion.button
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={() => handleEliminarComentario(comentario.id_com)}
+                                        className="w-7 h-7 rounded-lg bg-red-50 hover:bg-red-500 text-red-500 hover:text-white flex items-center justify-center transition-colors"
+                                      >
+                                        <Trash2 size={14} />
+                                      </motion.button>
+                                    </div>
                                   )}
                                 </div>
 
-                                <p className="text-gray-700 mb-3 leading-relaxed text-[15px]">
-                                  {comentario.tipo_com}
-                                </p>
+                                <div className="flex items-start justify-between gap-2 mt-0.5">
+                                  <p className="flex-1 text-gray-700 leading-snug text-xs sm:text-sm md:text-base break-words">
+                                    {comentario.tipo_com}
+                                  </p>
 
-                                <div className="flex items-center gap-2 bg-gradient-to-r from-amber-50 to-orange-50 px-3 py-2 rounded-xl w-fit border border-amber-100">
-                                  <div className="flex gap-0.5">
-                                    {renderStars(comentario.calificacion)}
+                                  <div className="flex flex-col items-end gap-1 bg-amber-50 px-2.5 py-1.5 rounded-lg border border-amber-100 min-w-[96px]">
+                                    <div className="flex items-center gap-1">
+                                      {renderStars(comentario.calificacion)}
+                                    </div>
+                                    <span className="text-[11px] sm:text-xs md:text-sm font-semibold text-amber-700">
+                                      {comentario.calificacion}/5
+                                    </span>
                                   </div>
-                                  <span className="text-sm font-semibold text-amber-700 ml-1">
-                                    {comentario.calificacion}/5
-                                  </span>
                                 </div>
                               </motion.div>
                             ))}
@@ -700,85 +586,72 @@ export default function Modal({ open, onClose, card, lugar }) {
                         )}
                       </div>
 
-                      <div className="p-2 bg-white/80 backdrop-blur-sm border-t border-gray-200">
-  <div className="space-y-1.5">
-    <label className="block text-[10px] font-semibold text-gray-800 mb-1 flex items-center gap-1">
-      <div className="w-0.5 h-2 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
-      Tu comentario
-    </label>
+                      {/* Formulario comentario */}
+                      <div className="w-full max-w-md lg:max-w-sm border-t border-gray-200 px-3 pb-1.5 pt-1 bg-white/95 rounded-2xl shadow-sm mt-1.5">
+                        <textarea
+                          value={nuevoComentario}
+                          onChange={(e) => setNuevoComentario(e.target.value)}
+                          placeholder="Escribe tu comentario..."
+                          className="w-full px-3 py-1.5 md:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-xs sm:text-sm mb-1"
+                          rows="2"
+                          disabled={loading}
+                        />
 
-    <textarea
-      value={nuevoComentario}
-      onChange={(e) => setNuevoComentario(e.target.value)}
-      placeholder="Comparte tu experiencia..."
-      className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 resize-none transition-all text-[12px] leading-snug"
-      rows="2"
-      disabled={loading}
-    />
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200">
+                            {renderStars(calificacion, true)}
+                          </div>
+                        </div>
 
-    <div className="bg-gradient-to-r from-amber-50 to-orange-50 px-2 py-1.5 rounded-md border border-amber-200/50 text-[12px]">
-      {renderStars(calificacion, true)}
-    </div>
-
-    <motion.button
-      onClick={handleSubmitComentario}
-      whileHover={{ scale: loading ? 1 : 1.02 }}
-      whileTap={{ scale: loading ? 1 : 0.98 }}
-      disabled={loading}
-      type="button"
-      className={`w-full font-semibold py-1.5 rounded-md shadow-md transition-all inline-flex items-center justify-center gap-1.5 text-[11px] ${
-        loading
-          ? "bg-gray-400 cursor-not-allowed text-white"
-          : "bg-gradient-to-r from-blue-600 via-blue-700 to-purple-700 text-white hover:shadow-lg hover:from-blue-700 hover:via-blue-800 hover:to-purple-800"
-      }`}
-    >
-      {loading ? (
-        <>
-          <Loader2 className="animate-spin" size={14} />{" "}
-          {modoEdicion ? "Actualizando..." : "Publicando..."}
-        </>
-      ) : (
-        <>
-          {modoEdicion ? (
-            <>
-              <RefreshCw size={14} /> Actualizar
-            </>
-          ) : (
-            <>
-              <Send size={14} /> Publicar
-            </>
-          )}
-        </>
-      )}
-    </motion.button>
-  </div>
-</div>
-                    </div>
-
-                    <div className="absolute inset-0 backface-hidden rotate-y-180 bg-gradient-to-br from-red-50 to-red-100/70 flex flex-col">
-                      <div className="flex-1 overflow-y-auto px-3 py-2 space-y-3">
+                        <motion.button
+                          onClick={handleSubmitComentario}
+                          whileHover={{ scale: loading ? 1 : 1.02 }}
+                          whileTap={{ scale: loading ? 1 : 0.98 }}
+                          disabled={loading}
+                          className={`w-full font-medium py-1.5 md:py-2 rounded-lg transition-all flex items-center justify-center gap-2 text-xs sm:text-sm ${
+                            loading
+                              ? "bg-gray-400 cursor-not-allowed text-white"
+                              : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow"
+                          }`}
+                        >
+                          {loading ? (
+                            <>
+                              <Loader2 className="animate-spin" size={16} />
+                              {modoEdicion ? "Actualizando..." : "Publicando..."}
+                            </>
+                          ) : (
+                            <>
+                              {modoEdicion ? <RefreshCw size={16} /> : <Send size={16} />}
+                              {modoEdicion ? "Actualizar" : "Publicar"}
+                            </>
+                          )}
+                        </motion.button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {/* Lista de alertas */}
+                      <div className="flex-1 w-full max-w-md overflow-y-auto py-1.5 space-y-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
                         {alertas && alertas.length > 0 ? (
                           alertas.map((alerta) => (
                             <motion.div
                               key={alerta.id_alerta}
-                              initial={{ opacity: 0, y: 15 }}
+                              initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
-                              className="bg-white border border-red-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-300 group"
+                              className="bg-red-50 border border-red-200 rounded-xl p-3 hover:shadow-sm transition-all group"
                             >
-                              <div className="flex items-start gap-3 mb-2">
-                                <div className="w-11 h-11 bg-gradient-to-br from-red-500 via-orange-500 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md ring-2 ring-red-100 transition-transform duration-200 group-hover:scale-105 flex-shrink-0">
+                              <div className="flex items-start gap-2.5 mb-2">
+                                <div className="w-9 h-9 bg-gradient-to-br from-red-500 to-orange-600 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-sm flex-shrink-0">
                                   {alerta.usuario?.[0]?.toUpperCase() || "?"}
                                 </div>
 
                                 <div className="flex-1 min-w-0">
-                                  <p className="font-semibold text-gray-800 text-[15px] truncate">
+                                  <p className="font-semibold text-gray-800 text-sm truncate">
                                     {alerta.usuario || "Usuario desconocido"}
                                   </p>
                                   {alerta.fecha && (
-                                    <p className="text-xs text-gray-500 font-medium">
-                                      {new Date(
-                                        alerta.fecha
-                                      ).toLocaleDateString("es-CO", {
+                                    <p className="text-xs text-gray-500">
+                                      {new Date(alerta.fecha).toLocaleDateString("es-CO", {
                                         day: "numeric",
                                         month: "short",
                                         year: "numeric",
@@ -788,55 +661,54 @@ export default function Modal({ open, onClose, card, lugar }) {
                                 </div>
                               </div>
 
-                              <div className="pl-[3.3rem]">
-                                <p className="text-sm font-medium text-red-700 leading-tight">
-                                  🚨 {alerta.tipo_aler}
-                                </p>
-                              </div>
+                              <p className="text-sm font-medium text-red-700 leading-snug pl-11">
+                                {alerta.tipo_aler}
+                              </p>
                             </motion.div>
                           ))
                         ) : (
                           <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                            <AlertTriangle
-                              size={40}
-                              className="text-red-400 mb-2"
-                            />
-                            <p className="font-semibold text-gray-600">
+                            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-3">
+                              <AlertTriangle size={28} className="text-red-400" />
+                            </div>
+                            <p className="text-base font-semibold text-gray-600 mb-1">
                               No hay alertas
                             </p>
-                            <p className="text-xs text-gray-400">
-                              Puedes crear una nueva alerta abajo
+                            <p className="text-sm text-gray-400">
+                              Reporta cualquier problema
                             </p>
                           </div>
                         )}
                       </div>
 
-                      <div className="p-3 bg-white/90 backdrop-blur-sm border-t border-gray-200">
+                      {/* Formulario alerta */}
+                      <div className="w-full max-w-md border-t border-gray-200 px-3 pb-1.5 pt-1 bg-red-50/90 rounded-2xl shadow-sm mt-1.5">
                         <textarea
                           value={nuevoAlerta}
                           onChange={(e) => setNuevoAlerta(e.target.value)}
-                          placeholder="Describe la alerta..."
-                          className="w-full px-3 py-2 border-2 border-red-200 rounded-lg focus:ring-2 focus:ring-red-400 focus:border-red-400 resize-none transition-all text-sm"
+                          placeholder="Describe la alerta o problema..."
+                          className="w-full px-3 py-1.5 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none text-xs mb-1"
                           rows="2"
                         />
                         <motion.button
                           onClick={handleSubmitAlerta}
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
-                          className="w-full mt-2 font-bold py-2 rounded-lg shadow-md transition-all text-sm inline-flex items-center justify-center gap-2 text-white 
-    bg-gradient-to-r from-red-600 to-red-700 hover:shadow-lg"
+                          className="w-full font-medium py-1.5 rounded-lg transition-all flex items-center justify-center gap-2 text-xs bg-red-600 hover:bg-red-700 text-white shadow-sm hover:shadow"
                         >
                           {modoEdicionAlerta ? (
                             <>
                               <RefreshCw size={16} /> Actualizar alerta
                             </>
                           ) : (
-                            <>Publicar alerta</>
+                            <>
+                              <AlertCircle size={16} /> Publicar alerta
+                            </>
                           )}
                         </motion.button>
                       </div>
-                    </div>
-                  </motion.div>
+                    </>
+                  )}
                 </div>
               </div>
             </motion.div>

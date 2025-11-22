@@ -1,6 +1,6 @@
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { useEffect, useRef } from "react";
-import Logo from "../assets/img/BogotaTurisLogo.png";
+import { useEffect, useRef, useState } from "react";
+import NavbarBase from "./NavbarBase";
 import logoUser from "../assets/img/user.png";
 import "../assets/css/Navbar.css";
 
@@ -14,32 +14,21 @@ export default function NavbarView({
   const location = useLocation();
   const usuarioId = userId || localStorage.getItem("usuario_id");
   const dropdownRef = useRef(null);
-  const menuToggle = document.querySelector('.menu-toggle');
-  const navLinks = document.querySelector('.nav-links');
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-if (menuToggle) {
-  menuToggle.addEventListener('click', () => {
-    navLinks.classList.toggle('open');
-  });
-}
-
-  // Hook para cerrar dropdown al hacer click fuera y con tecla ESC
+  // ========================================
+  // 2. HOOK PARA CERRAR DROPDOWN AL HACER CLIC FUERA
+  // ========================================
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        const dropdownMenu = dropdownRef.current.querySelector(".dropdown-menu");
-        if (dropdownMenu && dropdownMenu.classList.contains("show")) {
-          dropdownMenu.classList.remove("show");
-        }
+        setIsUserMenuOpen(false);
       }
     };
 
     const handleEscape = (event) => {
       if (event.key === "Escape") {
-        const dropdownMenu = dropdownRef.current?.querySelector(".dropdown-menu");
-        if (dropdownMenu && dropdownMenu.classList.contains("show")) {
-          dropdownMenu.classList.remove("show");
-        }
+        setIsUserMenuOpen(false);
       }
     };
 
@@ -52,6 +41,16 @@ if (menuToggle) {
     };
   }, []);
 
+  // ========================================
+  // 3. HOOK PARA CERRAR MENÚS AL CAMBIAR DE RUTA
+  // ========================================
+  useEffect(() => {
+    setIsUserMenuOpen(false);
+  }, [location.pathname]);
+
+  // ========================================
+  // FUNCIONES DE NAVEGACIÓN
+  // ========================================
   const handleLogout = () => {
     localStorage.clear();
     navigate("/login", { replace: true });
@@ -61,13 +60,25 @@ if (menuToggle) {
     };
   };
 
-  const handleInicio = () => navigate(`/usuario/${usuarioId}`);
-  const handleMiCuenta = () => navigate(`/usuario/${usuarioId}/perfil`);
-  const handleCambiarPassword = () =>
-    navigate(`/usuario/${usuarioId}/cambiar-password`);
-  const handleCambiarIntereses = () =>
-    navigate(`/usuario/${usuarioId}/cambiar-intereses`);
+  const handleInicio = () => {
+    navigate(`/usuario/${usuarioId}`);
+  };
 
+  const handleMiCuenta = () => {
+    navigate(`/usuario/${usuarioId}/perfil`);
+  };
+
+  const handleCambiarPassword = () => {
+    navigate(`/usuario/${usuarioId}/cambiar-password`);
+  };
+
+  const handleCambiarIntereses = () => {
+    navigate(`/usuario/${usuarioId}/cambiar-intereses`);
+  };
+
+  // ========================================
+  // FUNCIONES DE UTILIDAD
+  // ========================================
   const getNombreUsuario = () => {
     if (usuarioData?.primer_nombre) {
       return `${usuarioData.primer_nombre} ${
@@ -79,39 +90,16 @@ if (menuToggle) {
 
   // Determinar si "Inicio" está activo
   const isInicioActive = location.pathname === `/usuario/${usuarioId}`;
-  useEffect(() => {
-  const handleClickOutside = (event) => {
-    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-      const menu = document.querySelector('.user-dropdown-menu');
-      const button = document.querySelector('.user-dropdown-btn');
-      
-      if (menu?.classList.contains('show')) {
-        menu.classList.remove('show');
-        button?.setAttribute('aria-expanded', 'false');
-      }
-    }
-  };
 
-  document.addEventListener('click', handleClickOutside);
-  
-  return () => {
-    document.removeEventListener('click', handleClickOutside);
-  };
-}, []);
+  // ========================================
+  // RENDER
+  // ========================================
   return (
-    <nav className="nav">
-      <div className="container1">
-        <div
-          className="logo"
-          onClick={handleInicio}
-          style={{ cursor: "pointer" }}
-        >
-          <img src={Logo} alt="BogotaTuris Logo" />
-          <h1>BogotaTuris</h1>
-        </div>
-
-        <ul className="nav-links">
-          {/* Solo mostrar "Inicio" si NO estamos en la página de inicio */}
+    <NavbarBase
+      pathKey={location.pathname}
+      onLogoClick={handleInicio}
+      renderMenu={({ isMobile, ensureMenuOpenOnMobile }) => (
+        <>
           {!isInicioActive && (
             <li className="nav-item">
               <a
@@ -119,6 +107,11 @@ if (menuToggle) {
                 onClick={handleInicio}
                 role="button"
                 tabIndex={0}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    handleInicio();
+                  }
+                }}
               >
                 <i className="bi bi-house-door me-2"></i>
                 Inicio
@@ -126,48 +119,63 @@ if (menuToggle) {
             </li>
           )}
 
-        <li className="nav-item dropdown user-dropdown" ref={dropdownRef}>
-        <button
-          className="nav-link dropdown-toggle user-dropdown-btn"
-          type="button"
-          id="userDropdown"
-          aria-haspopup="true"
-          aria-expanded="false"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const menu = e.currentTarget.nextElementSibling;
-            if (menu) {
-              menu.classList.toggle("show");
-              e.currentTarget.setAttribute(
-                "aria-expanded",
-                menu.classList.contains("show")
-              );
-            }
-          }}
-        >
+          <li className="nav-item dropdown user-dropdown" ref={dropdownRef}>
+            <button
+              className="nav-link dropdown-toggle user-dropdown-btn"
+              type="button"
+              id="userDropdown"
+              aria-haspopup="true"
+              aria-expanded={isUserMenuOpen}
+              aria-controls="userDropdownMenu"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (isMobile) ensureMenuOpenOnMobile();
+                setIsUserMenuOpen((prev) => !prev);
+              }}
+            >
               <strong className="user-section">
                 {showWelcome && "Bienvenido"} {getNombreUsuario()}
                 <img src={logoUser} alt="Logo Usuario" className="user-logo" />
+                <span className="user-dropdown-indicator">
+                  {isUserMenuOpen ? "▴" : "▾"}
+                </span>
               </strong>
             </button>
 
             <ul
-              className="dropdown-menu enhanced-dropdown"
+              id="userDropdownMenu"
+              className={`dropdown-menu enhanced-dropdown ${isUserMenuOpen ? 'show' : ''}`}
               aria-labelledby="userDropdown"
+              role="menu"
             >
               <li>
-                <a className="dropdown-item" onClick={handleMiCuenta}>
+                <a 
+                  className="dropdown-item" 
+                  onClick={handleMiCuenta}
+                  role="button"
+                  tabIndex={0}
+                >
                   <i className="bi bi-person-circle me-2"></i> Mi Cuenta
                 </a>
               </li>
               <li>
-                <a className="dropdown-item" onClick={handleCambiarPassword}>
+                <a 
+                  className="dropdown-item" 
+                  onClick={handleCambiarPassword}
+                  role="button"
+                  tabIndex={0}
+                >
                   <i className="bi bi-key me-2"></i> Cambiar Contraseña
                 </a>
               </li>
               <li>
-                <a className="dropdown-item" onClick={handleCambiarIntereses}>
+                <a 
+                  className="dropdown-item" 
+                  onClick={handleCambiarIntereses}
+                  role="button"
+                  tabIndex={0}
+                >
                   <i className="bi bi-heart me-2"></i> Cambiar Intereses
                 </a>
               </li>
@@ -175,14 +183,19 @@ if (menuToggle) {
                 <hr className="dropdown-divider" />
               </li>
               <li className="logout-item">
-                <a className="dropdown-item" onClick={handleLogout}>
+                <a 
+                  className="dropdown-item" 
+                  onClick={handleLogout}
+                  role="button"
+                  tabIndex={0}
+                >
                   <i className="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
                 </a>
               </li>
             </ul>
           </li>
-        </ul>
-      </div>
-    </nav>
+        </>
+      )}
+    />
   );
 }

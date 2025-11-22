@@ -5,6 +5,7 @@ import ModalCrearLugar from "../Pages/ModalCrearLugar";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import Footer from "../components/Footer.jsx";
 
 export default function AdminView() {
   const navigate = useNavigate();
@@ -392,28 +393,6 @@ useEffect(() => {
             <button
               className="dropdown-item"
               onClick={() => {
-                navigate(`/usuario/${usuarioId}/perfil`);
-                setMenuAbierto(false);
-              }}
-            >
-              Mi Cuenta
-            </button>
-          </li>
-          <li>
-            <button
-              className="dropdown-item"
-              onClick={() => {
-                navigate(`/usuario/${usuarioId}/cambiar-password`);
-                setMenuAbierto(false);
-              }}
-            >
-              Cambiar Contraseña
-            </button>
-          </li>
-          <li>
-            <button
-              className="dropdown-item"
-              onClick={() => {
                 handleLogout();
                 setMenuAbierto(false);
               }}
@@ -779,6 +758,7 @@ useEffect(() => {
           onLugarCreado={handleCrearLugar} // ✅ función que guarda en BD
         />
       )}
+      <Footer />
     </>
   );
 }

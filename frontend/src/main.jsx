@@ -53,8 +53,6 @@ root.render(
               path="verificacion-exitosa"
               element={<VerificacionExitosa />}
             />
->>>>>>> f6614fd (Subiendo gran parte de vista admini y usuario, faltando imagen y categoria)
-
             {/* Rutas protegidas para usuarios normales */}
             <Route element={<ProtectedRoute />}>
               <Route path="/usuario/:userId" element={<UserView />} />

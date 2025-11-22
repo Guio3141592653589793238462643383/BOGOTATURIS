@@ -4,10 +4,6 @@ import Navbar from './components/Navbar';
 function App() {
   const location = useLocation();
   const hideNavbarPaths = [
-    '/login', 
-    '/registro', 
-    '/verificar-email',
-    '/verificacion-exitosa',
     '/usuario',  // Oculta el Navbar en todas las rutas de usuario
     '/admin'     // Oculta el Navbar en todas las rutas de administrador
   ];

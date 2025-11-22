@@ -1,8 +1,11 @@
 import "../assets/css/FormSignUp.css";
+import { motion } from "framer-motion";
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import NavbarView from "../components/NavbarView";
 import Logo from "../assets/img/BogotaTurisLogo.png";
+import bogotaNight from "../assets/img/bogota-night.jpg";
+import Footer from "../components/Footer.jsx";
 
 function CambiarPassword() {
   const [mensaje, setMensaje] = useState("");
@@ -17,7 +20,7 @@ function CambiarPassword() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // 🆕 Estados para validación en tiempo real
+  // Estados para validación en tiempo real
   const [fortalezaPassword, setFortalezaPassword] = useState({
     nivel: 0,
     texto: "Muy Débil",
@@ -31,10 +34,10 @@ function CambiarPassword() {
   });
   const [confirmPasswordMatch, setConfirmPasswordMatch] = useState(null);
 
-  // 🆕 Estado para modal de éxito
+  // Estado para modal de éxito
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  // 🆕 Calcular fortaleza de contraseña
+  // Calcular fortaleza de contraseña
   const calcularFortalezaPassword = useCallback((clave) => {
     let nivel = 0;
     let texto = "Muy Débil";
@@ -67,7 +70,7 @@ function CambiarPassword() {
     return { nivel, texto, color };
   }, []);
 
-  // 🆕 Validar contraseña en tiempo real
+  // Validar contraseña en tiempo real
   useEffect(() => {
     if (newPassword) {
       const fortaleza = calcularFortalezaPassword(newPassword);
@@ -90,7 +93,7 @@ function CambiarPassword() {
     }
   }, [newPassword, calcularFortalezaPassword]);
 
-  // 🆕 Validar coincidencia de contraseñas
+  // Validar coincidencia de contraseñas
   useEffect(() => {
     if (confirmPassword) {
       setConfirmPasswordMatch(newPassword === confirmPassword);
@@ -99,36 +102,34 @@ function CambiarPassword() {
     }
   }, [newPassword, confirmPassword]);
 
-// 🔹 Función reutilizable para obtener los datos del usuario
-const fetchUsuarioData = useCallback(async () => {
-  try {
-    const response = await fetch(
-      `http://localhost:8000/api/usuario/perfil/${usuarioId}`
-    );
-    if (response.ok) {
-      const data = await response.json();
-      setUsuarioData(data);
+  // Función reutilizable para obtener los datos del usuario
+  const fetchUsuarioData = useCallback(async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:8000/api/usuario/perfil/${usuarioId}`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        setUsuarioData(data);
+      }
+    } catch (error) {
+      console.error("Error al cargar datos del usuario");
     }
-  } catch (error) {
-    console.error("Error al cargar datos del usuario");
-  }
-}, [usuarioId]);
+  }, [usuarioId]);
 
-// 🔹 Refrescar datos (por ejemplo, usado por NavbarView)
-const refreshUserData = useCallback(() => {
-  if (usuarioId) fetchUsuarioData();
-}, [usuarioId, fetchUsuarioData]);
+  // Refrescar datos (por ejemplo, usado por NavbarView)
+  const refreshUserData = useCallback(() => {
+    if (usuarioId) fetchUsuarioData();
+  }, [usuarioId, fetchUsuarioData]);
 
-// 🔹 useEffect inicial
-useEffect(() => {
-  if (!usuarioId) {
-    navigate("/login");
-    return;
-  }
-  fetchUsuarioData();
-}, [usuarioId, navigate, fetchUsuarioData]);
-
-  
+  // useEffect inicial
+  useEffect(() => {
+    if (!usuarioId) {
+      navigate("/login");
+      return;
+    }
+    fetchUsuarioData();
+  }, [usuarioId, navigate, fetchUsuarioData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -160,7 +161,7 @@ useEffect(() => {
       const data = await res.json();
 
       if (res.ok) {
-        // 🎉 Mostrar modal en lugar de mensaje
+        // Mostrar modal en lugar de mensaje
         setShowSuccessModal(true);
         setPassword("");
         setNewPassword("");
@@ -179,7 +180,7 @@ useEffect(() => {
     }
   };
 
-  // 🆕 Verificar si el formulario es válido
+  // Verificar si el formulario es válido
   const isFormValid = () => {
     return (
       password &&
@@ -192,162 +193,196 @@ useEffect(() => {
       validaciones.longitudMinima
     );
   };
+
   return (
     <>
-    <NavbarView usuarioData={usuarioData} onRefreshUserData={refreshUserData} />
+      <NavbarView
+        usuarioData={usuarioData}
+        onRefreshUserData={refreshUserData}
+      />
 
-      <form onSubmit={handleSubmit} className="form-container1">
-        <h2>Cambiar Contraseña</h2>
+      <div
+        className="min-h-screen bg-gradient-to-br from-[#001a33] via-[#003366] to-[#004b8d]"
+        style={{
+          backgroundImage: `url(${bogotaNight})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-10">
 
-        {/* Contraseña Actual */}
-        <div className="form-group1 relative">
-          <label htmlFor="password">Contraseña Actual</label>
-          <input
-            id="password"
-            type={showPassword ? "text" : "password"}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            placeholder="Ingrese su clave"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            aria-label={
-              showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
-            }
-          >
-            {showPassword ? "🙈" : "👁️"}
-          </button>
-        </div>
-
-        {/* Nueva Contraseña */}
-        <div className="form-group1 relative">
-          <label htmlFor="newPassword">Nueva Contraseña</label>
-          <input
-            id="newPassword"
-            type={showNewPassword ? "text" : "password"}
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            required
-            placeholder="Ingrese nueva clave"
-          />
-          <button
-            type="button"
-            onClick={() => setShowNewPassword(!showNewPassword)}
-            aria-label={
-              showNewPassword ? "Ocultar contraseña" : "Mostrar contraseña"
-            }
-          >
-            {showNewPassword ? "🙈" : "👁️"}
-          </button>
-
-          {/* 🆕 Barra de fortaleza de contraseña */}
-          {newPassword && (
-            <div className="password-strength-container">
-              <div className="password-strength-bar">
-                <div
-                  className="password-strength-fill"
-                  style={{
-                    width: `${(fortalezaPassword.nivel / 4) * 100}%`,
-                    backgroundColor: fortalezaPassword.color,
-                  }}
-                ></div>
-              </div>
-              <span
-                className="password-strength-text"
-                style={{ color: fortalezaPassword.color }}
-              >
-                {fortalezaPassword.texto}
-              </span>
-            </div>
-          )}
-
-          {/* 🆕 Lista de validaciones */}
-          {newPassword && (
-            <div className="password-requirements">
-              <p className="requirements-title">La contraseña debe contener:</p>
-              <ul className="requirements-list">
-                <li
-                  className={
-                    validaciones.longitudMinima ? "valid" : "invalid"
-                  }
-                >
-                  {validaciones.longitudMinima ? "✓" : "○"} Mínimo 8 caracteres
-                </li>
-                <li
-                  className={
-                    validaciones.tieneMayuscula ? "valid" : "invalid"
-                  }
-                >
-                  {validaciones.tieneMayuscula ? "✓" : "○"} Una letra mayúscula
-                </li>
-                <li
-                  className={
-                    validaciones.tieneMinuscula ? "valid" : "invalid"
-                  }
-                >
-                  {validaciones.tieneMinuscula ? "✓" : "○"} Una letra minúscula
-                </li>
-                <li className={validaciones.tieneNumero ? "valid" : "invalid"}>
-                  {validaciones.tieneNumero ? "✓" : "○"} Un número
-                </li>
-              </ul>
-            </div>
-          )}
-        </div>
-
-        {/* Confirmar Nueva Contraseña */}
-        <div className="form-group1 relative">
-          <label htmlFor="confirmPassword">Confirmar Nueva Contraseña</label>
-          <input
-            id="confirmPassword"
-            type={showConfirmPassword ? "text" : "password"}
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-            placeholder="Confirme nueva clave"
-          />
-          <button
-            type="button"
-            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            aria-label={
-              showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"
-            }
-          >
-            {showConfirmPassword ? "🙈" : "👁️"}
-          </button>
-
-          {/* 🆕 Indicador de coincidencia */}
-          {confirmPassword && (
-            <small
-              className={`password-match ${
-                confirmPasswordMatch ? "match" : "no-match"
-              }`}
+          <div className="flex w-full max-w-5xl justify-center">
+            {/* Panel único: formulario */}
+            <motion.div
+              className="w-full max-w-md flex items-center justify-center"
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.9, delay: 0.15 }}
             >
-              {confirmPasswordMatch
-                ? "✓ Las contraseñas coinciden"
-                : "✗ Las contraseñas no coinciden"}
-            </small>
-          )}
+
+              <motion.form
+                onSubmit={handleSubmit}
+                className="bg-white/95 backdrop-blur-md border border-[#c9d6e8] rounded-2xl p-8 w-full max-w-md shadow-xl"
+                whileHover={{ scale: 1.01 }}
+                transition={{ type: "spring", stiffness: 100 }}
+              >
+                <h2 className="text-2xl font-bold text-[#002855] text-center mb-2">
+                  Cambiar Contraseña
+                </h2>
+
+                {/* Contraseña Actual */}
+                <div className="form-group1 relative">
+                  <label htmlFor="password">Contraseña Actual</label>
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    placeholder="Ingrese su clave"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={
+                      showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                    }
+                  >
+                    {showPassword ? "🙈" : "👁️"}
+                  </button>
+                </div>
+
+                {/* Nueva Contraseña */}
+                <div className="form-group1 relative">
+                  <label htmlFor="newPassword">Nueva Contraseña</label>
+                  <input
+                    id="newPassword"
+                    type={showNewPassword ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    placeholder="Ingrese nueva clave"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                    aria-label={
+                      showNewPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                    }
+                  >
+                    {showNewPassword ? "🙈" : "👁️"}
+                  </button>
+
+                  {/* Barra de fortaleza de contraseña */}
+                  {newPassword && (
+                    <div className="password-strength-container">
+                      <div className="password-strength-bar">
+                        <div
+                          className="password-strength-fill"
+                          style={{
+                            width: `${(fortalezaPassword.nivel / 4) * 100}%`,
+                            backgroundColor: fortalezaPassword.color,
+                          }}
+                        ></div>
+                      </div>
+                      <span
+                        className="password-strength-text"
+                        style={{ color: fortalezaPassword.color }}
+                      >
+                        {fortalezaPassword.texto}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Lista de validaciones */}
+                  {newPassword && (
+                    <div className="password-requirements">
+                      <p className="requirements-title">La contraseña debe contener:</p>
+                      <ul className="requirements-list">
+                        <li
+                          className={
+                            validaciones.longitudMinima ? "valid" : "invalid"
+                          }
+                        >
+                          {validaciones.longitudMinima ? "✓" : "○"} Mínimo 8 caracteres
+                        </li>
+                        <li
+                          className={
+                            validaciones.tieneMayuscula ? "valid" : "invalid"
+                          }
+                        >
+                          {validaciones.tieneMayuscula ? "✓" : "○"} Una letra mayúscula
+                        </li>
+                        <li
+                          className={
+                            validaciones.tieneMinuscula ? "valid" : "invalid"
+                          }
+                        >
+                          {validaciones.tieneMinuscula ? "✓" : "○"} Una letra minúscula
+                        </li>
+                        <li className={validaciones.tieneNumero ? "valid" : "invalid"}>
+                          {validaciones.tieneNumero ? "✓" : "○"} Un número
+                        </li>
+                      </ul>
+                    </div>
+                  )}
+                </div>
+
+                {/* Confirmar Nueva Contraseña */}
+                <div className="form-group1 relative">
+                  <label htmlFor="confirmPassword">Confirmar Nueva Contraseña</label>
+                  <input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    placeholder="Confirme nueva clave"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    aria-label={
+                      showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                    }
+                  >
+                    {showConfirmPassword ? "🙈" : "👁️"}
+                  </button>
+
+                  {/* Indicador de coincidencia */}
+                  {confirmPassword && (
+                    <small
+                      className={`password-match ${
+                        confirmPasswordMatch ? "match" : "no-match"
+                      }`}
+                    >
+                      {confirmPasswordMatch
+                        ? "✓ Las contraseñas coinciden"
+                        : "✗ Las contraseñas no coinciden"}
+                    </small>
+                  )}
+                </div>
+
+                {mensaje && <p className="mensaje1 mt-2">{mensaje}</p>}
+
+                <button
+                  type="submit"
+                  className="form-submit-btn1"
+                  disabled={!isFormValid()}
+                  style={{
+                    opacity: isFormValid() ? 1 : 0.5,
+                    cursor: isFormValid() ? "pointer" : "not-allowed",
+                  }}
+                >
+                  Actualizar Contraseña
+                </button>
+              </motion.form>
+            </motion.div>
+          </div>
         </div>
+      </div>
 
-        {mensaje && <p className="mensaje1">{mensaje}</p>}
-
-        <button
-          type="submit"
-          className="form-submit-btn1"
-          disabled={!isFormValid()}
-          style={{
-            opacity: isFormValid() ? 1 : 0.5,
-            cursor: isFormValid() ? "pointer" : "not-allowed",
-          }}
-        >
-          Actualizar Contraseña
-        </button>
-      </form>
-
-      {/* 🎉 MODAL DE ÉXITO */}
+      {/* MODAL DE ÉXITO */}
       {showSuccessModal && (
         <div
           className="success-modal-overlay"
@@ -395,6 +430,7 @@ useEffect(() => {
           </div>
         </div>
       )}
+      <Footer />
     </>
   );
 }

@@ -1,7 +1,10 @@
-import { useEffect, useState } from "react";
+ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import NavbarView from "../components/NavbarView";
 import Logo from "../assets/img/BogotaTurisLogo.png";
+import bogotaNight from "../assets/img/bogota-night.jpg";
+import Footer from "../components/Footer.jsx"; 
+
 import "../assets/css/UserView.css";
 
 export default function ProfilePage() {
@@ -247,117 +250,141 @@ export default function ProfilePage() {
         usuarioData={usuarioData}
         onRefreshUserData={refreshUserData}
       />
-      <div className="max-w-6xl mx-auto mt-10 grid grid-cols-1 md:grid-cols-2 gap-12 px-4">
-        <div className="form-container">
-          <h2>Editar Información</h2>
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label>Primer Nombre *</label>
-              <input
-                type="text"
-                value={formData.primer_nombre}
-                onChange={(e) =>
-                  setFormData({ ...formData, primer_nombre: e.target.value })
-                }
-                className={
-                  fieldHelp.primer_nombre.type === "error"
-                    ? "border-red-500"
-                    : ""
-                }
-              />
-              <FieldHelper fieldName="primer_nombre" />
-            </div>
+      <div className="min-h-screen bg-gradient-to-br from-[#001a33] via-[#003366] to-[#004b8d] pt-8">
+        <div
+          className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-black/40 px-4 py-10"
+          style={{
+            backgroundImage: `url(${bogotaNight})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        >
+          <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div className="form-container">
+              <h2>Editar Información</h2>
+              <form onSubmit={handleSubmit}>
+                <div className="form-group">
+                  <label>Primer Nombre *</label>
+                  <input
+                    type="text"
+                    value={formData.primer_nombre}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        primer_nombre: e.target.value,
+                      })
+                    }
+                    className={
+                      fieldHelp.primer_nombre.type === "error"
+                        ? "border-red-500"
+                        : ""
+                    }
+                  />
+                  <FieldHelper fieldName="primer_nombre" />
+                </div>
 
-            <div className="form-group">
-              <label>Segundo Nombre</label>
-              <input
-                type="text"
-                value={formData.segundo_nombre || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, segundo_nombre: e.target.value })
-                }
-              />
-              <FieldHelper fieldName="segundo_nombre" />
-            </div>
+                <div className="form-group">
+                  <label>Segundo Nombre</label>
+                  <input
+                    type="text"
+                    value={formData.segundo_nombre || ""}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        segundo_nombre: e.target.value,
+                      })
+                    }
+                  />
+                  <FieldHelper fieldName="segundo_nombre" />
+                </div>
 
-            <div className="form-group">
-              <label>Primer Apellido *</label>
-              <input
-                type="text"
-                value={formData.primer_apellido}
-                onChange={(e) =>
-                  setFormData({ ...formData, primer_apellido: e.target.value })
-                }
-                className={
-                  fieldHelp.primer_apellido.type === "error"
-                    ? "border-red-500"
-                    : ""
-                }
-              />
-              <FieldHelper fieldName="primer_apellido" />
-            </div>
+                <div className="form-group">
+                  <label>Primer Apellido *</label>
+                  <input
+                    type="text"
+                    value={formData.primer_apellido}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        primer_apellido: e.target.value,
+                      })
+                    }
+                    className={
+                      fieldHelp.primer_apellido.type === "error"
+                        ? "border-red-500"
+                        : ""
+                    }
+                  />
+                  <FieldHelper fieldName="primer_apellido" />
+                </div>
 
-            <div className="form-group">
-              <label>Segundo Apellido</label>
-              <input
-                type="text"
-                value={formData.segundo_apellido || ""}
-                onChange={(e) =>
-                  setFormData({ ...formData, segundo_apellido: e.target.value })
-                }
-              />
-              <FieldHelper fieldName="segundo_apellido" />
-            </div>
-            <div className="form-group">
-              <label>Nacionalidad</label>
-              <select
-                value={formData.id_nac}
-                onChange={(e) =>
-                  setFormData({ ...formData, id_nac: e.target.value })
-                }
-              >
-                <option value="" disabled>
-                  Selecciona una opción
-                </option>
-                {loadingNacionalidades ? (
-                  <option value="">Cargando nacionalidades...</option>
-                ) : (
-                  nacionalidades.map((nac) => (
-                    <option key={nac.id_nac} value={String(nac.id_nac)}>
-                      {nac.nacionalidad}
+                <div className="form-group">
+                  <label>Segundo Apellido</label>
+                  <input
+                    type="text"
+                    value={formData.segundo_apellido || ""}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        segundo_apellido: e.target.value,
+                      })
+                    }
+                  />
+                  <FieldHelper fieldName="segundo_apellido" />
+                </div>
+
+                <div className="form-group">
+                  <label>Nacionalidad</label>
+                  <select
+                    value={formData.id_nac}
+                    onChange={(e) =>
+                      setFormData({ ...formData, id_nac: e.target.value })
+                    }
+                  >
+                    <option value="" disabled>
+                      Selecciona una opción
                     </option>
-                  ))
-                )}
-              </select>
-              <FieldHelper fieldName="id_nac" />
+                    {loadingNacionalidades ? (
+                      <option value="">Cargando nacionalidades...</option>
+                    ) : (
+                      nacionalidades.map((nac) => (
+                        <option key={nac.id_nac} value={String(nac.id_nac)}>
+                          {nac.nacionalidad}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                  <FieldHelper fieldName="id_nac" />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={!isFormValid()}
+                  className={!isFormValid() ? "opacity-50 cursor-not-allowed" : ""}
+                >
+                  Guardar Cambios
+                </button>
+              </form>
             </div>
 
-            <button
-              type="submit"
-              disabled={!isFormValid()}
-              className={!isFormValid() ? "opacity-50 cursor-not-allowed" : ""}
-            >
-              Guardar Cambios
-            </button>
-          </form>
-        </div>
-
-        <div className="profile-card">
-          <h2>Mi Perfil</h2>
-          <div className="profile-info">
-            <p>
-              <span>Nombre:</span> {formData.primer_nombre}{" "}
-              {formData.segundo_nombre}
-            </p>
-            <p>
-              <span>Apellidos:</span> {formData.primer_apellido}{" "}
-              {formData.segundo_apellido}
-            </p>
-            <p>
-              <span>Nacionalidad:</span>{" "}
-              {nacionalidades.find((n) => String(n.id_nac) === formData.id_nac)
-                ?.nacionalidad || "No disponible"}
-            </p>
+            <div className="profile-card">
+              <h2 className="perfil">Mi Perfil</h2>
+              <div className="profile-info">
+                <p>
+                  <span>Nombre:</span> {formData.primer_nombre}{" "}
+                  {formData.segundo_nombre}
+                </p>
+                <p>
+                  <span>Apellidos:</span> {formData.primer_apellido}{" "}
+                  {formData.segundo_apellido}
+                </p>
+                <p>
+                  <span>Nacionalidad:</span>{" "}
+                  {nacionalidades.find((n) => String(n.id_nac) === formData.id_nac)
+                    ?.nacionalidad || "No disponible"}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -410,6 +437,7 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
+      <Footer />
     </>
   );
 }

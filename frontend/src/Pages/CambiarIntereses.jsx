@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import "../assets/css/UserView.css";
 import NavbarView from "../components/NavbarView";
 import Logo from "../assets/img/BogotaTurisLogo.png";
+import bogotaNight from "../assets/img/bogota-night.jpg";
+import Footer from "../components/Footer.jsx";
 
 export default function CambiarIntereses() {
   const { userId } = useParams();
@@ -161,7 +163,34 @@ try {
 
   // 🔹 Renderizado condicional
   if (loading && !usuarioData) {
-    return <h2 className="text-center mt-20">Cargando intereses...</h2>;
+    return (
+      <>
+        <NavbarView
+          usuarioData={usuarioData}
+          onRefreshUserData={refreshUserData}
+        />
+        <div
+          className="min-h-screen bg-gradient-to-br from-[#001a33] via-[#003366] to-[#004b8d]"
+          style={{
+            backgroundImage: `url(${bogotaNight})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        >
+          <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-10">
+            <div className="form-container1 intereses-container">
+              <h2 className="form-title">Cargando intereses...</h2>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" }}>
+                <span className="spinner" />
+                <p style={{ fontSize: "0.95rem", color: "#002855", margin: 0 }}>
+                  Por favor espera un momento mientras preparamos tus preferencias.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
   }
 
   if (error) {
@@ -178,23 +207,32 @@ try {
         usuarioData={usuarioData}
         onRefreshUserData={refreshUserData}
       />
+      <div
+        className="min-h-screen bg-gradient-to-br from-[#001a33] via-[#003366] to-[#004b8d]"
+        style={{
+          backgroundImage: `url(${bogotaNight})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-10">
+          <div className="w-full max-w-5xl flex justify-center">
+            <div className="form-container1 intereses-container">
+              <h2 className="form-title">Cambiar Intereses</h2>
 
-      <div className="form-container1 intereses-container">
-        <h2 className="form-title">Cambiar Intereses</h2>
+              <div className="intereses-counter">
+                <span className="counter-badge">
+                  {interesesUsuario.length}{" "}
+                  {interesesUsuario.length === 1
+                    ? "interés seleccionado"
+                    : "intereses seleccionados"}
+                </span>
+              </div>
 
-        <div className="intereses-counter">
-          <span className="counter-badge">
-            {interesesUsuario.length}{" "}
-            {interesesUsuario.length === 1
-              ? "interés seleccionado"
-              : "intereses seleccionados"}
-          </span>
-        </div>
+              {mensaje && <p className="mensaje1">{mensaje}</p>}
 
-        {mensaje && <p className="mensaje1">{mensaje}</p>}
-
-        <form onSubmit={handleSubmit}>
-          <div className="tablas-container">
+              <form onSubmit={handleSubmit}>
+                <div className="tablas-container">
             {/* TABLA IZQUIERDA */}
             <div className="tabla-columna">
               <table className="tabla-intereses">
@@ -282,20 +320,24 @@ try {
                 </tbody>
               </table>
             </div>
-          </div>
+                </div>
 
-          <button
-            type="submit"
-            className="form-submit-btn1 mt-6"
-            disabled={interesesUsuario.length === 0}
-            style={{
-              opacity: interesesUsuario.length === 0 ? 0.5 : 1,
-              cursor: interesesUsuario.length === 0 ? "not-allowed" : "pointer",
-            }}
-          >
-            Guardar Intereses ({interesesUsuario.length})
-          </button>
-        </form>
+                <button
+                  type="submit"
+                  className="form-submit-btn1 mt-6"
+                  disabled={interesesUsuario.length === 0}
+                  style={{
+                    opacity: interesesUsuario.length === 0 ? 0.5 : 1,
+                    cursor:
+                      interesesUsuario.length === 0 ? "not-allowed" : "pointer",
+                  }}
+                >
+                  Guardar Intereses ({interesesUsuario.length})
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* 🎉 MODAL DE ÉXITO */}
@@ -354,6 +396,7 @@ try {
           </div>
         </div>
       )}
+      <Footer />
     </>
   );
 }

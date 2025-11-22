@@ -6,6 +6,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Chatbot from "../components/ChatBot";
 import NavbarView from "../components/NavbarView";
+import Footer from "../components/Footer.jsx";
 
 export default function UserView() {
   const navigate = useNavigate();
@@ -195,7 +196,7 @@ export default function UserView() {
   {/* Sección de Bienvenida */}
   <motion.h2
     className="text-4xl font-bold text-[#00438F] mb-4 text-center"
-    style={{ fontFamily: "Lobster Two, cursive" }}
+    style={{ fontFamily: 'Montserrat, Poppins, sans-serif' }}
     initial={{ opacity: 0, y: -30 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.8, ease: "easeOut" }}
@@ -246,7 +247,7 @@ export default function UserView() {
     {/* Título */}
     <motion.h2
     className="text-4xl font-bold text-[#00438F] mb-4 text-center"
-    style={{ fontFamily: "Lobster Two, cursive" }}
+    style={{ fontFamily: 'Montserrat, Poppins, sans-serif' }}
     initial={{ opacity: 0, y: -30 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.8, ease: "easeOut" }}
@@ -290,7 +291,15 @@ export default function UserView() {
             imagen={lugar.imagen_url || "/default-image.png"}
             titulo={lugar.nombre}
             descripcion={lugar.descripcion}
-            onClick={() => setSelectedCard(lugar)}
+            onClick={() =>
+    setSelectedCard({
+      ...lugar,
+      hora_aper: lugar.hora_aper,
+      hora_cierra: lugar.hora_cierra,
+      precios: lugar.precios,
+      direccion: lugar.direccion
+    })
+  }
           />
         ))}
     </div>
@@ -317,6 +326,7 @@ export default function UserView() {
         card={selectedCard}
       />
     <Chatbot />
+    <Footer />
   </>
 );
 }

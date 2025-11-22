@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from 'react';
 import backgroundVideo from '../assets/img/Bogota2.mp4';
+import Footer from "../components/Footer";
 const Inicio = () => {
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -152,92 +153,10 @@ const Inicio = () => {
     : [];
 
   return (
+  <>
     <div className="min-h-screen" style={{ fontFamily: "Lobster Two, cursive" }}>
-      {/* Header/Navigation */}
-      <header className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-md z-40 shadow-sm" style={{ fontFamily: "Lobster Two, cursive" }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <div className="flex-shrink-0">
-              <h1 className="text-2xl font-bold text-purple-400" style={{ fontFamily: "Lobster Two, cursive" }}>BogotáTuris</h1>
-            </div>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex space-x-8" style={{ fontFamily: "Lobster Two, cursive" }}>
-              <button 
-                onClick={() => scrollToSection('inicio')}
-                className="text-gray-600 hover:text-purple-400 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-purple-50"
-                style={{ fontFamily: "Lobster Two, cursive" }}
-              >
-                Inicio
-              </button>
-              <button 
-                onClick={() => scrollToSection('categorias')}
-                className="text-gray-600 hover:text-purple-400 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-purple-50"
-                style={{ fontFamily: "Lobster Two, cursive" }}
-              >
-                Categorías
-              </button>
-              <button 
-                onClick={() => scrollToSection('acerca')}
-                className="text-gray-600 hover:text-purple-400 font-medium transition-colors px-3 py-2 rounded-lg hover:bg-purple-50"
-                style={{ fontFamily: "Lobster Two, cursive" }}
-              >
-                Acerca de Nosotros
-              </button>
-            </nav>
-
-            {/* Mobile menu button */}
-            <div className="md:hidden">
-              <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="text-gray-600 hover:text-purple-400 p-2 rounded-lg hover:bg-purple-50"
-                style={{ fontFamily: "Lobster Two, cursive" }}
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  {isMenuOpen ? (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                  ) : (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-                  )}
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          {/* Mobile Navigation */}
-          {isMenuOpen && (
-            <div className="md:hidden py-4 border-t border-gray-200" style={{ fontFamily: "Lobster Two, cursive" }}>
-              <div className="flex flex-col space-y-2">
-                <button 
-                  onClick={() => scrollToSection('inicio')}
-                  className="text-gray-600 hover:text-purple-400 font-medium text-left py-2 px-3 rounded-lg hover:bg-purple-50"
-                  style={{ fontFamily: "Lobster Two, cursive" }}
-                >
-                  Inicio
-                </button>
-                <button 
-                  onClick={() => scrollToSection('categorias')}
-                  className="text-gray-600 hover:text-purple-400 font-medium text-left py-2 px-3 rounded-lg hover:bg-purple-50"
-                  style={{ fontFamily: "Lobster Two, cursive" }}
-                >
-                  Categorías
-                </button>
-                <button 
-                  onClick={() => scrollToSection('acerca')}
-                  className="text-gray-600 hover:text-purple-400 font-medium text-left py-2 px-3 rounded-lg hover:bg-purple-50"
-                  style={{ fontFamily: "Lobster Two, cursive" }}
-                >
-                  Acerca de Nosotros
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </header>
-
       {/* Main Content */}
-      <main className="pt-16" style={{ fontFamily: "Lobster Two, cursive" }}>
+      <main style={{ fontFamily: "Lobster Two, cursive" }}>
       
         {/* Video Hero Section */}
         <section id="inicio" className="relative w-full h-[70vh] sm:h-[80vh] md:h-[85vh] lg:h-screen overflow-hidden" style={{ fontFamily: "Lobster Two, cursive" }}>
@@ -512,6 +431,8 @@ const Inicio = () => {
         </div>
       )}
     </div>
+    <Footer />
+    </>
   );
 }
 
