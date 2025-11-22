@@ -1,15 +1,18 @@
-import "../assets/css/FormSignUp.css";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import useFormValidation from "../hooks/useFormValidation.jsx";
 import usePoliticas from "../hooks/usePoliticas";
 import PDFModal from "../components/PDFModal";
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; 
+import { MapPin, Compass, Building2, Eye, EyeOff } from "lucide-react";
 
 const FormSignUp = () => {
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const navigate = useNavigate();
-  const [showTerminosModal, setShowTerminosModal] = useState(false); 
+  const [showTerminosModal, setShowTerminosModal] = useState(false);
   const [showTratamientoModal, setShowTratamientoModal] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const {
     formData,
     validationState,
@@ -19,949 +22,880 @@ const FormSignUp = () => {
     interesesDisponibles,
     loadingNacionalidades,
     loadingIntereses,
-    validatingEmail,
-    validatingNacionalidad,
-    validatePrimerNombre,
-    validateSegundoNombre,
-    validatePrimerApellido,
-    validateSegundoApellido,
+    validarTodoElFormulario,
     handleInputChange,
     handleInteresesChange,
     calcularProgreso,
     formularioCompleto,
-    validarTodoElFormulario,
+    updateValidationState,
     resetForm,
-    updateValidationState
   } = useFormValidation();
 
-  // Hook de políticas
   const {
     pdfVisualizado,
     sessionId,
     politicasAceptadas,
-    mensajesPoliticas,
     registrarVisualizacionPDF,
     handlePoliticaChange,
     validarPoliticas,
     politicasCompletas,
-    resetPoliticas
+    mensajesPoliticas,
+    resetPoliticas,
   } = usePoliticas();
 
-  // Sincronizar el estado de políticas con validationState
-  useEffect(() => {
-    // Actualizar acepto_terminos
-    if (pdfVisualizado.terminos && politicasAceptadas.acepto_terminos) {
-      updateValidationState('acepto_terminos', true);
-    } else {
-      updateValidationState('acepto_terminos', null);
-    }
-  }, [pdfVisualizado.terminos, politicasAceptadas.acepto_terminos, updateValidationState]);
+  const progreso = calcularProgreso();
 
-  useEffect(() => {
-    // Actualizar acepto_tratamiento_datos
-    if (pdfVisualizado.tratamiento_datos && politicasAceptadas.acepto_tratamiento_datos) {
-      updateValidationState('acepto_tratamiento_datos', true);
-    } else {
-      updateValidationState('acepto_tratamiento_datos', null);
-    }
-  }, [pdfVisualizado.tratamiento_datos, politicasAceptadas.acepto_tratamiento_datos, updateValidationState]);
-
-  // Manejador de envío del formulario (mejorado)
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Validar políticas primero
     if (!validarPoliticas()) {
-      alert("Debes leer y aceptar las políticas antes de registrarte");
+      alert("Debes aceptar las políticas antes de registrarte");
       return;
     }
 
-    // Validar todo el formulario
     const esValido = await validarTodoElFormulario(politicasAceptadas);
-
     if (!esValido) {
-      alert("Por favor completa todos los campos requeridos correctamente");
+      alert("Por favor completa todos los campos correctamente");
       return;
     }
 
-    // Verificar que las contraseñas coincidan
     if (formData.clave !== formData.confirmarClave) {
       alert("Las contraseñas no coinciden");
       return;
     }
 
-    // Crear objeto con los datos del formulario
-    // Asegurarse de que sessionId esté definido
     if (!sessionId) {
-      console.error('Error: sessionId no está definido');
-      alert('Error de sesión. Por favor, recarga la página e inténtalo de nuevo.');
-      return;
-    }
-
-    // Asegurarse de que todos los campos requeridos tengan valores válidos
-    if (!formData.primer_nombre || !formData.primer_apellido || !formData.correo || !formData.clave || !formData.nacionalidad) {
-      alert('Por favor completa todos los campos requeridos');
-      return;
-    }
-
-    // Validar que se hayan seleccionado intereses
-    if (!formData.intereses || formData.intereses.length === 0) {
-      alert('Por favor selecciona al menos un interés');
-      return;
-    }
-
-    // Validar que se hayan aceptado los términos
-    if (!politicasAceptadas.acepto_terminos || !politicasAceptadas.acepto_tratamiento_datos) {
-      alert('Debes aceptar los términos y condiciones y la política de tratamiento de datos');
-      return;
-    }
-
-    // Validar que la contraseña tenga al menos 8 caracteres
-    if (formData.clave.length < 8) {
-      alert('La contraseña debe tener al menos 8 caracteres');
-      return;
-    }
-
-    // Validar que las contraseñas coincidan
-    if (formData.clave !== formData.confirmarClave) {
-      alert('Las contraseñas no coinciden');
+      alert("Error de sesión. Recarga la página");
       return;
     }
 
     const datosFormulario = {
-      primer_nombre: formData.primer_nombre.trim(),
-      segundo_nombre: formData.segundo_nombre ? formData.segundo_nombre.trim() : null,
-      primer_apellido: formData.primer_apellido.trim(),
-      segundo_apellido: formData.segundo_apellido ? formData.segundo_apellido.trim() : null,
-      correo: formData.correo.trim().toLowerCase(),
-      clave: formData.clave,
-      nacionalidad: formData.nacionalidad,
-      intereses: Array.isArray(formData.intereses) ? formData.intereses : [],
+      ...formData,
+      session_id: sessionId,
       acepto_terminos: politicasAceptadas.acepto_terminos,
       acepto_tratamiento_datos: politicasAceptadas.acepto_tratamiento_datos,
-      session_id: sessionId
     };
-    
-    console.log('Datos a enviar al servidor:', JSON.stringify(datosFormulario, null, 2));
 
-    try {
-      const response = await fetch("http://localhost:8000/api/usuario/registro", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-        },
-        body: JSON.stringify(datosFormulario),
-      })
-
-      let resultado;
-      try {
-        resultado = await response.json();
-      } catch (error) {
-        console.error('Error al analizar la respuesta JSON:', error);
-        throw new Error('Error al procesar la respuesta del servidor');
-      }
-
-      if (response.ok) {
-        console.log('Usuario registrado exitosamente:', resultado);
-        setShowWelcomeModal(true);
-
-        // Limpiar formulario y políticas después del éxito
-        resetForm();
-        resetPoliticas();
-
-        // Mostrar mensaje de éxito y redirigir al login después de 3 segundos
-        alert('¡Registro exitoso! Por favor verifica tu correo electrónico para activar tu cuenta.');
-        
-        // Redirigir al login después de mostrar el mensaje
-        setTimeout(() => {
-          navigate('/login');
-        }, 3000);
-
-      } else {
-        console.error('Error del servidor:', {
-          status: response.status,
-          statusText: response.statusText,
-          data: resultado
-        });
-
-        // Manejar diferentes tipos de errores del backend
-        let mensajeError = 'Error en el registro. ';
-        
-        // Si es un error 422, mostrar detalles de validación
-        if (response.status === 422 && resultado.detail) {
-          if (Array.isArray(resultado.detail)) {
-            // Error de validación de Pydantic
-            const errores = resultado.detail.map(e => {
-              const campo = e.loc ? e.loc.join('.') : 'campo_desconocido';
-              return `- ${campo}: ${e.msg}`;
-            }).join('\n');
-            mensajeError = `Error de validación:\n${errores}`;
-          } else if (typeof resultado.detail === 'string') {
-            mensajeError = resultado.detail;
-          } else if (resultado.detail.detail) {
-            mensajeError = resultado.detail.detail;
-          }
-        } 
-        // Otros tipos de errores
-        else if (resultado.detail) {
-          if (typeof resultado.detail === 'object') {
-            // Error con información de campo específico
-            if (resultado.detail.detail) {
-              mensajeError += resultado.detail.detail;
-            }
-            if (resultado.detail.campo) {
-              mensajeError += ` (Campo: ${resultado.detail.campo})`;
-            }
-          } else if (typeof resultado.detail === 'string') {
-            mensajeError = resultado.detail;
-          }
-        }
-
-        alert(`Error (${response.status}): ${mensajeError}`);
-      }
-    } catch (error) {
-      console.error('Error de conexión:', error);
-      alert('Error de conexión. Verifica que el servidor esté ejecutándose en http://localhost:8000');
-    }
+    console.log("Enviar datos:", datosFormulario);
+    setShowWelcomeModal(true);
+    resetForm();
+    resetPoliticas();
   };
 
-  const progreso = calcularProgreso();
-
-  // Generar opciones de nacionalidades dinámicamente
   const renderNacionalidades = () => {
-    if (loadingNacionalidades) {
-      return <option value="">Cargando nacionalidades...</option>;
-    }
-
-    if (nacionalidades.length === 0) {
-      return (
-        <option value="" disabled>
-          No se encontraron nacionalidades
+    if (loadingNacionalidades) return <option>Cargando...</option>;
+    return [
+      <option key="default" value="">
+        Selecciona una opción
+      </option>,
+      ...nacionalidades.map((nac) => (
+        <option key={nac.id_nac} value={nac.id_nac}>
+          {nac.nacionalidad}
         </option>
-      );
-    }
-
-    return (
-      <>
-        <option value="" disabled>
-          Selecciona una opción
-        </option>
-        {nacionalidades.map((nac) => (
-          <option key={nac.id_nac} value={nac.id_nac}>
-            {nac.nacionalidad}
-          </option>
-        ))}
-      </>
-    );
+      )),
+    ];
   };
 
-  // Generar intereses dinámicamente desde el servidor
   const renderIntereses = () => {
-    if (loadingIntereses || interesesDisponibles.length === 0) {
-      // Fallback con intereses estáticos
-      const interesesEstaticos = [
-        "Aventureros", "Arte", "Gastronomía", "Naturaleza", "Conciertos",
-        "Escalada", "Museos", "Eventos", "Yoga", "Bares", "Danza",
-        "Cultura", "Deportes", "Historia", "Festivales", "Talleres",
-        "Cocinar", "Ecoturismo", "Concursos", "Discotecas"
-      ];
-
-      return interesesEstaticos.map((interes, index) => (
-        <tr key={`static-${index}`}>
-          <td className="checkbox-col">
+    const lista =
+      interesesDisponibles.length > 0
+        ? interesesDisponibles
+        : [
+            "Aventureros",
+            "Arte",
+            "Gastronomía",
+            "Naturaleza",
+            "Conciertos",
+            "Museos",
+            "Eventos",
+            "Yoga",
+            "Bares",
+          ];
+    
+    return (
+      <div style={{ 
+        display: "grid", 
+        gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", 
+        gap: "10px", 
+        padding: "15px", 
+        backgroundColor: "#f9fafb", 
+        borderRadius: "8px", 
+        border: "1px solid #e0e0e0" 
+      }}>
+        {lista.map((interes, i) => (
+          <label 
+            key={i} 
+            style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              cursor: "pointer", 
+              fontSize: "14px",
+              padding: "8px",
+              backgroundColor: "white",
+              borderRadius: "6px",
+              border: "1px solid #ddd",
+              transition: "all 0.2s"
+            }}
+          >
             <input
               type="checkbox"
               name="intereses"
               value={interes}
               checked={formData.intereses?.includes(interes)}
               onChange={handleInteresesChange}
+              style={{ 
+                marginRight: "8px", 
+                width: "16px", 
+                height: "16px", 
+                cursor: "pointer" 
+              }}
             />
-          </td>
-          <td className="texto-col">{interes}</td>
-        </tr>
-      ));
-    }
-
-    // Dividir intereses en dos columnas
-    const mitad = Math.ceil(interesesDisponibles.length / 2);
-    const primeraColumna = interesesDisponibles.slice(0, mitad);
-    const segundaColumna = interesesDisponibles.slice(mitad);
-
-    return {
-      primeraColumna: primeraColumna.map((interes) => (
-        <tr key={`col1-${interes.id_inte}`}>
-          <td className="checkbox-col">
-            <input
-              type="checkbox"
-              name="intereses"
-              value={interes.interes}
-              checked={formData.intereses?.includes(interes.interes)}
-              onChange={handleInteresesChange}
-            />
-          </td>
-          <td className="texto-col">{interes.interes}</td>
-        </tr>
-      )),
-      segundaColumna: segundaColumna.map((interes) => (
-        <tr key={`col2-${interes.id_inte}`}>
-          <td className="checkbox-col">
-            <input
-              type="checkbox"
-              name="intereses"
-              value={interes.interes}
-              checked={formData.intereses?.includes(interes.interes)}
-              onChange={handleInteresesChange}
-            />
-          </td>
-          <td className="texto-col">{interes.interes}</td>
-        </tr>
-      ))
-    };
+            <span>{interes}</span>
+          </label>
+        ))}
+      </div>
+    );
   };
 
-  const interesesRenderizados = renderIntereses();
-    const handleWelcomeClose = () => {
+  const handleWelcomeClose = () => {
     setShowWelcomeModal(false);
-    navigate('/login');
+    navigate("/login");
+  };
 
+  const getPasswordLabel = (nivel) => {
+    if (nivel <= 1) return "Baja";
+    if (nivel === 2) return "Media";
+    return "Segura";
   };
 
   return (
-    <>
-      <div className="container">
-        <h1  className="titulo-navbar">✍Registro</h1>
-        <div className="Progreso-formulario">
-          <div
-            className="barra-progreso"
-            id="barraProgreso"
-            style={{ width: `${progreso}%` }}
-          ></div>
+    <div style={{ 
+      minHeight: "100vh", 
+      background: "linear-gradient(135deg, #001a33 0%, #003366 50%, #004b8d 100%)",
+      padding: "20px 0"
+    }}>
+      <div style={{ 
+        minHeight: "100vh", 
+        backgroundColor: "rgba(0, 26, 51, 0.7)", 
+        display: "flex",
+        flexDirection: { xs: "column", md: "row" }
+      }}>
+        
+        {/* Panel izquierdo - Imagen de Bogotá */}
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "white",
+            padding: { xs: "20px", md: "40px" },
+            backgroundImage: "url(https://images.unsplash.com/photo-1568632234157-ce7aecd03d0d?q=80&w=2070)",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            minHeight: { xs: "300px", md: "auto" }
+          }}
+        >
+          <div style={{ 
+            backgroundColor: "rgba(0, 26, 51, 0.75)", 
+            padding: { xs: "25px", md: "40px" }, 
+            borderRadius: "20px", 
+            backdropFilter: "blur(10px)", 
+            textAlign: "center", 
+            maxWidth: "500px",
+            width: "100%"
+          }}>
+            <div style={{ 
+              display: "flex", 
+              justifyContent: "center", 
+              gap: "30px", 
+              marginBottom: "30px", 
+              color: "#ffda44" 
+            }}>
+              <MapPin size={48} />
+              <Compass size={48} />
+              <Building2 size={48} />
+            </div>
+            <h1 style={{ 
+              fontSize: { xs: "2rem", md: "2.5rem" }, 
+              fontWeight: "bold", 
+              marginBottom: "20px" 
+            }}>
+              Bienvenido a <span style={{ color: "#ffda44" }}>BogotaTuris</span>
+            </h1>
+            <p style={{ 
+              color: "white", 
+              fontSize: { xs: "0.9rem", md: "1rem" }, 
+              lineHeight: "1.6" 
+            }}>
+              Vive la magia de la capital colombiana. Cultura, historia y aventura en un solo lugar. SAY NO MORE.
+            </p>
+          </div>
         </div>
-        <p style={{ textAlign: "center", color: "#666", marginBottom: "30px" }}>
-          Proceso: <span id="porcentajeProgreso">{progreso}%</span>
-        </p>
 
-        <form id="formularioAvanzado" noValidate onSubmit={handleSubmit}>
-          <div className="form-group">
-            <div className="form-group">
-              <h4>Datos Personales</h4>
-              {/* Primer Nombre */}
-              <div className="form-group">
-                <label htmlFor="primer_nombre">Primer Nombre *</label>
-                <input
-                  type="text"
-                  id="primer_nombre"
-                  name="primer_nombre"
-                  value={formData.primer_nombre}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="Ej: Emily"
-                  pattern="[A-Za-zÁÉÍÓÚáéíúóÑñÜü ]{2,40}"
-                  className={
-                    validationState.primer_nombre === true
-                      ? "valido"
-                      : validationState.primer_nombre === false
-                        ? "invalido"
-                        : ""
-                  }
-                />
-                <div
-                  className="mensaje-error"
-                  style={{ display: messages.errorPrimerNombre ? "block" : "none" }}
-                >
-                  {messages.errorPrimerNombre}
-                </div>
-                <div
-                  className="mensaje-exito"
-                  style={{ display: messages.exitoPrimerNombre ? "block" : "none" }}
-                >
-                  {messages.exitoPrimerNombre}
-                </div>
-              </div>
-
-              {/* Segundo Nombre (opcional) */}
-              <div className="form-group">
-                <label htmlFor="segundo_nombre">Segundo Nombre</label>
-                <input
-                  type="text"
-                  id="segundo_nombre"
-                  name="segundo_nombre"
-                  value={formData.segundo_nombre || ""}
-                  onChange={handleInputChange}
-                  placeholder="Ej: Andrea"
-                  pattern="[A-Za-zÁÉÍÓÚáéíúóÑñÜü ]{2,40}"
-                  className={
-                    validationState.segundo_nombre === true
-                      ? "valido"
-                      : validationState.segundo_nombre === false
-                        ? "invalido"
-                        : ""
-                  }
-                />
-                <div
-                  className="mensaje-error"
-                  style={{ display: messages.errorSegundoNombre ? "block" : "none" }}
-                >
-                  {messages.errorSegundoNombre}
-                </div>
-                <div
-                  className="mensaje-exito"
-                  style={{ display: messages.exitoSegundoNombre ? "block" : "none" }}
-                >
-                  {messages.exitoSegundoNombre}
-                </div>
-              </div>
-
-              {/* Primer Apellido */}
-              <div className="form-group">
-                <label htmlFor="primer_apellido">Primer Apellido *</label>
-                <input
-                  type="text"
-                  id="primer_apellido"
-                  name="primer_apellido"
-                  value={formData.primer_apellido}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="Ej: Remicio"
-                  pattern="[A-Za-zÁÉÍÓÚáéíúóÑñÜü ]{2,40}"
-                  className={
-                    validationState.primer_apellido === true
-                      ? "valido"
-                      : validationState.primer_apellido === false
-                        ? "invalido"
-                        : ""
-                  }
-                />
-                <div
-                  className="mensaje-error"
-                  style={{ display: messages.errorPrimerApellido ? "block" : "none" }}
-                >
-                  {messages.errorPrimerApellido}
-                </div>
-                <div
-                  className="mensaje-exito"
-                  style={{ display: messages.exitoPrimerApellido ? "block" : "none" }}
-                >
-                  {messages.exitoPrimerApellido}
-                </div>
-              </div>
-
-              {/* Segundo Apellido (opcional) */}
-              <div className="form-group">
-                <label htmlFor="segundo_apellido">Segundo Apellido</label>
-                <input
-                  type="text"
-                  id="segundo_apellido"
-                  name="segundo_apellido"
-                  value={formData.segundo_apellido || ""}
-                  onChange={handleInputChange}
-                  placeholder="Ej: López"
-                  pattern="[A-Za-zÁÉÍÓÚáéíúóÑñÜü ]{2,40}"
-                  className={
-                    validationState.segundo_apellido === true
-                      ? "valido"
-                      : validationState.segundo_apellido === false
-                        ? "invalido"
-                        : ""
-                  }
-                />
-                <div
-                  className="mensaje-error"
-                  style={{ display: messages.errorSegundoApellido ? "block" : "none" }}
-                >
-                  {messages.errorSegundoApellido}
-                </div>
-                <div
-                  className="mensaje-exito"
-                  style={{ display: messages.exitoSegundoApellido ? "block" : "none" }}
-                >
-                  {messages.exitoSegundoApellido}
-                </div>
-              </div>
-            </div>
-
-            {/* Email con validación mejorada */}
-            <div className="form-group">
-              <label htmlFor="correo">Correo Electrónico *</label>
-              <input
-                type="email"
-                id="correo"
-                name="correo"
-                value={formData.correo}
-                onChange={handleInputChange}
-                required
-                placeholder="usuario@dominio.com"
-                className={
-                  validationState.correo === true
-                    ? "valido"
-                    : validationState.correo === false
-                      ? "invalido"
-                      : ""
-                }
-              />
-
-              <div
-                className="mensaje-error"
-                id="errorCorreo"
-                style={{ display: messages.errorCorreo ? "block" : "none" }}
-              >
-                {messages.errorCorreo}
-              </div>
-              <div
-                className="mensaje-exito"
-                id="exitoCorreo"
-                style={{ display: messages.exitoCorreo ? "block" : "none" }}
-              >
-                {messages.exitoCorreo}
-              </div>
-            </div>
-
-            {/*Confirmación de Correo electronico */}
-            <div className="form-group">
-              <label htmlFor="confirmarCorreo">
-                Confirmar correo electronico *
-              </label>
-              <input
-                type="email"
-                id="confirmarCorreo"
-                name="confirmarCorreo"
-                value={formData.confirmarCorreo}
-                onChange={handleInputChange}
-                required
-                placeholder="Repite tu correo electronico"
-                className={
-                  validationState.confirmarCorreo === true
-                    ? "valido"
-                    : validationState.confirmarCorreo === false
-                      ? "invalido"
-                      : ""
-                }
-              />
-              <div
-                className="mensaje-error"
-                id="errorConfirmarCorreo"
-                style={{
-                  display: messages.errorConfirmarCorreo ? "block" : "none",
-                }}
-              >
-                {messages.errorConfirmarCorreo}
-              </div>
-              <div
-                className="mensaje-exito"
-                id="exitoConfirmarCorreo"
-                style={{
-                  display: messages.exitoConfirmarCorreo ? "block" : "none",
-                }}
-              >
-                {messages.exitoConfirmarCorreo}
-              </div>
-            </div>
-
-            {/* Clave con indicador de fortaleza */}
-            <div className="form-group">
-              <label htmlFor="clave">Clave *</label>
-              <input
-                type="password"
-                id="clave"
-                name="clave"
-                value={formData.clave}
-                onChange={handleInputChange}
-                required
-                placeholder="Ingresar numeros, una mayuscula, minuscula"
-                minLength="8"
-                className={
-                  validationState.clave === true
-                    ? "valido"
-                    : validationState.clave === false
-                      ? "invalido"
-                      : ""
-                }
-              />
-
-              {/* Indicador visual de fortaleza */}
-              <div className="password-strength-container">
-                <div
-                  className="password-strength-bar"
-                  style={{
-                    width: `${(passwordStrength.nivel / 4) * 100}%`,
-                    backgroundColor: passwordStrength.color
-                  }}
-                ></div>
-                <small
-                  style={{
-                    color: passwordStrength.color,
-                    marginTop: "2px",
-                    display: "block"
-                  }}
-                >
-                  {formData.clave.length > 0 && passwordStrength.texto}
-                </small>
-              </div>
-
-              <div
-                className="mensaje-error"
-                style={{ display: messages.errorClave ? "block" : "none" }}
-              >
-                {messages.errorClave}
-              </div>
-              <div
-                className="mensaje-exito"
-                style={{ display: messages.exitoClave ? "block" : "none" }}
-              >
-                {messages.exitoClave}
-              </div>
-            </div>
-
-
-            {/* Confirmación de clave */}
-            <div className="form-group">
-              <label htmlFor="confirmarClave">Confirmar clave *</label>
-              <input
-                type="password"
-                id="confirmarClave"
-                name="confirmarClave"
-                value={formData.confirmarClave}
-
-                onChange={handleInputChange}
-                required
-                placeholder="Repite tu contraseña"
-                className={
-                  validationState.ConfirmarClave === true
-                    ? "valido"
-                    : validationState.ConfirmarClave === false
-                      ? "invalido"
-                      : ""
-                }
-              />
-              <div
-                className="mensaje-error"
-                id="errorConfirmar"
-                style={{
-                  display: messages.errorConfirmarClave ? "block" : "none",
-                }}
-              >
-                {messages.errorConfirmarClave}
-              </div>
-              <div
-                className="mensaje-exito"
-                id="exitoConfirmar"
-                style={{
-                  display: messages.exitoConfirmarClave ? "block" : "none",
-                }}
-              >
-                {messages.exitoConfirmarClave}
-              </div>
-            </div>
-
-            {/* Nacionalidad con seleccionar - DINÁMICO */}
-            <div className="form-group">
-              <label htmlFor="nacionalidad">
-                Seleccionar tu nacionalidad *
-              </label>
-              <select
-                name="nacionalidad"
-                id="nacionalidad"
-                value={formData.nacionalidad}
-                onChange={handleInputChange}
-                required
-                disabled={loadingNacionalidades}
-                className={
-                  validationState.nacionalidad === true
-                    ? "valido"
-                    : validationState.nacionalidad === false
-                      ? "invalido"
-                      : ""
-                }
-              >
-                {renderNacionalidades()}
-              </select>
-              {validatingNacionalidad && (
-                <small style={{ color: '#17a2b8' }}>Verificando nacionalidad...</small>
-              )}
-              <div
-                id="errorNacionalidad"
-                className="mensaje-error"
-                style={{
-                  display: messages.errorNacionalidad ? "block" : "none",
-                }}
-              >
-                {messages.errorNacionalidad}
-              </div>
-              <div
-                id="exitoNacionalidad"
-                className="mensaje-exito"
-                style={{
-                  display: messages.exitoNacionalidad ? "block" : "none",
-                }}
-              >
-                {messages.exitoNacionalidad}
-              </div>
-            </div>
-
-            {/* Intereses Turísticos - DINÁMICOS */}
-            <div className={`form-group-Intereses ${validationState.intereses === true
-              ? "valido"
-              : validationState.intereses === false
-                ? "invalido"
-                : ""
-              }`}>
-              <label htmlFor="intereses">Intereses Turísticos *</label>
-              {loadingIntereses && (
-                <p style={{ textAlign: 'center', color: '#666' }}>
-                  Cargando intereses disponibles...
-                </p>
-              )}
-
-              <div className="tablas-container" id="contenedor-intereses">
-                {/* TABLA IZQUIERDA */}
-                <table className="tabla-intereses">
-                  <tbody>
-                    {Array.isArray(interesesRenderizados)
-                      ? interesesRenderizados.slice(0, Math.ceil(interesesRenderizados.length / 2))
-                      : interesesRenderizados.primeraColumna || []}
-                  </tbody>
-                </table>
-
-                {/* TABLA DERECHA */}
-                <table className="tabla-intereses">
-                  <tbody>
-                    {Array.isArray(interesesRenderizados)
-                      ? interesesRenderizados.slice(Math.ceil(interesesRenderizados.length / 2))
-                      : interesesRenderizados.segundaColumna || []}
-                  </tbody>
-                </table>
-              </div>
-
-              <div
-                className="mensaje-error"
-                style={{ display: messages.errorIntereses ? "block" : "none" }}
-              >
-                {messages.errorIntereses}
-              </div>
-              <div
-                className="mensaje-exito"
-                style={{ display: messages.exitoIntereses ? "block" : "none" }}
-              >
-                {messages.exitoIntereses}
-              </div>
-            </div>
-
-            {/* Políticas y Consentimientos */}
-            <div className="form-group">
-              <label style={{ 
-                fontSize: '1.1rem', 
-                fontWeight: '600', 
-                color: '#2c3e50',
-                marginBottom: '15px',
-                display: 'block'
+        {/* Panel derecho - Formulario */}
+        <div style={{ 
+          flex: 1, 
+          display: "flex", 
+          alignItems: "center", 
+          justifyContent: "center", 
+          padding: { xs: "20px", md: "30px 40px" }, 
+          overflowY: "auto"
+        }}>
+          <div style={{ 
+            backgroundColor: "rgba(255, 255, 255, 0.95)", 
+            backdropFilter: "blur(10px)", 
+            border: "1px solid #c9d6e8", 
+            borderRadius: "20px", 
+            padding: { xs: "20px", md: "30px" }, 
+            width: "100%", 
+            maxWidth: "520px", 
+            boxShadow: "0 10px 40px rgba(0,0,0,0.3)" 
+          }}>
+            
+            <div style={{ textAlign: "center", marginBottom: "20px" }}>
+              <h2 style={{ 
+                fontSize: { xs: "1.5rem", md: "1.75rem" }, 
+                fontWeight: "bold", 
+                color: "#002855", 
+                marginBottom: "8px" 
               }}>
-                Políticas y Consentimientos *
-              </label>
-              
-              {/* Términos y Condiciones */}
+                ✍ Registro
+              </h2>
+              <p style={{ color: "#5b5b5b", fontSize: "14px" }}>
+                Únete a la comunidad de BogotaTuris
+              </p>
+            </div>
+
+            {/* Barra de progreso */}
+            <div style={{ 
+              background: "#e0e0e0", 
+              borderRadius: "10px", 
+              overflow: "hidden", 
+              height: "6px", 
+              marginBottom: "8px" 
+            }}>
               <div style={{ 
-                marginBottom: '20px', 
-                padding: '15px', 
-                border: '1px solid #e0e0e0', 
-                borderRadius: '8px', 
-                backgroundColor: '#f9f9f9' 
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', justifyContent: 'space-between' }}>
-                  <input
-                    type="checkbox"
-                    checked={politicasAceptadas.acepto_terminos}
-                    onChange={(e) => handlePoliticaChange('acepto_terminos', e.target.checked)}
-                    disabled={!pdfVisualizado.terminos}
-                    style={{ flexShrink: 0, width: '20px', height: '20px', cursor: 'pointer' }}
-                  />
-                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontWeight: '500', color: '#333', fontSize: '0.95rem' }}>
-                      Acepto los términos y condiciones *
-                    </span>
-                    {pdfVisualizado.terminos && (
-                      <span style={{ color: '#28a745', fontSize: '0.85rem', fontWeight: '500', whiteSpace: 'nowrap' }}>
-                        ✓ Visualizado
-                      </span>
-                    )}
+                width: `${progreso}%`, 
+                height: "100%", 
+                background: "linear-gradient(90deg, #004b8d, #0066cc)", 
+                transition: "width 0.4s" 
+              }} />
+            </div>
+            <p style={{ 
+              textAlign: "center", 
+              color: "#666", 
+              marginBottom: "18px", 
+              fontSize: "14px" 
+            }}>
+              Progreso: <strong>{progreso}%</strong>
+            </p>
+
+            <form onSubmit={handleSubmit} noValidate>
+              {/* Datos Personales */}
+              <div style={{ marginBottom: "20px" }}>
+                <h3 style={{ 
+                  marginBottom: "12px", 
+                  color: "#002855", 
+                  fontWeight: "600", 
+                  fontSize: "16px" 
+                }}>
+                  Datos Personales
+                </h3>
+                
+                <div style={{ 
+                  display: "grid", 
+                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, 
+                  gap: "12px", 
+                  marginBottom: "12px" 
+                }}>
+                  <div>
+                    <label style={{ 
+                      display: "block", 
+                      marginBottom: "6px", 
+                      fontWeight: "600", 
+                      color: "#002855", 
+                      fontSize: "14px" 
+                    }}>
+                      Primer Nombre *
+                    </label>
+                    <input
+                      name="primer_nombre"
+                      value={formData.primer_nombre}
+                      onChange={handleInputChange}
+                      placeholder="Nombre"
+                      style={{ 
+                        width: "100%", 
+                        padding: "12px", 
+                        borderRadius: "8px", 
+                        border: "1px solid #a9bcd0", 
+                        fontSize: "14px", 
+                        boxSizing: "border-box", 
+                        outline: "none",
+                        transition: "border-color 0.2s"
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = "#004b8d"}
+                      onBlur={(e) => e.target.style.borderColor = "#a9bcd0"}
+                    />
                   </div>
+                  <div>
+                    <label style={{ 
+                      display: "block", 
+                      marginBottom: "6px", 
+                      fontWeight: "600", 
+                      color: "#002855", 
+                      fontSize: "14px" 
+                    }}>
+                      Segundo Nombre
+                    </label>
+                    <input
+                      name="segundo_nombre"
+                      value={formData.segundo_nombre || ""}
+                      onChange={handleInputChange}
+                      placeholder="Opcional"
+                      style={{ 
+                        width: "100%", 
+                        padding: "12px", 
+                        borderRadius: "8px", 
+                        border: "1px solid #a9bcd0", 
+                        fontSize: "14px", 
+                        boxSizing: "border-box", 
+                        outline: "none",
+                        transition: "border-color 0.2s"
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = "#004b8d"}
+                      onBlur={(e) => e.target.style.borderColor = "#a9bcd0"}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ 
+                  display: "grid", 
+                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, 
+                  gap: "12px" 
+                }}>
+                  <div>
+                    <label style={{ 
+                      display: "block", 
+                      marginBottom: "6px", 
+                      fontWeight: "600", 
+                      color: "#002855", 
+                      fontSize: "14px" 
+                    }}>
+                      Primer Apellido *
+                    </label>
+                    <input
+                      name="primer_apellido"
+                      value={formData.primer_apellido}
+                      onChange={handleInputChange}
+                      placeholder="Apellido"
+                      style={{ 
+                        width: "100%", 
+                        padding: "12px", 
+                        borderRadius: "8px", 
+                        border: "1px solid #a9bcd0", 
+                        fontSize: "14px", 
+                        boxSizing: "border-box", 
+                        outline: "none",
+                        transition: "border-color 0.2s"
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = "#004b8d"}
+                      onBlur={(e) => e.target.style.borderColor = "#a9bcd0"}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ 
+                      display: "block", 
+                      marginBottom: "6px", 
+                      fontWeight: "600", 
+                      color: "#002855", 
+                      fontSize: "14px" 
+                    }}>
+                      Segundo Apellido
+                    </label>
+                    <input
+                      name="segundo_apellido"
+                      value={formData.segundo_apellido || ""}
+                      onChange={handleInputChange}
+                      placeholder="Opcional"
+                      style={{ 
+                        width: "100%", 
+                        padding: "12px", 
+                        borderRadius: "8px", 
+                        border: "1px solid #a9bcd0", 
+                        fontSize: "14px", 
+                        boxSizing: "border-box", 
+                        outline: "none",
+                        transition: "border-color 0.2s"
+                      }}
+                      onFocus={(e) => e.target.style.borderColor = "#004b8d"}
+                      onBlur={(e) => e.target.style.borderColor = "#a9bcd0"}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Email y Clave */}
+              <div style={{ marginBottom: "20px" }}>
+                <label style={{ 
+                  display: "block", 
+                  marginBottom: "6px", 
+                  fontWeight: "600", 
+                  color: "#002855", 
+                  fontSize: "14px" 
+                }}>
+                  Correo Electrónico *
+                </label>
+                <input
+                  type="email"
+                  name="correo"
+                  value={formData.correo}
+                  onChange={handleInputChange}
+                  placeholder="ejemplo@correo.com"
+                  style={{ 
+                    width: "100%", 
+                    padding: "12px", 
+                    borderRadius: "8px", 
+                    border: "1px solid #a9bcd0", 
+                    marginBottom: "12px", 
+                    fontSize: "14px", 
+                    boxSizing: "border-box", 
+                    outline: "none",
+                    transition: "border-color 0.2s"
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = "#004b8d"}
+                  onBlur={(e) => e.target.style.borderColor = "#a9bcd0"}
+                />
+
+                <label style={{ 
+                  display: "block", 
+                  marginBottom: "6px", 
+                  fontWeight: "600", 
+                  color: "#002855", 
+                  fontSize: "14px" 
+                }}>
+                  Confirmar Correo *
+                </label>
+                <input
+                  type="email"
+                  name="confirmarCorreo"
+                  value={formData.confirmarCorreo}
+                  onChange={handleInputChange}
+                  placeholder="Confirma tu correo"
+                  style={{ 
+                    width: "100%", 
+                    padding: "12px", 
+                    borderRadius: "8px", 
+                    border: "1px solid #a9bcd0", 
+                    marginBottom: "12px", 
+                    fontSize: "14px", 
+                    boxSizing: "border-box", 
+                    outline: "none",
+                    transition: "border-color 0.2s"
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = "#004b8d"}
+                  onBlur={(e) => e.target.style.borderColor = "#a9bcd0"}
+                />
+
+                <label style={{ 
+                  display: "block", 
+                  marginBottom: "6px", 
+                  fontWeight: "600", 
+                  color: "#002855", 
+                  fontSize: "14px" 
+                }}>
+                  Contraseña *
+                </label>
+                <div style={{ position: "relative", marginBottom: "8px" }}>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="clave"
+                    value={formData.clave}
+                    onChange={handleInputChange}
+                    placeholder="Contraseña"
+                    style={{ 
+                      width: "100%", 
+                      padding: "12px 45px 12px 12px", 
+                      borderRadius: "8px", 
+                      border: "1px solid #a9bcd0", 
+                      fontSize: "14px", 
+                      boxSizing: "border-box", 
+                      outline: "none",
+                      transition: "border-color 0.2s"
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = "#004b8d"}
+                    onBlur={(e) => e.target.style.borderColor = "#a9bcd0"}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    style={{ 
+                      position: "absolute", 
+                      right: "12px", 
+                      top: "50%", 
+                      transform: "translateY(-50%)", 
+                      background: "none", 
+                      border: "none", 
+                      cursor: "pointer", 
+                      color: "#004b8d", 
+                      padding: "4px" 
+                    }}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+
+                {/* Barra de fortaleza de contraseña */}
+                <div style={{ marginBottom: "12px" }}>
+                  <div style={{ 
+                    height: "6px", 
+                    background: "#e0e0e0", 
+                    borderRadius: "3px", 
+                    overflow: "hidden" 
+                  }}>
+                    <div style={{ 
+                      width: `${(passwordStrength.nivel / 4) * 100}%`, 
+                      height: "100%", 
+                      backgroundColor: passwordStrength.color, 
+                      transition: "width 0.3s, background-color 0.3s" 
+                    }} />
+                  </div>
+                  <div style={{ 
+                    display: "flex", 
+                    justifyContent: "space-between", 
+                    marginTop: "6px" 
+                  }}>
+                    <span style={{ fontSize: "12px", color: "#333", fontWeight: "500" }}>
+                      Seguridad: <strong>{getPasswordLabel(passwordStrength.nivel)}</strong>
+                    </span>
+                    <span style={{ fontSize: "12px", color: "#666" }}>
+                      {passwordStrength.nivel}/4
+                    </span>
+                  </div>
+                </div>
+
+                <label style={{ 
+                  display: "block", 
+                  marginBottom: "6px", 
+                  fontWeight: "600", 
+                  color: "#002855", 
+                  fontSize: "14px" 
+                }}>
+                  Confirmar Contraseña *
+                </label>
+                <div style={{ position: "relative" }}>
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmarClave"
+                    value={formData.confirmarClave}
+                    onChange={handleInputChange}
+                    placeholder="Confirma contraseña"
+                    style={{ 
+                      width: "100%", 
+                      padding: "12px 45px 12px 12px", 
+                      borderRadius: "8px", 
+                      border: "1px solid #a9bcd0", 
+                      fontSize: "14px", 
+                      boxSizing: "border-box", 
+                      outline: "none",
+                      transition: "border-color 0.2s"
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = "#004b8d"}
+                    onBlur={(e) => e.target.style.borderColor = "#a9bcd0"}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    style={{ 
+                      position: "absolute", 
+                      right: "12px", 
+                      top: "50%", 
+                      transform: "translateY(-50%)", 
+                      background: "none", 
+                      border: "none", 
+                      cursor: "pointer", 
+                      color: "#004b8d", 
+                      padding: "4px" 
+                    }}
+                  >
+                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Nacionalidad */}
+              <div style={{ marginBottom: "20px" }}>
+                <label style={{ 
+                  display: "block", 
+                  marginBottom: "6px", 
+                  fontWeight: "600", 
+                  color: "#002855", 
+                  fontSize: "14px" 
+                }}>
+                  Nacionalidad *
+                </label>
+                <select
+                  name="nacionalidad"
+                  value={formData.nacionalidad}
+                  onChange={handleInputChange}
+                  style={{ 
+                    width: "100%", 
+                    padding: "12px", 
+                    borderRadius: "8px", 
+                    border: "1px solid #a9bcd0", 
+                    fontSize: "14px", 
+                    boxSizing: "border-box", 
+                    outline: "none",
+                    transition: "border-color 0.2s"
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = "#004b8d"}
+                  onBlur={(e) => e.target.style.borderColor = "#a9bcd0"}
+                >
+                  {renderNacionalidades()}
+                </select>
+              </div>
+
+              {/* Intereses */}
+              <div style={{ marginBottom: "20px" }}>
+                <label style={{ 
+                  display: "block", 
+                  marginBottom: "8px", 
+                  fontWeight: "600", 
+                  color: "#002855", 
+                  fontSize: "14px" 
+                }}>
+                  Intereses Turísticos *
+                </label>
+                {renderIntereses()}
+              </div>
+
+              {/* Políticas */}
+              <div style={{ marginBottom: "20px" }}>
+                <label style={{ 
+                  fontWeight: "600", 
+                  display: "block", 
+                  marginBottom: "10px", 
+                  color: "#002855", 
+                  fontSize: "14px" 
+                }}>
+                  Políticas y Consentimientos *
+                </label>
+
+                <div style={{ 
+                  padding: "12px", 
+                  border: "1px solid #c9d6e8", 
+                  borderRadius: "8px", 
+                  backgroundColor: "#f9fafb", 
+                  marginBottom: "10px", 
+                  display: "flex", 
+                  alignItems: "center", 
+                  justifyContent: "space-between" 
+                }}>
+                  <label style={{ 
+                    display: "flex", 
+                    alignItems: "center", 
+                    cursor: "pointer", 
+                    flex: 1, 
+                    fontSize: "14px" 
+                  }}>
+                    <input
+                      type="checkbox"
+                      checked={politicasAceptadas.acepto_terminos}
+                      onChange={(e) => handlePoliticaChange("acepto_terminos", e.target.checked)}
+                      style={{ 
+                        marginRight: "10px", 
+                        width: "18px", 
+                        height: "18px", 
+                        cursor: "pointer" 
+                      }}
+                    />
+                    <span>Acepto términos y condiciones</span>
+                  </label>
                   <button
                     type="button"
                     onClick={() => setShowTerminosModal(true)}
-                    style={{
-                      padding: '8px 16px',
-                      fontSize: '0.9rem',
-                      backgroundColor: '#667eea',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      fontWeight: '500',
-                      textTransform: 'none',
-                      letterSpacing: 'normal',
-                      boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
-                      width: 'auto',
-                      marginTop: '0',
-                      flexShrink: 0,
-                      whiteSpace: 'nowrap'
+                    style={{ 
+                      padding: "6px 12px", 
+                      background: "#004b8d", 
+                      color: "#fff", 
+                      border: "none", 
+                      borderRadius: "6px", 
+                      cursor: "pointer", 
+                      fontSize: "12px", 
+                      fontWeight: "600" 
                     }}
                   >
-                    📄 Leer documento
+                    📄 Leer
                   </button>
                 </div>
-                {mensajesPoliticas.errorTerminos && (
-                  <div className="mensaje-error" style={{ marginTop: '8px' }}>
-                    {mensajesPoliticas.errorTerminos}
-                  </div>
-                )}
-                {mensajesPoliticas.exitoTerminos && (
-                  <div className="mensaje-exito" style={{ marginTop: '8px' }}>
-                    {mensajesPoliticas.exitoTerminos}
-                  </div>
-                )}
-              </div>
 
-              {/* Tratamiento de Datos */}
-              <div style={{ 
-                padding: '15px', 
-                border: '1px solid #e0e0e0', 
-                borderRadius: '8px', 
-                backgroundColor: '#f9f9f9' 
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', justifyContent: 'space-between' }}>
-                  <input
-                    type="checkbox"
-                    checked={politicasAceptadas.acepto_tratamiento_datos}
-                    onChange={(e) => handlePoliticaChange('acepto_tratamiento_datos', e.target.checked)}
-                    disabled={!pdfVisualizado.tratamiento_datos}
-                    style={{ flexShrink: 0, width: '20px', height: '20px', cursor: 'pointer' }}
-                  />
-                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontWeight: '500', color: '#333', fontSize: '0.95rem' }}>
-                      Acepto el tratamiento de datos personales *
-                    </span>
-                    {pdfVisualizado.tratamiento_datos && (
-                      <span style={{ color: '#28a745', fontSize: '0.85rem', fontWeight: '500', whiteSpace: 'nowrap' }}>
-                        ✓ Visualizado
-                      </span>
-                    )}
-                  </div>
+                <div style={{ 
+                  padding: "12px", 
+                  border: "1px solid #c9d6e8", 
+                  borderRadius: "8px", 
+                  backgroundColor: "#f9fafb", 
+                  display: "flex", 
+                  alignItems: "center", 
+                  justifyContent: "space-between" 
+                }}>
+                  <label style={{ 
+                    display: "flex", 
+                    alignItems: "center", 
+                    cursor: "pointer", 
+                    flex: 1, 
+                    fontSize: "14px" 
+                  }}>
+                    <input
+                      type="checkbox"
+                      checked={politicasAceptadas.acepto_tratamiento_datos}
+                      onChange={(e) =>
+                        handlePoliticaChange("acepto_tratamiento_datos", e.target.checked)
+                      }
+                      style={{ 
+                        marginRight: "10px", 
+                        width: "18px", 
+                        height: "18px", 
+                        cursor: "pointer" 
+                      }}
+                    />
+                    <span>Acepto tratamiento de datos</span>
+                  </label>
                   <button
                     type="button"
                     onClick={() => setShowTratamientoModal(true)}
-                    style={{
-                      padding: '8px 16px',
-                      fontSize: '0.9rem',
-                      backgroundColor: '#667eea',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      fontWeight: '500',
-                      textTransform: 'none',
-                      letterSpacing: 'normal',
-                      boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
-                      width: 'auto',
-                      marginTop: '0',
-                      flexShrink: 0,
-                      whiteSpace: 'nowrap'
+                    style={{ 
+                      padding: "6px 12px", 
+                      background: "#004b8d", 
+                      color: "#fff", 
+                      border: "none", 
+                      borderRadius: "6px", 
+                      cursor: "pointer", 
+                      fontSize: "12px", 
+                      fontWeight: "600" 
                     }}
                   >
-                    📄 Leer documento
+                    📄 Leer
                   </button>
                 </div>
-                {mensajesPoliticas.errorTratamientoDatos && (
-                  <div className="mensaje-error" style={{ marginTop: '8px' }}>
-                    {mensajesPoliticas.errorTratamientoDatos}
-                  </div>
-                )}
-                {mensajesPoliticas.exitoTratamientoDatos && (
-                  <div className="mensaje-exito" style={{ marginTop: '8px' }}>
-                    {mensajesPoliticas.exitoTratamientoDatos}
-                  </div>
-                )}
               </div>
-            </div>
 
-            {/* Botón de envío */}
-            <div className="form-group">
-
+              {/* Botón de registro */}
               <button
                 type="submit"
-                id="btnEnviar"
-                disabled={!formularioCompleto() || !politicasCompletas() || validatingEmail || validatingNacionalidad}
-                className={
-                  (formularioCompleto() && politicasCompletas() && !validatingEmail && !validatingNacionalidad)
-                    ? "btn-habilitado"
-                    : "btn-deshabilitado"
-                }
+                style={{ 
+                  width: "100%", 
+                  padding: "14px", 
+                  backgroundColor: "#004b8d", 
+                  color: "#fff", 
+                  fontWeight: "600", 
+                  border: "none", 
+                  borderRadius: "8px", 
+                  cursor: "pointer", 
+                  fontSize: "16px", 
+                  boxShadow: "0 4px 12px rgba(0, 75, 141, 0.3)",
+                  transition: "all 0.2s"
+                }}
+                onMouseOver={(e) => e.target.style.backgroundColor = "#003366"}
+                onMouseOut={(e) => e.target.style.backgroundColor = "#004b8d"}
               >
-                {(validatingEmail || validatingNacionalidad)
-                  ? "Validando..."
-                  : "Registrarse"
-                }
+                Registrarse
               </button>
-            </div>
+
+              {/* Enlaces */}
+              <div style={{ 
+                textAlign: "center", 
+                marginTop: "20px", 
+                fontSize: "14px", 
+                color: "#333" 
+              }}>
+                ¿Ya tienes cuenta?{" "}
+                <a
+                  href="/login"
+                  style={{ 
+                    color: "#004b8d", 
+                    fontWeight: "600", 
+                    textDecoration: "none" 
+                  }}
+                >
+                  Inicia sesión aquí
+                </a>
+              </div>
+            </form>
           </div>
-        </form>
-        {/* Modal de bienvenida */}
+        </div>
+      </div>
+
+      {/* Modal de Bienvenida */}
       {showWelcomeModal && (
-        <div className="modal-overlay" onClick={() => setShowWelcomeModal(false)}>
-          <div className="welcome-modal" onClick={e => e.stopPropagation()}>
-            <div className="welcome-icon">🎉</div>
-            <h2>¡Registro Exitoso!</h2>
-            <p>Bienvenido a <strong>BogotaTuris</strong></p>
-            
-            <div style={{
-              background: '#e3f2fd',
-              padding: '20px',
-              borderRadius: '10px',
-              margin: '20px 0',
-              borderLeft: '4px solid #2196f3'
+        <div
+          style={{ 
+            position: "fixed", 
+            top: 0, 
+            left: 0, 
+            width: "100%", 
+            height: "100%", 
+            background: "rgba(0,0,0,0.6)", 
+            display: "flex", 
+            justifyContent: "center", 
+            alignItems: "center", 
+            zIndex: 1000 
+          }}
+          onClick={handleWelcomeClose}
+        >
+          <div
+            style={{ 
+              background: "#fff", 
+              padding: "35px", 
+              borderRadius: "16px", 
+              textAlign: "center", 
+              maxWidth: "400px", 
+              boxShadow: "0 10px 40px rgba(0,0,0,0.4)" 
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 style={{ 
+              marginBottom: "12px", 
+              color: "#002855", 
+              fontSize: "1.6rem" 
             }}>
-              <h3 style={{ margin: '0 0 10px 0', color: '#1976d2', fontSize: '1.2rem' }}>
-                📧 Verifica tu correo electrónico
-              </h3>
-              <p style={{ margin: '0', color: '#424242', lineHeight: '1.6' }}>
-                Te hemos enviado un correo de verificación a <strong>{formData.correo}</strong>.
-                <br />
-                Por favor revisa tu bandeja de entrada y haz clic en el enlace de verificación.
-              </p>
-            </div>
-            
-            <p style={{ fontSize: '0.9rem', color: '#666' }}>
-              ¡Descubre los mejores lugares de nuestra hermosa ciudad!
+              🎉 ¡Registro Exitoso!
+            </h2>
+            <p style={{ 
+              marginBottom: "20px", 
+              color: "#666", 
+              fontSize: "0.95rem" 
+            }}>
+              Bienvenido a <strong style={{ color: "#004b8d" }}>BogotaTuris</strong>
             </p>
-            <button onClick={handleWelcomeClose}>
+            <button
+              onClick={handleWelcomeClose}
+              style={{ 
+                padding: "10px 35px", 
+                background: "#004b8d", 
+                color: "#fff", 
+                border: "none", 
+                borderRadius: "8px", 
+                cursor: "pointer", 
+                fontWeight: "600", 
+                fontSize: "0.95rem" 
+              }}
+            >
               Ir al Login
             </button>
           </div>
         </div>
       )}
 
-      {/* Modal de Términos y Condiciones */}
       <PDFModal
         isOpen={showTerminosModal}
         onClose={() => setShowTerminosModal(false)}
         pdfUrl="http://localhost:8000/api/politicas/pdf/terminos"
-        titulo="Términos y Condiciones"
-        onVisualizacionCompleta={(tiempo) => {
-          registrarVisualizacionPDF('terminos', tiempo);
-        }}
       />
-
-      {/* Modal de Tratamiento de Datos */}
       <PDFModal
         isOpen={showTratamientoModal}
         onClose={() => setShowTratamientoModal(false)}
         pdfUrl="http://localhost:8000/api/politicas/pdf/tratamiento-datos"
-        titulo="Tratamiento de Datos Personales"
-        onVisualizacionCompleta={(tiempo) => {
-          registrarVisualizacionPDF('tratamiento_datos', tiempo);
-        }}
       />
-      </div>
-    </>
+    </div>
   );
 };
 

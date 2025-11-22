@@ -1199,3 +1199,91 @@ button:disabled {
   margin: 0 !important;
   width: 100% !important;
 }
+/* Agrega esto a tu FormSignUp.css */
+
+/* Estilos para el selector de nacionalidades */
+select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* Mejoras para el select de nacionalidades */
+.select-container {
+  position: relative;
+}
+
+.select-arrow {
+  pointer-events: none;
+}
+
+/* Estados del select */
+select:disabled {
+  background-color: #f9fafb;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+select:focus {
+  border-color: #004b8d;
+  box-shadow: 0 0 0 2px rgba(0, 75, 141, 0.2);
+}
+
+/* Estilos para las opciones */
+option {
+  padding: 8px 12px;
+  font-size: 0.875rem;
+}
+
+option:first-child {
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* Scrollbar para el select en algunos navegadores */
+select::-webkit-scrollbar {
+  width: 8px;
+}
+
+select::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+select::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+select::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Estados de validación para el select */
+select.border-red-500 {
+  border-color: #ef4444;
+}
+
+select.border-red-500:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+}
+
+/* Loading state */
+.loading-text {
+  color: #3b82f6;
+  font-style: italic;
+}
+
+/* Mensajes de éxito y error */
+.text-green-500 {
+  color: #10b981;
+}
+
+.text-blue-500 {
+  color: #3b82f6;
+}
