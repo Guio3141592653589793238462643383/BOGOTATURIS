@@ -5,6 +5,7 @@ import NavbarView from "../components/NavbarView";
 import Logo from "../assets/img/BogotaTurisLogo.png";
 import bogotaNight from "../assets/img/bogota-night.jpg";
 import Footer from "../components/Footer.jsx";
+import { FiCheckCircle, FiX, FiAlertCircle } from "react-icons/fi";
 
 export default function CambiarIntereses() {
   const { userId } = useParams();
@@ -16,8 +17,7 @@ export default function CambiarIntereses() {
   const [interesesDisponibles, setInteresesDisponibles] = useState([]);
   const [interesesUsuario, setInteresesUsuario] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [mensaje, setMensaje] = useState("");
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [toasts, setToasts] = useState([]);
 
   // 🔹 Obtener datos del usuario
   const fetchUsuarioData = useCallback(async () => {
@@ -135,6 +135,14 @@ try {
     );
   };
 
+const showToast = (message, type = "info") => {
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((toast) => toast.id !== id));
+    }, 5000);
+  };
+
   // 🔹 Enviar cambios
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -149,15 +157,14 @@ try {
       );
 
       if (res.ok) {
-        setShowSuccessModal(true);
-        setMensaje("Intereses actualizados correctamente");
+        showToast("Tus intereses se han actualizado correctamente", "success");
         refreshUserData();
       } else {
-        setMensaje("Error al actualizar intereses");
+        showToast("Error al actualizar intereses. Por favor, inténtalo de nuevo.", "error");
       }
     } catch (error) {
       console.error("Error enviando intereses:", error);
-      setMensaje("Error de conexión al actualizar");
+      showToast("Error de conexión al actualizar. Por favor, verifica tu conexión.", "error");
     }
   };
 
@@ -229,7 +236,21 @@ try {
                 </span>
               </div>
 
-              {mensaje && <p className="mensaje1">{mensaje}</p>}
+              {/* Toast notifications */}
+              <div className="toast-container">
+                {toasts.map((toast) => (
+                  <div key={toast.id} className={`toast ${toast.type}`}>
+                    <div className="toast-icon">
+                      {toast.type === 'success' ? (
+                        <FiCheckCircle size={20} />
+                      ) : (
+                        <FiAlertCircle size={20} />
+                      )}
+                    </div>
+                    <div className="toast-message">{toast.message}</div>
+                  </div>
+                ))}
+              </div>
 
               <form onSubmit={handleSubmit}>
                 <div className="tablas-container">
@@ -340,62 +361,6 @@ try {
         </div>
       </div>
 
-      {/* 🎉 MODAL DE ÉXITO */}
-      {showSuccessModal && (
-        <div
-          className="success-modal-overlay"
-          onClick={() => setShowSuccessModal(false)}
-        >
-          <div
-            className="success-modal-content"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="success-modal-logo-bg">
-              <img
-                src={Logo}
-                alt="BogotaTuris"
-                className="modal-logo-watermark"
-              />
-            </div>
-            <div className="success-modal-body">
-              <div className="success-icon">
-                <svg viewBox="0 0 52 52" className="checkmark">
-                  <circle
-                    className="checkmark-circle"
-                    cx="26"
-                    cy="26"
-                    r="25"
-                    fill="none"
-                  />
-                  <path
-                    className="checkmark-check"
-                    fill="none"
-                    d="M14.1 27.2l7.1 7.2 16.7-16.8"
-                  />
-                </svg>
-              </div>
-              <h2 className="success-title">¡Intereses Actualizados!</h2>
-              <p className="success-message">
-                Tus preferencias se han guardado exitosamente
-              </p>
-              <div className="intereses-summary">
-                <span className="summary-count">{interesesUsuario.length}</span>
-                <span className="summary-text">
-                  {interesesUsuario.length === 1
-                    ? "interés seleccionado"
-                    : "intereses seleccionados"}
-                </span>
-              </div>
-              <button
-                className="success-close-btn"
-                onClick={() => setShowSuccessModal(false)}
-              >
-                Continuar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       <Footer />
     </>
   );
