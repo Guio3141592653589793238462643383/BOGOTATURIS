@@ -3,8 +3,24 @@
 
 /* Estilos adicionales para efectos que Tailwind no cubre completamente */
 footer {
-  margin-top: auto;
+  background: linear-gradient(135deg, #2c3e50, #3498db);
+  color: white;
+  padding: 40px 0 0;
+  margin: 0;
+  width: 100%;
+  box-sizing: border-box;
   position: relative;
+  left: 0;
+  right: 0;
+}
+/* Contenido del footer */
+.footer-content {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
 }
 
 /* Efecto hover mejorado para los enlaces */
