@@ -1,9 +1,10 @@
- import { useEffect, useState } from "react";
+ import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import NavbarView from "../components/NavbarView";
 import Logo from "../assets/img/BogotaTurisLogo.png";
 import bogotaNight from "../assets/img/bogota-night.jpg";
-import Footer from "../components/Footer.jsx"; 
+import Footer from "../components/Footer.jsx";
+import { FiCheckCircle, FiAlertCircle } from "react-icons/fi";
 
 import "../assets/css/UserView.css";
 
@@ -15,6 +16,7 @@ export default function ProfilePage() {
   const [usuarioData, setUsuarioData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [toasts, setToasts] = useState([]);
   const [formData, setFormData] = useState({
     primer_nombre: "",
     segundo_nombre: "",
@@ -24,8 +26,6 @@ export default function ProfilePage() {
     id_nac: "",
   });
 
-  // 🆕 Estado para el modal de éxito
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const [fieldHelp, setFieldHelp] = useState({
     primer_nombre: { message: "", type: "" },
@@ -37,6 +37,17 @@ export default function ProfilePage() {
 
   const [nacionalidades, setNacionalidades] = useState([]);
   const [loadingNacionalidades, setLoadingNacionalidades] = useState(false);
+
+  // Función para mostrar notificaciones toast
+  const showToast = useCallback((message, type = "info") => {
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, message, type }]);
+    
+    // Auto-remove toast after 5 seconds
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((toast) => toast.id !== id));
+    }, 5000);
+  }, []);
 
   useEffect(() => {
     const validateField = (fieldName, value) => {
@@ -120,7 +131,7 @@ export default function ProfilePage() {
             id_nac: data.id_nac ? String(data.id_nac) : "",
           });
         } else {
-          alert("No se pudo cargar el perfil.");
+          showToast("No se pudo cargar el perfil.", "error");
         }
       } catch (error) {
         setError("Error de conexión con el servidor.");
@@ -209,19 +220,14 @@ export default function ProfilePage() {
         });
         window.dispatchEvent(event);
 
-        // 🎉 Mostrar modal en lugar de alert
-        setShowSuccessModal(true);
-
-        // Auto-cerrar después de 3 segundos
-        setTimeout(() => {
-          setShowSuccessModal(false);
-        }, 3000);
+        // Mostrar notificación de éxito
+        showToast("Perfil actualizado correctamente", "success");
       } else {
-        alert("Error al actualizar el perfil");
+        showToast("Error al actualizar el perfil", "error");
       }
     } catch (error) {
       console.error("Error al enviar datos:", error);
-      alert("Error de conexión");
+      showToast("Error de conexión con el servidor", "error");
     }
   };
 
@@ -250,7 +256,22 @@ export default function ProfilePage() {
         usuarioData={usuarioData}
         onRefreshUserData={refreshUserData}
       />
-      <div className="min-h-screen bg-gradient-to-br from-[#001a33] via-[#003366] to-[#004b8d] pt-8">
+      <div className="min-h-screen bg-gradient-to-br from-[#001a33] via-[#003366] to-[#004b8d] pt-8" style={{ position: 'relative' }}>
+        {/* Toast notifications */}
+        <div className="toast-container">
+          {toasts.map((toast) => (
+            <div key={toast.id} className={`toast ${toast.type}`}>
+              <div className="toast-icon">
+                {toast.type === 'success' ? (
+                  <FiCheckCircle size={20} />
+                ) : (
+                  <FiAlertCircle size={20} />
+                )}
+              </div>
+              <div className="toast-message">{toast.message}</div>
+            </div>
+          ))}
+        </div>
         <div
           className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-black/40 px-4 py-10"
           style={{
@@ -368,7 +389,7 @@ export default function ProfilePage() {
             </div>
 
             <div className="profile-card">
-              <h2 className="perfil">Mi Perfil</h2>
+              <h2 >Mi Perfil</h2>
               <div className="profile-info">
                 <p>
                   <span>Nombre:</span> {formData.primer_nombre}{" "}
@@ -384,59 +405,10 @@ export default function ProfilePage() {
                     ?.nacionalidad || "No disponible"}
                 </p>
               </div>
-            </div>
-          </div>
         </div>
       </div>
-
-      {/* 🎉 MODAL DE ÉXITO CON LOGO DE FONDO */}
-      {showSuccessModal && (
-        <div
-          className="success-modal-overlay"
-          onClick={() => setShowSuccessModal(false)}
-        >
-          <div
-            className="success-modal-content"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="success-modal-logo-bg">
-              <img
-                src={Logo}
-                alt="BogotaTuris"
-                className="modal-logo-watermark"
-              />
-            </div>
-            <div className="success-modal-body">
-              <div className="success-icon">
-                <svg viewBox="0 0 52 52" className="checkmark">
-                  <circle
-                    className="checkmark-circle"
-                    cx="26"
-                    cy="26"
-                    r="25"
-                    fill="none"
-                  />
-                  <path
-                    className="checkmark-check"
-                    fill="none"
-                    d="M14.1 27.2l7.1 7.2 16.7-16.8"
-                  />
-                </svg>
-              </div>
-              <h2 className="success-title">¡Perfil Actualizado!</h2>
-              <p className="success-message">
-                Tus datos se han guardado exitosamente
-              </p>
-              <button
-                className="success-close-btn"
-                onClick={() => setShowSuccessModal(false)}
-              >
-                Continuar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      </div>
+      </div>
       <Footer />
     </>
   );
