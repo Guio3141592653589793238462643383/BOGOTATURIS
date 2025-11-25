@@ -6,6 +6,7 @@ import NavbarView from "../components/NavbarView";
 import Logo from "../assets/img/BogotaTurisLogo.png";
 import bogotaNight from "../assets/img/bogota-night.jpg";
 import Footer from "../components/Footer.jsx";
+import { FiCheckCircle, FiAlertCircle } from "react-icons/fi";
 
 function CambiarPassword() {
   const [mensaje, setMensaje] = useState("");
@@ -34,8 +35,8 @@ function CambiarPassword() {
   });
   const [confirmPasswordMatch, setConfirmPasswordMatch] = useState(null);
 
-  // Estado para modal de éxito
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  // Estado para notificaciones toast
+  const [toasts, setToasts] = useState([]);
 
   // Calcular fortaleza de contraseña
   const calcularFortalezaPassword = useCallback((clave) => {
@@ -131,17 +132,28 @@ function CambiarPassword() {
     fetchUsuarioData();
   }, [usuarioId, navigate, fetchUsuarioData]);
 
+  // Función para mostrar notificaciones toast
+  const showToast = (message, type = "info") => {
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, message, type }]);
+    
+    // Auto-remove toast after 5 seconds
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((toast) => toast.id !== id));
+    }, 5000);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
-      setMensaje("❌ Las contraseñas no coinciden");
+      showToast("Las contraseñas no coinciden", "error");
       return;
     }
 
     // Validar que cumple requisitos mínimos
     if (!validaciones.tieneMayuscula || !validaciones.tieneMinuscula || 
         !validaciones.tieneNumero || !validaciones.longitudMinima) {
-      setMensaje("❌ La contraseña no cumple con los requisitos mínimos");
+      showToast("La contraseña no cumple con los requisitos mínimos", "error");
       return;
     }
 
@@ -161,22 +173,17 @@ function CambiarPassword() {
       const data = await res.json();
 
       if (res.ok) {
-        // Mostrar modal en lugar de mensaje
-        setShowSuccessModal(true);
+        // Mostrar notificación de éxito
+        showToast("Contraseña actualizada correctamente", "success");
         setPassword("");
         setNewPassword("");
         setConfirmPassword("");
         setMensaje("");
-
-        // Auto-cerrar después de 3 segundos
-        setTimeout(() => {
-          setShowSuccessModal(false);
-        }, 3000);
       } else {
-        setMensaje(`❌ ${data.detail || "Error al cambiar contraseña"}`);
+        showToast(data.detail || "Error al cambiar contraseña", "error");
       }
     } catch {
-      setMensaje("❌ Error de conexión con el servidor");
+      showToast("Error de conexión con el servidor", "error");
     }
   };
 
@@ -207,8 +214,25 @@ function CambiarPassword() {
           backgroundImage: `url(${bogotaNight})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
+          position: "relative"
         }}
       >
+        {/* Toast notifications */}
+        <div className="toast-container">
+          {toasts.map((toast) => (
+            <div key={toast.id} className={`toast ${toast.type}`}>
+              <div className="toast-icon">
+                {toast.type === 'success' ? (
+                  <FiCheckCircle size={20} />
+                ) : (
+                  <FiAlertCircle size={20} />
+                )}
+              </div>
+              <div className="toast-message">{toast.message}</div>
+            </div>
+          ))}
+        </div>
+        
         <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-10">
 
           <div className="flex w-full max-w-5xl justify-center">
@@ -363,8 +387,6 @@ function CambiarPassword() {
                   )}
                 </div>
 
-                {mensaje && <p className="mensaje1 mt-2">{mensaje}</p>}
-
                 <button
                   type="submit"
                   className="form-submit-btn1"
@@ -382,54 +404,6 @@ function CambiarPassword() {
         </div>
       </div>
 
-      {/* MODAL DE ÉXITO */}
-      {showSuccessModal && (
-        <div
-          className="success-modal-overlay"
-          onClick={() => setShowSuccessModal(false)}
-        >
-          <div
-            className="success-modal-content"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="success-modal-logo-bg">
-              <img
-                src={Logo}
-                alt="BogotaTuris"
-                className="modal-logo-watermark"
-              />
-            </div>
-            <div className="success-modal-body">
-              <div className="success-icon">
-                <svg viewBox="0 0 52 52" className="checkmark">
-                  <circle
-                    className="checkmark-circle"
-                    cx="26"
-                    cy="26"
-                    r="25"
-                    fill="none"
-                  />
-                  <path
-                    className="checkmark-check"
-                    fill="none"
-                    d="M14.1 27.2l7.1 7.2 16.7-16.8"
-                  />
-                </svg>
-              </div>
-              <h2 className="success-title">¡Contraseña Actualizada!</h2>
-              <p className="success-message">
-                Tu contraseña se ha cambiado exitosamente
-              </p>
-              <button
-                className="success-close-btn"
-                onClick={() => setShowSuccessModal(false)}
-              >
-                Continuar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       <Footer />
     </>
   );
