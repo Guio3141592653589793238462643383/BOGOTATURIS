@@ -2,6 +2,8 @@
 import { useState, useEffect } from 'react';
 import backgroundVideo from '../assets/img/Bogota2.mp4';
 import Footer from "../components/Footer";
+import ChatMapFull from "../components/ChatMapFull";
+
 const Inicio = () => {
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -283,7 +285,7 @@ const Inicio = () => {
             </div>
           </section>
         )}
-
+        <ChatMapFull />
         {/* Acerca de Nosotros - Versión Pastel Mejorada */}
         <section id="acerca" className="py-16 sm:py-20 bg-gradient-to-br from-blue-100 via-pink-50 to-purple-100" style={{ fontFamily: "Lobster Two, cursive" }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -425,6 +427,8 @@ const Inicio = () => {
                   </svg>
                   Ver en Mapa
                 </button>
+                      
+
               </div>
             </div>
           </div>
