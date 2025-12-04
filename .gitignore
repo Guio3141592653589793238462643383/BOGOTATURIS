@@ -1,3 +1,20 @@
 __pycache__/
 frontend/src/assets/img/*.mov
 frontend/src/assets/img/*.mov
+Variables de entorno
+.env
+.env.local
+.env.production
+
+# Python
+__pycache__/
+*.pyc
+venv/
+env/
+
+# Node
+node_modules/
+dist/
+
+# Docker
+.dockerignore

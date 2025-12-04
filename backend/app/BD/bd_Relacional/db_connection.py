@@ -1,9 +1,12 @@
 from sqlalchemy import CheckConstraint, Date, DateTime, Time, create_engine, String, BigInteger, Integer, ForeignKey, Boolean, Text, func, text
 from sqlalchemy.orm import DeclarativeBase, mapped_column, sessionmaker, relationship
 from datetime import datetime
-
+import os
 # URL de conexión con driver pymysql
-connection_url = 'mysql+pymysql://root@127.0.0.1:3306/BogotaTuris'
+connection_url = os.getenv(
+    'DATABASE_URL',
+    'mysql+pymysql://root@127.0.0.1:3306/BogotaTuris'
+)
 
 try:
     engine = create_engine(connection_url, echo=True) 

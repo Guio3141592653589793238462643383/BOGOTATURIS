@@ -6,6 +6,7 @@ from openai import OpenAI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
+print("API KEY:", os.getenv("OPENAI_API_KEY"))
 from app.api.routers_.chat_router import router as chat_router
 #from app.api.routers_.historial_router import router as historial_router
 from app.api.routers_.signUp_router import router as signUp_router
