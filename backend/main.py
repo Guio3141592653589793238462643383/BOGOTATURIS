@@ -6,14 +6,22 @@ from openai import OpenAI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
+print("API KEY:", os.getenv("OPENAI_API_KEY"))
 from app.api.routers_.chat_router import router as chat_router
 #from app.api.routers_.historial_router import router as historial_router
 from app.api.routers_.signUp_router import router as signUp_router
+from app.api.routers_.login_router import router as login_router
+from app.api.routers_.admin_router import router as admin_router
+from app.api.routers_.politicas_router import router as politicas_router
+from app.api.routers_.notificaciones_router import router as notificaciones_router
+from app.api.routers_.verificacion_router import router as verificacion_router
+from app.api.routers_.lugares_router import router as lugares_router
+from app.api.routers_.tipo_lugar_router import router as tipo_lugar_router
+from app.api.routers_.recomendacion_router import router as recomendacion_router
 from fastapi.templating import Jinja2Templates
-
-
-
-
+# -----------------------------
+# Configuración general
+# -----------------------------
 load_dotenv()
 
 api_key = os.getenv("OPENAI_API_KEY")
@@ -26,13 +34,21 @@ app = FastAPI(
 )
 
 templates = Jinja2Templates(directory="templates")
+# -----------------------------
+# CORS
+# -----------------------------
+origins = [
+    "http://localhost:5173",  # Frontend Vite
+    "http://127.0.0.1:5173",  # Frontend Vite alternativo
+    "http://localhost:3000",  # Frontend React alternativo
+]
 
 # Configuración de CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],  # Puertos comunes de React
+    allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
@@ -43,11 +59,26 @@ coleccion = db["inventario"]
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     return templates.TemplateResponse("asistente.html", {"request": request})
-
-# Incluir routers
+# -----------------------------
+# Archivos estáticos
+# -----------------------------
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+# -----------------------------
+# Routers
+# -----------------------------
+app.include_router(tipo_lugar_router)
 app.include_router(chat_router)
 #app.include_router(historial_router)
 app.include_router(signUp_router)
+app.include_router(login_router)
+app.include_router(admin_router)
+app.include_router(politicas_router)
+app.include_router(notificaciones_router)
+app.include_router(verificacion_router)
+app.include_router(lugares_router, prefix="/api/lugares", tags=["lugares"])
+app.include_router(recomendacion_router)
+
+
 
 @app.get("/health")
 async def health_check():

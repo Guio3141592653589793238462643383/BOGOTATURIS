@@ -4,6 +4,6 @@ from app.api.services_.chat_Services import procesar_pregunta
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
-@router.post("")
+@router.post("/")
 async def chat(request: Mensaje):
     return await procesar_pregunta(request.mensaje)

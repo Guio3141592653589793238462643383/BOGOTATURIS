@@ -1,0 +1,160 @@
+/* Fondo general del dashboard */
+.dashboard {
+  padding: 30px;
+  background: linear-gradient(to right, #fbc2eb, #a6c1ee);
+  min-height: 100vh;
+  font-family: 'Segoe UI', sans-serif;
+  color: #333;
+  position: relative;
+}
+
+/* Encabezado con selector de rol y perfil */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  margin-bottom: 20px;
+}
+
+/* Botones para cambiar de rol */
+.rol-selector button {
+  margin-right: 10px;
+  background-color: #7a6bbf;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.3s ease;
+}
+
+.rol-selector button:hover {
+  background-color: #5f56a3;
+}
+
+/* Botón de perfil mediano alineado a la derecha */
+.perfil-btn {
+  background-color: #7a6bbf;
+  color: white;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* Ícono circular de perfil */
+.perfil-icono {
+  cursor: pointer;
+  border-radius: 50%;
+  overflow: hidden;
+  width: 50px;
+  height: 50px;
+  border: 2px solid #7a6bbf;
+  transition: transform 0.3s ease;
+}
+
+.perfil-icono:hover {
+  transform: scale(1.05);
+}
+
+.perfil-circular {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Tarjeta cuadrada de perfil */
+.perfil-cuadro,
+.perfil-card {
+  position: absolute;
+  top: 70px;
+  right: 30px;
+  background-color: #fff;
+  border-radius: 16px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+  padding: 20px;
+  width: 280px;
+  z-index: 10;
+  text-align: center;
+}
+
+.perfil-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  object-fit: cover;
+  margin-bottom: 10px;
+}
+
+.perfil-cuadro h3,
+.perfil-card h3 {
+  margin: 0;
+  color: #4e3ca9;
+}
+
+.perfil-cuadro p,
+.perfil-card p {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.perfil-cuadro ul,
+.perfil-card ul {
+  list-style: none;
+  padding: 0;
+  margin-top: 10px;
+  text-align: left;
+}
+
+.perfil-cuadro ul li,
+.perfil-card ul li {
+  margin-bottom: 6px;
+  font-size: 0.95rem;
+}
+
+/* Secciones del dashboard */
+.dashboard-content section {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.dashboard-content h2 {
+  color: #4e3ca9;
+  margin-bottom: 10px;
+}
+
+/* Botones de navegación del turista */
+.botones-turista {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.botones-turista button {
+  background: linear-gradient(to right, #a6c1ee, #fbc2eb);
+  border: none;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 1rem;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease;
+}
+
+.botones-turista button:hover {
+  transform: scale(1.05);
+}
