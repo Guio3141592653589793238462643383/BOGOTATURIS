@@ -52,10 +52,12 @@ const PDFModal = ({ isOpen, onClose, pdfUrl, titulo, onVisualizacionCompleta }) 
     <div className="pdf-modal-overlay" onClick={handleClose}>
       <div className="pdf-modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="pdf-modal-header">
-          <h2>{titulo}</h2>
-          <button className="pdf-modal-close" onClick={handleClose}>
-            ✕
-          </button>
+          <h2>
+            {titulo}
+            <button className="pdf-modal-close" onClick={handleClose}>
+              ✕
+            </button>
+          </h2>
         </div>
         
         <div className="pdf-modal-body">
@@ -109,21 +111,11 @@ const PDFModal = ({ isOpen, onClose, pdfUrl, titulo, onVisualizacionCompleta }) 
             </div>
           )}
         </div>
-        
-        <div className="pdf-modal-footer">
-          <p>📄 Lee el documento completo antes de continuar</p>
-          <button className="pdf-modal-button" onClick={handleClose}>
-            He leído el documento
-          </button>
-        </div>
       </div>
     </div>
   );
 
-  return ReactDOM.createPortal(
-    modalContent,
-    document.body
-  );
+  return ReactDOM.createPortal(modalContent, document.body);
 };
 
 export default PDFModal;

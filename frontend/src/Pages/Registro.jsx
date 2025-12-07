@@ -1,9 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { FaMapMarkerAlt, FaCity } from "react-icons/fa";
+import { MdTravelExplore } from "react-icons/md";
+import { Eye, EyeOff } from "lucide-react";
 import useFormValidation from "../hooks/useFormValidation.jsx";
 import usePoliticas from "../hooks/usePoliticas";
 import PDFModal from "../components/PDFModal";
-import { MapPin, Compass, Building2, Eye, EyeOff } from "lucide-react";
+import bogotaNight from "../assets/img/bogota-night.jpg";
+import "../assets/css/FormSignUp.css";
 
 const FormSignUp = () => {
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
@@ -13,41 +18,56 @@ const FormSignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // Obtener funciones de validación del formulario
+  const formValidation = useFormValidation();
+  
+  // Obtener funciones de manejo de políticas
+  const politicas = usePoliticas();
+  
+  // Extraer solo lo que necesitamos de cada hook para mantener la legibilidad
   const {
     formData,
-    validationState,
-    messages,
-    passwordStrength,
     nacionalidades,
     interesesDisponibles,
     loadingNacionalidades,
-    loadingIntereses,
     validarTodoElFormulario,
     handleInputChange,
     handleInteresesChange,
     calcularProgreso,
-    formularioCompleto,
-    updateValidationState,
     resetForm,
-  } = useFormValidation();
-
+  } = formValidation;
+  
   const {
-    pdfVisualizado,
     sessionId,
     politicasAceptadas,
     registrarVisualizacionPDF,
     handlePoliticaChange,
     validarPoliticas,
-    politicasCompletas,
-    mensajesPoliticas,
     resetPoliticas,
-  } = usePoliticas();
+  } = politicas;
 
-  const progreso = calcularProgreso();
+  // Agregar estado para rastrear si el formulario ha sido enviado
+  const [submitted, setSubmitted] = useState(false);
+  
+  // Calcular el progreso pasando politicasAceptadas
+  const progreso = calcularProgreso(politicasAceptadas);
+  
+  // Efecto para depuración
+  React.useEffect(() => {
+    console.log('--- Estado actual en Registro ---');
+    console.log('politicasAceptadas:', politicasAceptadas);
+    console.log('progreso actual:', progreso);
+  }, [politicasAceptadas, progreso]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitted(true); // Marcar como enviado para mostrar errores
+    
+    console.log('--- Validando formulario ---');
+    console.log('politicasAceptadas:', politicasAceptadas);
+    
     if (!validarPoliticas()) {
+      console.log('Validación de políticas fallida');
       alert("Debes aceptar las políticas antes de registrarte");
       return;
     }
@@ -75,83 +95,108 @@ const FormSignUp = () => {
       acepto_tratamiento_datos: politicasAceptadas.acepto_tratamiento_datos,
     };
 
-    console.log("Enviar datos:", datosFormulario);
-    setShowWelcomeModal(true);
-    resetForm();
-    resetPoliticas();
+    try {
+      console.log("Enviando datos al servidor...");
+      console.log('Enviando datos a:', 'http://localhost:8000/api/usuario/registro');
+      const response = await fetch('http://localhost:8000/api/usuario/registro', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        },
+        credentials: 'include',
+        body: JSON.stringify(datosFormulario)
+      });
+
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        console.error('Error parsing JSON response:', jsonError);
+        throw new Error('Error procesando la respuesta del servidor');
+      }
+
+      console.log('Respuesta del servidor:', data);
+
+      if (!response.ok) {
+        throw new Error(data.message || `Error en el registro (${response.status} ${response.statusText})`);
+      }
+
+      console.log('Respuesta del servidor:', data);
+      
+      // Mostrar mensaje de éxito
+      setShowWelcomeModal(true);
+      
+      // Si el servidor devuelve un mensaje de éxito, lo mostramos
+      if (data.message) {
+        console.log('Mensaje del servidor:', data.message);
+      }
+      
+      // Limpiar el formulario
+      resetForm();
+      resetPoliticas();
+      
+    } catch (error) {
+      console.error('Error al registrar usuario:', error);
+      alert(`Error al registrar el usuario: ${error.message}`);
+    }
   };
 
   const renderNacionalidades = () => {
-    if (loadingNacionalidades) return <option>Cargando...</option>;
+    if (loadingNacionalidades) {
+      return <option value="">Cargando nacionalidades...</option>;
+    }
+
+    if (!nacionalidades || nacionalidades.length === 0) {
+      return <option value="">No se encontraron nacionalidades</option>;
+    }
+
     return [
       <option key="default" value="">
-        Selecciona una opción
+        Seleccione una nacionalidad
       </option>,
-      ...nacionalidades.map((nac) => (
-        <option key={nac.id_nac} value={nac.id_nac}>
-          {nac.nacionalidad}
+      ...nacionalidades.map((nacionalidad) => (
+        <option 
+          key={nacionalidad.id_nac} 
+          value={nacionalidad.id_nac}
+        >
+          {nacionalidad.nacionalidad}
         </option>
-      )),
+      ))
     ];
   };
 
   const renderIntereses = () => {
-    const lista =
-      interesesDisponibles.length > 0
-        ? interesesDisponibles
-        : [
-            "Aventureros",
-            "Arte",
-            "Gastronomía",
-            "Naturaleza",
-            "Conciertos",
-            "Museos",
-            "Eventos",
-            "Yoga",
-            "Bares",
-          ];
-    
+    // Verificar si interesesDisponibles es un array de objetos o de strings
+    const lista = interesesDisponibles.length > 0 
+      ? interesesDisponibles.map(item => typeof item === 'object' ? item.interes : item)
+      : [
+          "Aventureros", "Arte", "Gastronomía", "Naturaleza", "Conciertos",
+          "Escalada", "Museos", "Eventos", "Yoga", "Bares", "Danza",
+          "Cultura", "Deportes", "Historia", "Festivales", "Talleres",
+          "Cocinar", "Ecoturismo", "Concursos", "Discotecas"
+        ];
+
     return (
-      <div style={{ 
-        display: "grid", 
-        gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", 
-        gap: "10px", 
-        padding: "15px", 
-        backgroundColor: "#f9fafb", 
-        borderRadius: "8px", 
-        border: "1px solid #e0e0e0" 
-      }}>
-        {lista.map((interes, i) => (
-          <label 
-            key={i} 
-            style={{ 
-              display: "flex", 
-              alignItems: "center", 
-              cursor: "pointer", 
-              fontSize: "14px",
-              padding: "8px",
-              backgroundColor: "white",
-              borderRadius: "6px",
-              border: "1px solid #ddd",
-              transition: "all 0.2s"
-            }}
-          >
-            <input
-              type="checkbox"
-              name="intereses"
-              value={interes}
-              checked={formData.intereses?.includes(interes)}
-              onChange={handleInteresesChange}
-              style={{ 
-                marginRight: "8px", 
-                width: "16px", 
-                height: "16px", 
-                cursor: "pointer" 
-              }}
-            />
-            <span>{interes}</span>
-          </label>
-        ))}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-1 p-2 bg-gray-50 rounded-lg border border-gray-200">
+        {lista.map((interes, i) => {
+          const valorInteres = typeof interes === 'object' ? interes.interes : interes;
+          return (
+            <label key={i} className="flex items-center space-x-1 p-1 hover:bg-gray-100 rounded cursor-pointer text-xs">
+              <input
+                type="checkbox"
+                name="intereses"
+                value={valorInteres}
+                checked={formData.intereses?.includes(valorInteres)}
+                onChange={handleInteresesChange}
+                className="h-3 w-3 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+              />
+              <span className="text-xs text-gray-700">{valorInteres}</span>
+            </label>
+          );
+        })}
       </div>
     );
   };
@@ -161,740 +206,450 @@ const FormSignUp = () => {
     navigate("/login");
   };
 
-  const getPasswordLabel = (nivel) => {
-    if (nivel <= 1) return "Baja";
-    if (nivel === 2) return "Media";
-    return "Segura";
+  const reenviarCorreoConfirmacion = async (email) => {
+    try {
+      const response = await fetch('http://localhost:8000/api/verificacion/reenviar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        alert('Se ha enviado un nuevo correo de confirmación. Por favor revisa tu bandeja de entrada.');
+      } else {
+        throw new Error(data.detail || 'Error al reenviar el correo de confirmación');
+      }
+    } catch (error) {
+      console.error('Error al reenviar correo de confirmación:', error);
+      alert(error.message || 'Ocurrió un error al intentar reenviar el correo de confirmación');
+    }
+  };
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 15,
+      },
+    },
   };
 
   return (
-    <div style={{ 
-      minHeight: "100vh", 
-      background: "linear-gradient(135deg, #001a33 0%, #003366 50%, #004b8d 100%)",
-      padding: "20px 0"
-    }}>
-      <div style={{ 
-        minHeight: "100vh", 
-        backgroundColor: "rgba(0, 26, 51, 0.7)", 
-        display: "flex",
-        flexDirection: { xs: "column", md: "row" }
-      }}>
-        
-        {/* Panel izquierdo - Imagen de Bogotá */}
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "white",
-            padding: { xs: "20px", md: "40px" },
-            backgroundImage: "url(https://images.unsplash.com/photo-1568632234157-ce7aecd03d0d?q=80&w=2070)",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            minHeight: { xs: "300px", md: "auto" }
-          }}
-        >
-          <div style={{ 
-            backgroundColor: "rgba(0, 26, 51, 0.75)", 
-            padding: { xs: "25px", md: "40px" }, 
-            borderRadius: "20px", 
-            backdropFilter: "blur(10px)", 
-            textAlign: "center", 
-            maxWidth: "500px",
-            width: "100%"
-          }}>
-            <div style={{ 
-              display: "flex", 
-              justifyContent: "center", 
-              gap: "30px", 
-              marginBottom: "30px", 
-              color: "#ffda44" 
-            }}>
-              <MapPin size={48} />
-              <Compass size={48} />
-              <Building2 size={48} />
-            </div>
-            <h1 style={{ 
-              fontSize: { xs: "2rem", md: "2.5rem" }, 
-              fontWeight: "bold", 
-              marginBottom: "20px" 
-            }}>
-              Bienvenido a <span style={{ color: "#ffda44" }}>BogotaTuris</span>
-            </h1>
-            <p style={{ 
-              color: "white", 
-              fontSize: { xs: "0.9rem", md: "1rem" }, 
-              lineHeight: "1.6" 
-            }}>
-              Vive la magia de la capital colombiana. Cultura, historia y aventura en un solo lugar. SAY NO MORE.
-            </p>
-          </div>
-        </div>
-
-        {/* Panel derecho - Formulario */}
-        <div style={{ 
-          flex: 1, 
-          display: "flex", 
-          alignItems: "center", 
-          justifyContent: "center", 
-          padding: { xs: "20px", md: "30px 40px" }, 
-          overflowY: "auto"
-        }}>
-          <div style={{ 
-            backgroundColor: "rgba(255, 255, 255, 0.95)", 
-            backdropFilter: "blur(10px)", 
-            border: "1px solid #c9d6e8", 
-            borderRadius: "20px", 
-            padding: { xs: "20px", md: "30px" }, 
-            width: "100%", 
-            maxWidth: "520px", 
-            boxShadow: "0 10px 40px rgba(0,0,0,0.3)" 
-          }}>
-            
-            <div style={{ textAlign: "center", marginBottom: "20px" }}>
-              <h2 style={{ 
-                fontSize: { xs: "1.5rem", md: "1.75rem" }, 
-                fontWeight: "bold", 
-                color: "#002855", 
-                marginBottom: "8px" 
-              }}>
-                ✍ Registro
-              </h2>
-              <p style={{ color: "#5b5b5b", fontSize: "14px" }}>
-                Únete a la comunidad de BogotaTuris
-              </p>
-            </div>
-
-            {/* Barra de progreso */}
-            <div style={{ 
-              background: "#e0e0e0", 
-              borderRadius: "10px", 
-              overflow: "hidden", 
-              height: "6px", 
-              marginBottom: "8px" 
-            }}>
-              <div style={{ 
-                width: `${progreso}%`, 
-                height: "100%", 
-                background: "linear-gradient(90deg, #004b8d, #0066cc)", 
-                transition: "width 0.4s" 
-              }} />
-            </div>
-            <p style={{ 
-              textAlign: "center", 
-              color: "#666", 
-              marginBottom: "18px", 
-              fontSize: "14px" 
-            }}>
-              Progreso: <strong>{progreso}%</strong>
-            </p>
-
-            <form onSubmit={handleSubmit} noValidate>
-              {/* Datos Personales */}
-              <div style={{ marginBottom: "20px" }}>
-                <h3 style={{ 
-                  marginBottom: "12px", 
-                  color: "#002855", 
-                  fontWeight: "600", 
-                  fontSize: "16px" 
-                }}>
-                  Datos Personales
-                </h3>
-                
-                <div style={{ 
-                  display: "grid", 
-                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, 
-                  gap: "12px", 
-                  marginBottom: "12px" 
-                }}>
-                  <div>
-                    <label style={{ 
-                      display: "block", 
-                      marginBottom: "6px", 
-                      fontWeight: "600", 
-                      color: "#002855", 
-                      fontSize: "14px" 
-                    }}>
-                      Primer Nombre *
-                    </label>
-                    <input
-                      name="primer_nombre"
-                      value={formData.primer_nombre}
-                      onChange={handleInputChange}
-                      placeholder="Nombre"
-                      style={{ 
-                        width: "100%", 
-                        padding: "12px", 
-                        borderRadius: "8px", 
-                        border: "1px solid #a9bcd0", 
-                        fontSize: "14px", 
-                        boxSizing: "border-box", 
-                        outline: "none",
-                        transition: "border-color 0.2s"
-                      }}
-                      onFocus={(e) => e.target.style.borderColor = "#004b8d"}
-                      onBlur={(e) => e.target.style.borderColor = "#a9bcd0"}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ 
-                      display: "block", 
-                      marginBottom: "6px", 
-                      fontWeight: "600", 
-                      color: "#002855", 
-                      fontSize: "14px" 
-                    }}>
-                      Segundo Nombre
-                    </label>
-                    <input
-                      name="segundo_nombre"
-                      value={formData.segundo_nombre || ""}
-                      onChange={handleInputChange}
-                      placeholder="Opcional"
-                      style={{ 
-                        width: "100%", 
-                        padding: "12px", 
-                        borderRadius: "8px", 
-                        border: "1px solid #a9bcd0", 
-                        fontSize: "14px", 
-                        boxSizing: "border-box", 
-                        outline: "none",
-                        transition: "border-color 0.2s"
-                      }}
-                      onFocus={(e) => e.target.style.borderColor = "#004b8d"}
-                      onBlur={(e) => e.target.style.borderColor = "#a9bcd0"}
-                    />
-                  </div>
-                </div>
-
-                <div style={{ 
-                  display: "grid", 
-                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, 
-                  gap: "12px" 
-                }}>
-                  <div>
-                    <label style={{ 
-                      display: "block", 
-                      marginBottom: "6px", 
-                      fontWeight: "600", 
-                      color: "#002855", 
-                      fontSize: "14px" 
-                    }}>
-                      Primer Apellido *
-                    </label>
-                    <input
-                      name="primer_apellido"
-                      value={formData.primer_apellido}
-                      onChange={handleInputChange}
-                      placeholder="Apellido"
-                      style={{ 
-                        width: "100%", 
-                        padding: "12px", 
-                        borderRadius: "8px", 
-                        border: "1px solid #a9bcd0", 
-                        fontSize: "14px", 
-                        boxSizing: "border-box", 
-                        outline: "none",
-                        transition: "border-color 0.2s"
-                      }}
-                      onFocus={(e) => e.target.style.borderColor = "#004b8d"}
-                      onBlur={(e) => e.target.style.borderColor = "#a9bcd0"}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ 
-                      display: "block", 
-                      marginBottom: "6px", 
-                      fontWeight: "600", 
-                      color: "#002855", 
-                      fontSize: "14px" 
-                    }}>
-                      Segundo Apellido
-                    </label>
-                    <input
-                      name="segundo_apellido"
-                      value={formData.segundo_apellido || ""}
-                      onChange={handleInputChange}
-                      placeholder="Opcional"
-                      style={{ 
-                        width: "100%", 
-                        padding: "12px", 
-                        borderRadius: "8px", 
-                        border: "1px solid #a9bcd0", 
-                        fontSize: "14px", 
-                        boxSizing: "border-box", 
-                        outline: "none",
-                        transition: "border-color 0.2s"
-                      }}
-                      onFocus={(e) => e.target.style.borderColor = "#004b8d"}
-                      onBlur={(e) => e.target.style.borderColor = "#a9bcd0"}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Email y Clave */}
-              <div style={{ marginBottom: "20px" }}>
-                <label style={{ 
-                  display: "block", 
-                  marginBottom: "6px", 
-                  fontWeight: "600", 
-                  color: "#002855", 
-                  fontSize: "14px" 
-                }}>
-                  Correo Electrónico *
-                </label>
-                <input
-                  type="email"
-                  name="correo"
-                  value={formData.correo}
-                  onChange={handleInputChange}
-                  placeholder="ejemplo@correo.com"
-                  style={{ 
-                    width: "100%", 
-                    padding: "12px", 
-                    borderRadius: "8px", 
-                    border: "1px solid #a9bcd0", 
-                    marginBottom: "12px", 
-                    fontSize: "14px", 
-                    boxSizing: "border-box", 
-                    outline: "none",
-                    transition: "border-color 0.2s"
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = "#004b8d"}
-                  onBlur={(e) => e.target.style.borderColor = "#a9bcd0"}
-                />
-
-                <label style={{ 
-                  display: "block", 
-                  marginBottom: "6px", 
-                  fontWeight: "600", 
-                  color: "#002855", 
-                  fontSize: "14px" 
-                }}>
-                  Confirmar Correo *
-                </label>
-                <input
-                  type="email"
-                  name="confirmarCorreo"
-                  value={formData.confirmarCorreo}
-                  onChange={handleInputChange}
-                  placeholder="Confirma tu correo"
-                  style={{ 
-                    width: "100%", 
-                    padding: "12px", 
-                    borderRadius: "8px", 
-                    border: "1px solid #a9bcd0", 
-                    marginBottom: "12px", 
-                    fontSize: "14px", 
-                    boxSizing: "border-box", 
-                    outline: "none",
-                    transition: "border-color 0.2s"
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = "#004b8d"}
-                  onBlur={(e) => e.target.style.borderColor = "#a9bcd0"}
-                />
-
-                <label style={{ 
-                  display: "block", 
-                  marginBottom: "6px", 
-                  fontWeight: "600", 
-                  color: "#002855", 
-                  fontSize: "14px" 
-                }}>
-                  Contraseña *
-                </label>
-                <div style={{ position: "relative", marginBottom: "8px" }}>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    name="clave"
-                    value={formData.clave}
-                    onChange={handleInputChange}
-                    placeholder="Contraseña"
-                    style={{ 
-                      width: "100%", 
-                      padding: "12px 45px 12px 12px", 
-                      borderRadius: "8px", 
-                      border: "1px solid #a9bcd0", 
-                      fontSize: "14px", 
-                      boxSizing: "border-box", 
-                      outline: "none",
-                      transition: "border-color 0.2s"
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = "#004b8d"}
-                    onBlur={(e) => e.target.style.borderColor = "#a9bcd0"}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    style={{ 
-                      position: "absolute", 
-                      right: "12px", 
-                      top: "50%", 
-                      transform: "translateY(-50%)", 
-                      background: "none", 
-                      border: "none", 
-                      cursor: "pointer", 
-                      color: "#004b8d", 
-                      padding: "4px" 
-                    }}
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-
-                {/* Barra de fortaleza de contraseña */}
-                <div style={{ marginBottom: "12px" }}>
-                  <div style={{ 
-                    height: "6px", 
-                    background: "#e0e0e0", 
-                    borderRadius: "3px", 
-                    overflow: "hidden" 
-                  }}>
-                    <div style={{ 
-                      width: `${(passwordStrength.nivel / 4) * 100}%`, 
-                      height: "100%", 
-                      backgroundColor: passwordStrength.color, 
-                      transition: "width 0.3s, background-color 0.3s" 
-                    }} />
-                  </div>
-                  <div style={{ 
-                    display: "flex", 
-                    justifyContent: "space-between", 
-                    marginTop: "6px" 
-                  }}>
-                    <span style={{ fontSize: "12px", color: "#333", fontWeight: "500" }}>
-                      Seguridad: <strong>{getPasswordLabel(passwordStrength.nivel)}</strong>
-                    </span>
-                    <span style={{ fontSize: "12px", color: "#666" }}>
-                      {passwordStrength.nivel}/4
-                    </span>
-                  </div>
-                </div>
-
-                <label style={{ 
-                  display: "block", 
-                  marginBottom: "6px", 
-                  fontWeight: "600", 
-                  color: "#002855", 
-                  fontSize: "14px" 
-                }}>
-                  Confirmar Contraseña *
-                </label>
-                <div style={{ position: "relative" }}>
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    name="confirmarClave"
-                    value={formData.confirmarClave}
-                    onChange={handleInputChange}
-                    placeholder="Confirma contraseña"
-                    style={{ 
-                      width: "100%", 
-                      padding: "12px 45px 12px 12px", 
-                      borderRadius: "8px", 
-                      border: "1px solid #a9bcd0", 
-                      fontSize: "14px", 
-                      boxSizing: "border-box", 
-                      outline: "none",
-                      transition: "border-color 0.2s"
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = "#004b8d"}
-                    onBlur={(e) => e.target.style.borderColor = "#a9bcd0"}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    style={{ 
-                      position: "absolute", 
-                      right: "12px", 
-                      top: "50%", 
-                      transform: "translateY(-50%)", 
-                      background: "none", 
-                      border: "none", 
-                      cursor: "pointer", 
-                      color: "#004b8d", 
-                      padding: "4px" 
-                    }}
-                  >
-                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Nacionalidad */}
-              <div style={{ marginBottom: "20px" }}>
-                <label style={{ 
-                  display: "block", 
-                  marginBottom: "6px", 
-                  fontWeight: "600", 
-                  color: "#002855", 
-                  fontSize: "14px" 
-                }}>
-                  Nacionalidad *
-                </label>
-                <select
-                  name="nacionalidad"
-                  value={formData.nacionalidad}
-                  onChange={handleInputChange}
-                  style={{ 
-                    width: "100%", 
-                    padding: "12px", 
-                    borderRadius: "8px", 
-                    border: "1px solid #a9bcd0", 
-                    fontSize: "14px", 
-                    boxSizing: "border-box", 
-                    outline: "none",
-                    transition: "border-color 0.2s"
-                  }}
-                  onFocus={(e) => e.target.style.borderColor = "#004b8d"}
-                  onBlur={(e) => e.target.style.borderColor = "#a9bcd0"}
-                >
-                  {renderNacionalidades()}
-                </select>
-              </div>
-
-              {/* Intereses */}
-              <div style={{ marginBottom: "20px" }}>
-                <label style={{ 
-                  display: "block", 
-                  marginBottom: "8px", 
-                  fontWeight: "600", 
-                  color: "#002855", 
-                  fontSize: "14px" 
-                }}>
-                  Intereses Turísticos *
-                </label>
-                {renderIntereses()}
-              </div>
-
-              {/* Políticas */}
-              <div style={{ marginBottom: "20px" }}>
-                <label style={{ 
-                  fontWeight: "600", 
-                  display: "block", 
-                  marginBottom: "10px", 
-                  color: "#002855", 
-                  fontSize: "14px" 
-                }}>
-                  Políticas y Consentimientos *
-                </label>
-
-                <div style={{ 
-                  padding: "12px", 
-                  border: "1px solid #c9d6e8", 
-                  borderRadius: "8px", 
-                  backgroundColor: "#f9fafb", 
-                  marginBottom: "10px", 
-                  display: "flex", 
-                  alignItems: "center", 
-                  justifyContent: "space-between" 
-                }}>
-                  <label style={{ 
-                    display: "flex", 
-                    alignItems: "center", 
-                    cursor: "pointer", 
-                    flex: 1, 
-                    fontSize: "14px" 
-                  }}>
-                    <input
-                      type="checkbox"
-                      checked={politicasAceptadas.acepto_terminos}
-                      onChange={(e) => handlePoliticaChange("acepto_terminos", e.target.checked)}
-                      style={{ 
-                        marginRight: "10px", 
-                        width: "18px", 
-                        height: "18px", 
-                        cursor: "pointer" 
-                      }}
-                    />
-                    <span>Acepto términos y condiciones</span>
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setShowTerminosModal(true)}
-                    style={{ 
-                      padding: "6px 12px", 
-                      background: "#004b8d", 
-                      color: "#fff", 
-                      border: "none", 
-                      borderRadius: "6px", 
-                      cursor: "pointer", 
-                      fontSize: "12px", 
-                      fontWeight: "600" 
-                    }}
-                  >
-                    📄 Leer
-                  </button>
-                </div>
-
-                <div style={{ 
-                  padding: "12px", 
-                  border: "1px solid #c9d6e8", 
-                  borderRadius: "8px", 
-                  backgroundColor: "#f9fafb", 
-                  display: "flex", 
-                  alignItems: "center", 
-                  justifyContent: "space-between" 
-                }}>
-                  <label style={{ 
-                    display: "flex", 
-                    alignItems: "center", 
-                    cursor: "pointer", 
-                    flex: 1, 
-                    fontSize: "14px" 
-                  }}>
-                    <input
-                      type="checkbox"
-                      checked={politicasAceptadas.acepto_tratamiento_datos}
-                      onChange={(e) =>
-                        handlePoliticaChange("acepto_tratamiento_datos", e.target.checked)
-                      }
-                      style={{ 
-                        marginRight: "10px", 
-                        width: "18px", 
-                        height: "18px", 
-                        cursor: "pointer" 
-                      }}
-                    />
-                    <span>Acepto tratamiento de datos</span>
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setShowTratamientoModal(true)}
-                    style={{ 
-                      padding: "6px 12px", 
-                      background: "#004b8d", 
-                      color: "#fff", 
-                      border: "none", 
-                      borderRadius: "6px", 
-                      cursor: "pointer", 
-                      fontSize: "12px", 
-                      fontWeight: "600" 
-                    }}
-                  >
-                    📄 Leer
-                  </button>
-                </div>
-              </div>
-
-              {/* Botón de registro */}
-              <button
-                type="submit"
-                style={{ 
-                  width: "100%", 
-                  padding: "14px", 
-                  backgroundColor: "#004b8d", 
-                  color: "#fff", 
-                  fontWeight: "600", 
-                  border: "none", 
-                  borderRadius: "8px", 
-                  cursor: "pointer", 
-                  fontSize: "16px", 
-                  boxShadow: "0 4px 12px rgba(0, 75, 141, 0.3)",
-                  transition: "all 0.2s"
-                }}
-                onMouseOver={(e) => e.target.style.backgroundColor = "#003366"}
-                onMouseOut={(e) => e.target.style.backgroundColor = "#004b8d"}
+    <div className="min-h-screen bg-gradient-to-br from-[#001a33] via-[#003366] to-[#004b8d]">
+      <div className="min-h-screen bg-[#001a33]/70">
+        <div className="flex min-h-screen">
+          {/* Left Panel */}
+          <motion.div
+            className="hidden md:flex flex-1 flex-col items-center justify-center text-white p-10 relative shadow-2xl"
+            style={{
+              backgroundImage: `url(${bogotaNight})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+            initial={{ x: -200, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 1 }}
+          >
+            <div className="bg-[#001a33]/60 p-8 rounded-2xl backdrop-blur-md text-center space-y-6">
+              <motion.div
+                className="flex justify-center space-x-8 text-[#ffda44]"
+                initial={{ y: -10 }}
+                animate={{ y: [0, -10, 0] }}
+                transition={{ repeat: Infinity, duration: 2 }}
               >
-                Registrarse
-              </button>
+                <motion.div whileHover={{ scale: 1.15 }}>
+                  <FaMapMarkerAlt className="text-5xl opacity-90" />
+                </motion.div>
+                <motion.div whileHover={{ rotate: 15 }}>
+                  <MdTravelExplore className="text-5xl opacity-80" />
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.15 }}>
+                  <FaCity className="text-5xl opacity-90" />
+                </motion.div>
+              </motion.div>
 
-              {/* Enlaces */}
-              <div style={{ 
-                textAlign: "center", 
-                marginTop: "20px", 
-                fontSize: "14px", 
-                color: "#333" 
-              }}>
-                ¿Ya tienes cuenta?{" "}
-                <a
-                  href="/login"
-                  style={{ 
-                    color: "#004b8d", 
-                    fontWeight: "600", 
-                    textDecoration: "none" 
-                  }}
-                >
-                  Inicia sesión aquí
-                </a>
+              <motion.h1
+                className="text-3xl font-bold"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.4 }}
+              >
+                Bienvenido a <span className="text-[#ffda44]">BogotaTuris</span>
+              </motion.h1>
+
+              <motion.p
+                className="text-center !text-white text-sm max-w-sm leading-relaxed mx-auto drop-shadow-lg font-medium"
+                style={{ color: "white" }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.7 }}
+              >
+                Vive la magia de la capital colombiana.  
+                Cultura, historia y aventura en un solo lugar. 
+              </motion.p>
+            </div>
+          </motion.div>
+
+          {/* Right Panel - Registration Form */}
+          <motion.div
+            className="flex-1 flex items-center justify-center p-6 md:p-12"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <motion.form
+              onSubmit={handleSubmit}
+              className="w-full max-w-md bg-white/90 backdrop-blur-md border border-[#c9d6e8] rounded-2xl p-8 space-y-6 shadow-xl"
+              whileHover={{ scale: 1.01 }}
+              transition={{ type: "spring", stiffness: 100 }}
+            >
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-[#002855] mb-1">
+                  Crear Cuenta
+                </h2>
+                <p className="text-sm text-[#5b5b5b]">
+                  Únete a nuestra comunidad de viajeros
+                </p>
               </div>
-            </form>
-          </div>
+
+              {/* Progress Bar */}
+              <div className="mb-6">
+                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <motion.div 
+                    className="h-full bg-gradient-to-r from-blue-600 to-blue-400"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progreso}%` }}
+                    transition={{ duration: 0.5 }}
+                  />
+                </div>
+                <p className="text-right text-sm text-gray-500 mt-1">{progreso}% completado</p>
+              </div>
+
+              <div className="space-y-6">
+                {/* Personal Information */}
+                <motion.div 
+                  className="space-y-4"
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  <h3 className="text-lg font-semibold text-gray-800 border-b pb-2">Datos Personales</h3>
+                  
+                  <motion.div className="grid grid-cols-1 md:grid-cols-2 gap-4" variants={itemVariants}>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Primer Nombre *</label>
+                      <input
+                        type="text"
+                        name="primer_nombre"
+                        value={formData.primer_nombre || ""}
+                        onChange={handleInputChange}
+                        placeholder="Primer Nombre"
+                        className="form-input"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Segundo Nombre</label>
+                      <input
+                        type="text"
+                        name="segundo_nombre"
+                        value={formData.segundo_nombre || ""}
+                        onChange={handleInputChange}
+                        placeholder="Segundo Nombre (opcional)"
+                        className="form-input"
+                      />
+                    </div>
+                  </motion.div>
+
+                  <motion.div className="grid grid-cols-1 md:grid-cols-2 gap-4" variants={itemVariants}>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Primer Apellido *</label>
+                      <input
+                        type="text"
+                        name="primer_apellido"
+                        value={formData.primer_apellido || ""}
+                        onChange={handleInputChange}
+                        placeholder="Primer Apellido"
+                        className="form-input"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Segundo Apellido</label>
+                      <input
+                        type="text"
+                        name="segundo_apellido"
+                        value={formData.segundo_apellido || ""}
+                        onChange={handleInputChange}
+                        placeholder="Segundo Apellido (opcional)"
+                        className="form-input"
+                      />
+                    </div>
+                  </motion.div>
+
+                  {/* Contact Information */}
+                  <motion.div variants={itemVariants}>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico *</label>
+                    <input
+                      type="email"
+                      name="correo"
+                      value={formData.correo || ""}
+                      onChange={handleInputChange}
+                      placeholder="Correo Electrónico"
+                      className="form-input"
+                      required
+                    />
+                  </motion.div>
+
+                  {/* Confirmar Correo Electrónico */}
+                  <motion.div variants={itemVariants} className="mt-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Confirmar Correo Electrónico *</label>
+                    <input
+                      type="email"
+                      name="confirmarCorreo"
+                      value={formData.confirmarCorreo || ""}
+                      onChange={handleInputChange}
+                      placeholder="Confirmar Correo Electrónico"
+                      className="form-input"
+                      required
+                    />
+                    {formData.correo && formData.confirmarCorreo && (
+                      <p className={`text-xs mt-1 ${formData.correo === formData.confirmarCorreo ? 'text-green-600' : 'text-red-600'}`}>
+                        {formData.correo === formData.confirmarCorreo 
+                          ? '✓ Los correos coinciden' 
+                          : '✗ Los correos no coinciden'}
+                      </p>
+                    )}
+                  </motion.div>
+
+                  <motion.div className="space-y-4" variants={itemVariants}>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña *</label>
+                      <div className="password-input-container">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          name="clave"
+                          value={formData.clave || ""}
+                          onChange={handleInputChange}
+                          placeholder="••••••••"
+                          className="form-input"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="password-toggle"
+                          aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                        >
+                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Confirmar Contraseña *</label>
+                      <div className="password-input-container">
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          name="confirmarClave"
+                          value={formData.confirmarClave || ""}
+                          onChange={handleInputChange}
+                          placeholder="••••••••"
+                          className="form-input"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="password-toggle"
+                          aria-label={showConfirmPassword ? "Ocultar confirmación de contraseña" : "Mostrar confirmación de contraseña"}
+                        >
+                          {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                      </div>
+                      {formData.clave && formData.confirmarClave && (
+                        <p className={`text-xs mt-1 ${formData.clave === formData.confirmarClave ? 'text-green-600' : 'text-red-600'}`}>
+                          {formData.clave === formData.confirmarClave 
+                            ? '✓ Las contraseñas coinciden' 
+                            : '✗ Las contraseñas no coinciden'}
+                        </p>
+                      )}
+                    </div>
+                  </motion.div>
+
+                  {/* Additional Information */}
+                  <motion.div variants={itemVariants}>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Nacionalidad *</label>
+                    <select
+                      name="nacionalidad"
+                      value={formData.nacionalidad || ""}
+                      onChange={handleInputChange}
+                      className="form-input"
+                      required
+                    >
+                      {renderNacionalidades()}
+                    </select>
+                  </motion.div>
+
+                  <motion.div variants={itemVariants}>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Intereses</label>
+                    {renderIntereses()}
+                  </motion.div>
+
+                  {/* Terms and Conditions */}
+                  <motion.div variants={itemVariants} className="space-y-2">
+                    <div className="flex items-start">
+                      <div className="flex-none mt-0.5 mr-2">
+                        <input
+                          id="acepto_terminos"
+                          name="acepto_terminos"
+                          type="checkbox"
+                          required
+                          checked={politicasAceptadas.acepto_terminos}
+                          onChange={(e) => {
+                            console.log('Términos cambiados a:', e.target.checked);
+                            handlePoliticaChange("acepto_terminos", e.target.checked);
+                          }}
+                          className={`h-4 w-4 text-blue-600 rounded focus:ring-blue-500 cursor-pointer ${submitted && !politicasAceptadas.acepto_terminos ? 'border-2 border-red-500' : 'border-gray-300'}`}
+                        />
+                      </div>
+                      <label 
+                        htmlFor="acepto_terminos" 
+                        className="text-xs text-gray-700 ml-1.5 cursor-pointer hover:bg-gray-50 px-1 py-0.5 rounded"
+                        onClick={(e) => {
+                          // Only open modal if clicking the text, not the checkbox
+                          if (e.target.tagName !== 'INPUT') {
+                            setShowTerminosModal(true);
+                          }
+                        }}
+                      >
+                        Acepto los <span className="text-blue-600 hover:underline">Términos y Condiciones</span>
+                      </label>
+                    </div>
+
+                    <div className="flex items-start">
+                      <div className="flex-none mt-0.5 mr-2">
+                        <input
+                          id="acepto_tratamiento"
+                          name="acepto_tratamiento"
+                          type="checkbox"
+                          required
+                          checked={politicasAceptadas.acepto_tratamiento_datos}
+                          onChange={(e) => {
+                            console.log('Tratamiento de datos cambiado a:', e.target.checked);
+                            handlePoliticaChange("acepto_tratamiento_datos", e.target.checked);
+                          }}
+                          className={`h-4 w-4 text-blue-600 rounded focus:ring-blue-500 cursor-pointer ${submitted && !politicasAceptadas.acepto_tratamiento_datos ? 'border-2 border-red-500' : 'border-gray-300'}`}
+                        />
+                      </div>
+                      <label 
+                        htmlFor="acepto_tratamiento" 
+                        className="text-xs text-gray-700 ml-1.5 cursor-pointer hover:bg-gray-50 px-1 py-0.5 rounded"
+                        onClick={(e) => {
+                          // Only open modal if clicking the text, not the checkbox
+                          if (e.target.tagName !== 'INPUT') {
+                            setShowTratamientoModal(true);
+                          }
+                        }}
+                      >
+                        Acepto la <span className="text-blue-600 hover:underline">Política de Tratamiento de Datos</span>
+                      </label>
+                    </div>
+                  </motion.div>
+
+                  {/* Submit Button */}
+                  <motion.div variants={itemVariants} className="pt-4">
+                    <button
+                      type="submit"
+                      className="registro-boton"
+                    >
+                      Registrarse
+                    </button>
+                  </motion.div>
+
+                  {/* Login Link */}
+                  <motion.div 
+                    className="text-center text-gray-600 text-sm pt-2"
+                    variants={itemVariants}
+                  >
+                    ¿Ya tienes una cuenta?{' '}
+                    <a
+                      href="/login"
+                      className="text-blue-600 hover:text-blue-800 hover:underline"
+                    >
+                      Iniciar sesión
+                    </a>
+                  </motion.div>
+                </motion.div>
+              </div>
+            </motion.form>
+          </motion.div>
         </div>
       </div>
 
-      {/* Modal de Bienvenida */}
+      {/* Modals */}
+      <PDFModal
+        isOpen={showTerminosModal}
+        onClose={() => setShowTerminosModal(false)}
+        title="Términos y Condiciones"
+        pdfUrl="http://localhost:8000/api/politicas/pdf/terminos"
+        onView={() => registrarVisualizacionPDF('terminos')}
+      />
+
+      <PDFModal
+        isOpen={showTratamientoModal}
+        onClose={() => setShowTratamientoModal(false)}
+        title="Política de Tratamiento de Datos"
+        pdfUrl="http://localhost:8000/api/politicas/pdf/tratamiento-datos"
+        onView={() => registrarVisualizacionPDF('tratamiento_datos')}
+      />
+
+      {/* Welcome Modal */}
       {showWelcomeModal && (
-        <div
-          style={{ 
-            position: "fixed", 
-            top: 0, 
-            left: 0, 
-            width: "100%", 
-            height: "100%", 
-            background: "rgba(0,0,0,0.6)", 
-            display: "flex", 
-            justifyContent: "center", 
-            alignItems: "center", 
-            zIndex: 1000 
-          }}
-          onClick={handleWelcomeClose}
-        >
-          <div
-            style={{ 
-              background: "#fff", 
-              padding: "35px", 
-              borderRadius: "16px", 
-              textAlign: "center", 
-              maxWidth: "400px", 
-              boxShadow: "0 10px 40px rgba(0,0,0,0.4)" 
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 style={{ 
-              marginBottom: "12px", 
-              color: "#002855", 
-              fontSize: "1.6rem" 
-            }}>
-              🎉 ¡Registro Exitoso!
-            </h2>
-            <p style={{ 
-              marginBottom: "20px", 
-              color: "#666", 
-              fontSize: "0.95rem" 
-            }}>
-              Bienvenido a <strong style={{ color: "#004b8d" }}>BogotaTuris</strong>
+        <div className="registro-modal">
+          <div className="registro-modal-contenido">
+            <div className="registro-modal-icono">
+              <svg className="h-12 w-12 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 className="registro-modal-titulo">¡Registro exitoso!</h3>
+            <p className="registro-modal-mensaje">
+              Tu cuenta ha sido creada correctamente. Por favor revisa tu correo electrónico y haz clic en el enlace de confirmación para activar tu cuenta.
+            </p>
+            <p className="text-sm text-gray-600 mt-2">
+              Si no encuentras el correo, por favor revisa tu carpeta de spam.
             </p>
             <button
+              type="button"
+              className="registro-boton"
               onClick={handleWelcomeClose}
-              style={{ 
-                padding: "10px 35px", 
-                background: "#004b8d", 
-                color: "#fff", 
-                border: "none", 
-                borderRadius: "8px", 
-                cursor: "pointer", 
-                fontWeight: "600", 
-                fontSize: "0.95rem" 
-              }}
             >
-              Ir al Login
+              Ir al inicio de sesión
             </button>
           </div>
         </div>
       )}
-
-      <PDFModal
-        isOpen={showTerminosModal}
-        onClose={() => setShowTerminosModal(false)}
-        pdfUrl="http://localhost:8000/api/politicas/pdf/terminos"
-      />
-      <PDFModal
-        isOpen={showTratamientoModal}
-        onClose={() => setShowTratamientoModal(false)}
-        pdfUrl="http://localhost:8000/api/politicas/pdf/tratamiento-datos"
-      />
     </div>
   );
 };

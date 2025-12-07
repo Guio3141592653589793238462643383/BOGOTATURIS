@@ -16,22 +16,215 @@
   text-decoration: underline;
 }
 
-/* 📦 Container principal mejorado - MÁS ESTRECHO */
-.container {
-  max-width: 600px; /* Reducido de 750px a 600px */
-  margin: 2rem auto;
-  padding: 40px;
-  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-  border-radius: 25px;
-  box-shadow: 
-    0 25px 80px rgba(0, 0, 0, 0.15),
-    0 15px 40px rgba(52, 152, 219, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+/* Estilos para el modal de registro */
+.registro-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.registro-modal-contenido {
+  background: white;
+  padding: 2rem;
+  border-radius: 0.5rem;
+  max-width: 28rem;
+  width: 90%;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+              0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.registro-modal-icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.registro-modal-titulo {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1a202c;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.registro-modal-mensaje {
+  color: #4a5568;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.registro-boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  background-color: #3182ce;
+  color: white;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  font-size: 1rem;
+}
+
+.registro-boton:hover {
+  background-color: #2c5282;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos para los campos del formulario */
+.form-input, .form-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  background-color: #fff;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+  color: #1a202c;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.75rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+}
+
+/* Eliminar el borde adicional en Firefox */
+.form-select {
+  text-indent: 1px;
+  text-overflow: '';
+}
+
+/* Estilo para IE11 */
+.form-select::-ms-expand {
+  display: none;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #3182ce;
+  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.2);
+}
+
+/* Estilos para las casillas de verificación */
+.policy-checkbox {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background-color: #f8fafc;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+}
+
+.policy-checkbox input[type="checkbox"] {
+  margin-right: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.policy-link {
+  color: #3182ce;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.policy-link:hover {
+  text-decoration: underline;
+}
+
+/* Estilos para el contenedor de contraseña */
+.password-input-container {
   position: relative;
-  overflow: hidden;
-  border: 3px solid transparent;
-  background-clip: padding-box;
-  animation: slideInUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.password-input-container .form-input {
+  padding-left: 2.5rem;
+  padding-right: 2.5rem;
+  width: 100%;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+  height: 2.75rem;
+  font-size: 0.9375rem;
+}
+
+.password-input-container .form-input:focus {
+  outline: none;
+  border-color: #3182ce;
+  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.2);
+}
+
+.password-toggle {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  transition: all 0.2s ease;
+  outline: none;
+  z-index: 2;
+}
+
+.password-toggle:hover {
+  color: #1e40af;
+  background-color: rgba(30, 64, 175, 0.05);
+  border-radius: 0.25rem;
+}
+
+.password-toggle:focus {
+  box-shadow: none;
+  outline: 2px solid #3182ce;
+  outline-offset: 2px;
+}
+
+.password-toggle:active,
+.password-toggle:focus:not(:focus-visible) {
+  transform: translateY(-50%);
+  width: 1.5rem;
+  height: 1.5rem;
+  box-shadow: none;
+  outline: none;
+}
+
+.password-toggle:focus-visible {
+  outline: 2px solid #3182ce;
+  outline-offset: 2px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* 🎨 Borde degradado inspirado en el logo */

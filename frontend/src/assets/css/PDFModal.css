@@ -51,32 +51,40 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 25px;
-  border-bottom: 2px solid #e0e0e0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 10px 20px;
+  background: #001a33; /* Color sólido que coincide con el fondo del login */
   color: white;
   border-radius: 12px 12px 0 0;
+  height: 50px; /* Altura fija para hacer la franja más delgada */
 }
 
 .pdf-modal-header h2 {
   margin: 0;
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-size: 1.1rem;
+  font-weight: 500;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0 5px;
 }
 
 .pdf-modal-close {
   background: rgba(255, 255, 255, 0.2);
   border: none;
   color: white;
-  font-size: 1.8rem;
-  width: 40px;
-  height: 40px;
+  font-size: 1.2rem;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  padding: 0;
+  line-height: 1;
+  margin-left: 10px;
 }
 
 .pdf-modal-close:hover {

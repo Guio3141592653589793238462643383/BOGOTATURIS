@@ -1,5 +1,9 @@
+* {
+  font-family: 'Comic Neue', system-ui, Avenir, Helvetica, Arial, sans-serif !important;
+}
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Comic Neue', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -32,7 +36,7 @@ body.dynamic {
     #f8fafc 80%, 
     #ffffff 100%
   );
-  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-family: 'Comic Neue', 'Segoe UI', system-ui, sans-serif;
 }
 
 h1 {

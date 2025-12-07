@@ -66,24 +66,9 @@ const usePoliticas = () => {
    * Maneja el cambio de los checkboxes de políticas
    */
   const handlePoliticaChange = useCallback((tipo, valor) => {
-    // Validar que haya visualizado el PDF primero
     const tipoPDF = tipo === 'acepto_terminos' ? 'terminos' : 'tratamiento_datos';
     
-    if (!pdfVisualizado[tipoPDF] && valor) {
-      // Intentó marcar sin ver el PDF
-      const mensajeError = tipo === 'acepto_terminos' 
-        ? 'Debes leer los términos y condiciones antes de aceptar'
-        : 'Debes leer la política de tratamiento de datos antes de aceptar';
-      
-      setMensajesPoliticas(prev => ({
-        ...prev,
-        [tipo === 'acepto_terminos' ? 'errorTerminos' : 'errorTratamientoDatos']: mensajeError
-      }));
-      
-      return false;
-    }
-
-    // Actualizar estado
+    // Actualizar estado sin restricción de visualización previa
     setPoliticasAceptadas(prev => ({
       ...prev,
       [tipo]: valor
@@ -103,13 +88,23 @@ const usePoliticas = () => {
     } else {
       setMensajesPoliticas(prev => ({
         ...prev,
-        [tipo === 'acepto_terminos' ? 'errorTerminos' : 'errorTratamientoDatos']: '',
         [tipo === 'acepto_terminos' ? 'exitoTerminos' : 'exitoTratamientoDatos']: ''
       }));
     }
 
+    // Si se marca el checkbox y no se ha visto el PDF, lo marcamos como visualizado
+    if (valor && !pdfVisualizado[tipoPDF]) {
+      setPdfVisualizado(prev => ({
+        ...prev,
+        [tipoPDF]: true
+      }));
+      
+      // Opcional: Registrar la visualización automática
+      registrarVisualizacionPDF(tipoPDF, 5); // 5 segundos como tiempo estimado
+    }
+
     return true;
-  }, [pdfVisualizado]);
+  }, [pdfVisualizado, registrarVisualizacionPDF]);
 
   /**
    * Valida que ambas políticas estén aceptadas

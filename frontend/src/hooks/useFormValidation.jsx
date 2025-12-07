@@ -80,15 +80,45 @@ const useFormValidation = () => {
   const cargarNacionalidades = async () => {
     setLoadingNacionalidades(true);
     try {
-      const response = await fetch('http://localhost:8000/api/usuario/nacionalidades');
-      if (response.ok) {
+      // Primero intentar cargar desde la API
+      const response = await fetch('http://localhost:8000/api/usuario/nacionalidades').catch(() => null);
+      
+      if (response?.ok) {
         const data = await response.json();
+        console.log('Nacionalidades cargadas desde la API:', data);
         setNacionalidades(data);
       } else {
-        console.error('Error al cargar nacionalidades');
+        // Si falla, cargar desde el archivo local
+        console.log('Cargando nacionalidades desde archivo local...');
+        const localResponse = await fetch('/datosNacionalidad.json');
+        if (localResponse.ok) {
+          const data = await localResponse.json();
+          console.log('Nacionalidades cargadas desde archivo local:', data);
+          // Ordenar alfabéticamente
+          const nacionalidadesOrdenadas = [...data].sort((a, b) => 
+            a.nacionalidad.localeCompare(b.nacionalidad)
+          );
+          setNacionalidades(nacionalidadesOrdenadas);
+        } else {
+          console.error('Error al cargar nacionalidades del archivo local');
+          // Datos de respaldo
+          setNacionalidades([
+            { id_nac: 1, nacionalidad: 'Colombia' },
+            { id_nac: 2, nacionalidad: 'México' },
+            { id_nac: 3, nacionalidad: 'España' },
+            { id_nac: 4, nacionalidad: 'Argentina' }
+          ]);
+        }
       }
     } catch (error) {
-      console.error('Error de conexión al cargar nacionalidades:', error);
+      console.error('Error al cargar nacionalidades:', error);
+      // Datos de respaldo en caso de error
+      setNacionalidades([
+        { id_nac: 1, nacionalidad: 'Colombia' },
+        { id_nac: 2, nacionalidad: 'México' },
+        { id_nac: 3, nacionalidad: 'España' },
+        { id_nac: 4, nacionalidad: 'Argentina' }
+      ]);
     } finally {
       setLoadingNacionalidades(false);
     }
@@ -447,82 +477,118 @@ const useFormValidation = () => {
     return esValido;
   }, [markField, updateMessage]);
 
+  // Manejador de cambios en los checkboxes de intereses
+  const handleInteresesChange = useCallback((e) => {
+    const { value, checked } = e.target;
+    
+    setFormData(prev => {
+      // Si está marcado, agregamos el interés, si no, lo eliminamos
+      const newIntereses = checked
+        ? [...(prev.intereses || []), value]
+        : (prev.intereses || []).filter(interes => interes !== value);
+      
+      // Validar los intereses después de actualizar el estado
+      validateIntereses(newIntereses);
+      
+      return {
+        ...prev,
+        intereses: newIntereses
+      };
+    });
+  }, [validateIntereses]);
+
+  // Manejador de cambios en las políticas (términos y condiciones)
+  const handlePoliticaChange = useCallback((field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    
+    // Validar el campo de política que cambió
+    if (field === 'acepto_terminos') {
+      validateTerminos(value);
+    } else if (field === 'acepto_tratamiento_datos') {
+      validateTratamientoDatos(value);
+    }
+  }, [validateTerminos, validateTratamientoDatos]);
+
   // Manejador de cambios en los inputs
   const handleInputChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
     const inputValue = type === 'checkbox' ? checked : value;
     
-    setFormData(prev => ({
-      ...prev,
-      [name]: inputValue
-    }));
+    setFormData(prev => {
+      const newFormData = {
+        ...prev,
+        [name]: inputValue
+      };
 
-    // Validar el campo cambiado
-    switch (name) {
-      case 'primer_nombre':
-        validatePrimerNombre(inputValue);
-        break;
-      case 'segundo_nombre':
-        validateSegundoNombre(inputValue);
-        break;
-      case 'primer_apellido':
-        validatePrimerApellido(inputValue);
-        break;
-      case 'segundo_apellido':
-        validateSegundoApellido(inputValue);
-        break;
-      case 'correo':
-        // Usar un timeout para evitar múltiples llamadas al servidor
-        if (emailTimeoutRef.current) {
-          clearTimeout(emailTimeoutRef.current);
-        }
-        emailTimeoutRef.current = setTimeout(() => {
-          validateCorreo(inputValue);
-          // Validar también el campo de confirmación si tiene valor
-          if (formData.confirmarCorreo) {
-            validateConfirmarCorreo(formData.confirmarCorreo, inputValue);
+      // Validar el campo cambiado
+      switch (name) {
+        case 'primer_nombre':
+          validatePrimerNombre(inputValue);
+          break;
+        case 'segundo_nombre':
+          validateSegundoNombre(inputValue);
+          break;
+        case 'primer_apellido':
+          validatePrimerApellido(inputValue);
+          break;
+        case 'segundo_apellido':
+          validateSegundoApellido(inputValue);
+          break;
+        case 'correo':
+          // Usar un timeout para evitar múltiples llamadas al servidor
+          if (emailTimeoutRef.current) {
+            clearTimeout(emailTimeoutRef.current);
           }
-        }, 500);
-        break;
-      case 'confirmarCorreo':
-        validateConfirmarCorreo(inputValue, formData.correo);
-        break;
-      case 'clave':
-        validateClave(inputValue);
-        // Validar también el campo de confirmación si tiene valor
-        if (formData.confirmarClave) {
-          validateConfirmarClave(formData.confirmarClave, inputValue);
-        }
-        break;
-      case 'confirmarClave':
-        validateConfirmarClave(inputValue, formData.clave);
-        break;
-      case 'nacionalidad':
-        validateNacionalidad(inputValue);
-        break;
-      case 'intereses':
-        // Manejar selección múltiple de intereses
-        const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
-        setFormData(prev => ({
-          ...prev,
-          intereses: selectedOptions
-        }));
-        validateIntereses(selectedOptions);
-        break;
-      case 'acepto_terminos':
-        validateTerminos(inputValue);
-        break;
-      case 'acepto_tratamiento_datos':
-        validateTratamientoDatos(inputValue);
-        break;
-      default:
-        break;
-    }
+          emailTimeoutRef.current = setTimeout(() => {
+            validateCorreo(inputValue);
+            // Validar también el campo de confirmación si tiene valor
+            if (newFormData.confirmarCorreo) {
+              validateConfirmarCorreo(newFormData.confirmarCorreo, inputValue);
+            }
+          }, 300);
+          break;
+        case 'confirmarCorreo':
+          validateConfirmarCorreo(inputValue, newFormData.correo);
+          break;
+        case 'clave':
+          validateClave(inputValue);
+          // Validar también el campo de confirmación si tiene valor
+          if (newFormData.confirmarClave) {
+            validateConfirmarClave(newFormData.confirmarClave, inputValue);
+          }
+          break;
+        case 'confirmarClave':
+          validateConfirmarClave(inputValue, newFormData.clave);
+          // Si hay un valor en clave, validar también ese campo
+          if (newFormData.clave) {
+            validateClave(newFormData.clave);
+          }
+          break;
+        case 'nacionalidad':
+          validateNacionalidad(inputValue);
+          break;
+        case 'intereses':
+          // Manejar selección múltiple de intereses
+          const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+          newFormData.intereses = selectedOptions;
+          validateIntereses(selectedOptions);
+          break;
+        case 'acepto_terminos':
+          validateTerminos(inputValue);
+          break;
+        case 'acepto_tratamiento_datos':
+          validateTratamientoDatos(inputValue);
+          break;
+        default:
+          break;
+      }
+
+      return newFormData;
+    });
   }, [
-    formData.correo,
-    formData.confirmarCorreo,
-    formData.clave,
-    formData.confirmarClave,
     validatePrimerNombre,
     validateSegundoNombre,
     validatePrimerApellido,
@@ -537,72 +603,33 @@ const useFormValidation = () => {
     validateTratamientoDatos
   ]);
 
-  // Manejador para cambios en los checkboxes de políticas
-  const handlePoliticaChange = useCallback((e) => {
-    const { name, checked } = e.target;
-    
-    setFormData(prev => ({
-      ...prev,
-      [name]: checked
-    }));
-
-    // Validar el checkbox cambiado
-    if (name === 'acepto_terminos') {
-      validateTerminos(checked);
-    } else if (name === 'acepto_tratamiento_datos') {
-      validateTratamientoDatos(checked);
-    }
-  }, [validateTerminos, validateTratamientoDatos]);
-
-  // Manejador para cambios en los intereses (para checkboxes)
-  const handleInteresesChange = useCallback((e) => {
-    const { value, checked } = e.target;
-    
-    setFormData(prev => {
-      // Si el checkbox está marcado, agregamos el valor al array de intereses
-      // Si no está marcado, lo eliminamos
-      const newIntereses = checked
-        ? [...(prev.intereses || []), value]
-        : (prev.intereses || []).filter(interes => interes !== value);
-      
-      return {
-        ...prev,
-        intereses: newIntereses
-      };
-    });
-    
-    // Validar los intereses después de actualizar el estado
-    validateIntereses(
-      checked 
-        ? [...(formData.intereses || []), value] 
-        : (formData.intereses || []).filter(interes => interes !== value)
-    );
-  }, [formData.intereses, validateIntereses]);
-
   // Calcular progreso del formulario
-  const calcularProgreso = useCallback(() => {
-    // Solo contamos los campos obligatorios
-    const camposObligatorios = {
-      primer_nombre: validationState.primer_nombre,
-      primer_apellido: validationState.primer_apellido,
-      correo: validationState.correo,
-      confirmarCorreo: validationState.confirmarCorreo,
-      clave: validationState.clave,
-      confirmarClave: validationState.confirmarClave,
-      nacionalidad: validationState.nacionalidad,
-      intereses: validationState.intereses,
-      acepto_terminos: validationState.acepto_terminos,
-      acepto_tratamiento_datos: validationState.acepto_tratamiento_datos
+  const calcularProgreso = useCallback((politicasAceptadas = {}) => {
+    // Usar el estado actual del formulario para la validación
+    const camposValidos = {
+      primer_nombre: formData.primer_nombre && formData.primer_nombre.trim().length >= 2,
+      primer_apellido: formData.primer_apellido && formData.primer_apellido.trim().length >= 2,
+      correo: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.correo || ''),
+      confirmarCorreo: formData.confirmarCorreo === formData.correo && formData.confirmarCorreo !== '',
+      clave: formData.clave && formData.clave.length >= 8,
+      confirmarClave: formData.confirmarClave === formData.clave && formData.confirmarClave !== '',
+      nacionalidad: !!formData.nacionalidad,
+      intereses: formData.intereses && formData.intereses.length > 0,
+      acepto_terminos: politicasAceptadas.acepto_terminos || false,
+      acepto_tratamiento_datos: politicasAceptadas.acepto_tratamiento_datos || false
     };
-    
-    // Solo contamos los campos obligatorios que son verdaderos
-    const camposCompletados = Object.values(camposObligatorios).filter(Boolean).length;
-    const totalCampos = Object.keys(camposObligatorios).length;
-    
-    // Calculamos el porcentaje, asegurando que esté entre 0 y 100
+
+    const camposObligatorios = Object.values(camposValidos);
+    const camposCompletados = camposObligatorios.filter(Boolean).length;
+    const totalCampos = camposObligatorios.length;
     const porcentaje = Math.round((camposCompletados / totalCampos) * 100);
+    
+    console.log('--- calcularProgreso ---');
+    console.log('Estado de validación:', camposValidos);
+    console.log(`Progreso: ${camposCompletados}/${totalCampos} (${porcentaje}%)`);
+    
     return Math.min(100, Math.max(0, porcentaje));
-  }, [validationState]);
+  }, [formData]);
 
   // Estado de completitud del formulario
   const formularioCompleto = useCallback(() => {
@@ -621,63 +648,58 @@ const useFormValidation = () => {
   }, [validationState]);
 
   // Función para validar todo el formulario (solo campos obligatorios)
-  const validarTodoElFormulario = useCallback(async (politicas) => {
-    // Validar campos obligatorios
-    const validaciones = [
-      validatePrimerNombre(formData.primer_nombre),
-      validatePrimerApellido(formData.primer_apellido),
-      await validateCorreo(formData.correo),
-      validateConfirmarCorreo(formData.confirmarCorreo, formData.correo),
-      validateClave(formData.clave),
-      validateConfirmarClave(formData.confirmarClave, formData.clave),
-      await validateNacionalidad(formData.nacionalidad),
-      validateIntereses(formData.intereses),
-      validateTerminos(politicas.acepto_terminos),
-      validateTratamientoDatos(politicas.acepto_tratamiento_datos)
-    ];
+  const validarTodoElFormulario = useCallback(async (politicasAceptadas = {}) => {
+    console.log('--- Iniciando validación de formulario ---');
+    console.log('Datos del formulario:', formData);
+    console.log('Políticas aceptadas:', politicasAceptadas);
     
-    // Validar campos opcionales solo si tienen valor
-    if (formData.segundo_nombre?.trim()) {
-      validaciones.push(validateSegundoNombre(formData.segundo_nombre));
-    }
+    // Validar primero el correo principal
+    const correoValido = await validateCorreo(formData.correo || '');
     
-    if (formData.segundo_apellido?.trim()) {
-      validaciones.push(validateSegundoApellido(formData.segundo_apellido));
-    }
+    // Validar la confirmación del correo solo si el correo principal es válido
+    const confirmarCorreoValido = correoValido 
+      ? await validateConfirmarCorreo(formData.confirmarCorreo || '', formData.correo || '')
+      : false;
 
-    return validaciones.every(Boolean);
-  }, [
-    formData.primer_nombre,
-    formData.primer_apellido,
-    formData.correo,
-    formData.confirmarCorreo,
-    formData.clave,
-    formData.confirmarClave,
-    formData.nacionalidad,
-    formData.intereses,
-    formData.segundo_nombre,
-    formData.segundo_apellido,
-    formData.correo,
-    formData.confirmarCorreo,
-    formData.clave,
-    formData.confirmarClave,
-    formData.nacionalidad,
-    formData.intereses,
-    formData.acepto_terminos,
-    formData.acepto_tratamiento_datos,
-    validatePrimerNombre,
-    validateSegundoNombre,
-    validatePrimerApellido,
-    validateSegundoApellido,
-    validateCorreo,
-    validateConfirmarCorreo,
-    validateClave,
-    validateConfirmarClave,
-    validateNacionalidad,
-    validateIntereses,
-    validateTerminos,
-    validateTratamientoDatos
-  ]);
+    // Validar los demás campos
+    const validaciones = [
+      validatePrimerNombre(formData.primer_nombre || ''),
+      validatePrimerApellido(formData.primer_apellido || ''),
+      correoValido,
+      confirmarCorreoValido,
+      validateClave(formData.clave || ''),
+      validateConfirmarClave(formData.confirmarClave || '', formData.clave || ''),
+      validateNacionalidad(formData.nacionalidad || ''),
+      validateIntereses(formData.intereses || []),
+      validateTerminos(politicasAceptadas.acepto_terminos || false),
+      validateTratamientoDatos(politicasAceptadas.acepto_tratamiento_datos || false)
+    ];
+
+    // Esperar a que todas las validaciones asíncronas se completen
+    const resultados = await Promise.all(validaciones);
+    
+    // Verificar si todas las validaciones son verdaderas
+    const esValido = resultados.every(valido => valido === true);
+    
+    console.log('--- Resultados de validación ---');
+    console.log('Primer Nombre:', resultados[0]);
+    console.log('Primer Apellido:', resultados[1]);
+    console.log('Correo:', resultados[2]);
+    console.log('Confirmar Correo:', resultados[3]);
+    console.log('Clave:', resultados[4]);
+    console.log('Confirmar Clave:', resultados[5]);
+    console.log('Nacionalidad:', resultados[6]);
+    console.log('Intereses:', resultados[7]);
+    console.log('Términos:', resultados[8]);
+    console.log('Tratamiento de datos:', resultados[9]);
+    console.log('Formulario válido:', esValido);
+    
+    // Mostrar estado actual de validación
+    console.log('--- Estado de validación actual ---');
+    console.log(validationState);
+    
+    return esValido;
+  }, [formData, validatePrimerNombre, validatePrimerApellido, validateCorreo, validateConfirmarCorreo, validateClave, validateConfirmarClave, validateNacionalidad, validateIntereses, validateTerminos, validateTratamientoDatos, validationState]);
 
   // Función para reiniciar el formulario
   const resetForm = useCallback(() => {
@@ -745,7 +767,6 @@ const useFormValidation = () => {
     validateTratamientoDatos,
     handleInputChange,
     handleInteresesChange,
-    handlePoliticaChange,
     calcularProgreso,
     formularioCompleto,
     validarTodoElFormulario,
