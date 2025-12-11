@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bogotaturis_backend
+    ports:
+      - "8000:8000"
+    environment:
+      # ⬇️ IMPORTANTE: Pasar la URL completa para que funcione con tu código
+      - DATABASE_URL=mysql+pymysql://root:@host.docker.internal:3306/BogotaTuris
+      
+      # MongoDB
+      - MONGO_URI=mongodb://host.docker.internal:27017
+      - MONGO_DB_NAME=turismo
+      
+      # OpenAI
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      
+      # Email
+      - SMTP_SERVER=smtp.gmail.com
+      - SMTP_PORT=587
+      - SMTP_USER=bogotaturis00@gmail.com
+      - SMTP_PASSWORD=wsfnmfzuzieetdwx
+      - FROM_EMAIL=bogotaturis00@gmail.com
+      - FROM_NAME=BogotaTuris
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./backend:/app
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - bogotaturis_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: bogotaturis_frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - bogotaturis_network
+
+networks:
+  bogotaturis_network:
+    driver: bridge

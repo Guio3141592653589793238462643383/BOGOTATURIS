@@ -1,5 +1,5 @@
 import json
-from sqlalchemy import create_engine, String, Integer, Column, BigInteger
+from sqlalchemy import create_engine, String, Integer, Column, BigInteger, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, mapped_column, sessionmaker
 
 
