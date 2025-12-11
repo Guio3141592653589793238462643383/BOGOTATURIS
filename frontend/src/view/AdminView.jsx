@@ -251,13 +251,13 @@ export default function AdminView() {
     if (vistaActual === "usuarios") cargarUsuarios();
     else if (vistaActual === "lugares") cargarLugares();
     else if (vistaActual === "comentarios") cargarComentarios();
-  }, [vistaActual, busqueda, filtroRol]);
+  }, [vistaActual, busqueda, filtroRol, cargarUsuarios, cargarLugares, cargarComentarios]);
 
   useEffect(() => {
     if (vistaActual === "usuarios") cargarUsuarios();
     else if (vistaActual === "lugares") cargarLugares();
     else if (vistaActual === "comentarios") cargarComentarios();
-  }, [paginaActual]);
+  }, [paginaActual, cargarUsuarios, cargarLugares, cargarComentarios, vistaActual]);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -316,15 +316,7 @@ export default function AdminView() {
   }
 };
 
-  // En el return, donde tienes tu contenido principal:
-  {
-    modalCrear && (
-      <ModalCrearLugar
-        onClose={() => setModalCrear(false)}
-        onCreate={handleCrearLugar}
-      />
-    );
-  }
+  // El modal se renderiza al final del componente
   // Esta función se ejecuta cuando se crea un lugar nuevo
   const handleCreateLugar = async (nuevoLugar) => {
     try {
