@@ -1,15 +1,22 @@
+import { Outlet, useLocation } from 'react-router-dom';
+import Navbar from './components/Navbar';
 
-import FormSignUp from "./components/FormSignUp";
-import Footer from "./components/Footer";
+function App() {
+  const location = useLocation();
+  const hideNavbarPaths = [
+    '/usuario',  // Oculta el Navbar en todas las rutas de usuario
+    '/admin'     // Oculta el Navbar en todas las rutas de administrador
+  ];
+  const showNavbar = !hideNavbarPaths.some(path => location.pathname.startsWith(path));
 
-export default function App() {
   return (
-    <>
-      <FormSignUp />
-      <Footer />
-
-
-    </>
+    <div className="app-container">
+      {showNavbar && <Navbar />}
+      <main className="main-content">
+        <Outlet />
+      </main>
+    </div>
   );
 }
 
+export default App;

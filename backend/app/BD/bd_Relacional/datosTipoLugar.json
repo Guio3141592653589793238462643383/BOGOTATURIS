@@ -1,0 +1,11 @@
+[
+  { "id_tipo": 1, "nombre_tipo": "Parque" },
+  { "id_tipo": 2, "nombre_tipo": "Museo" },
+  { "id_tipo": 3, "nombre_tipo": "Restaurante" },
+  { "id_tipo": 4, "nombre_tipo": "Mirador" },
+  { "id_tipo": 5, "nombre_tipo": "Centro Comercial" },
+  { "id_tipo": 6, "nombre_tipo": "Plaza" },
+  { "id_tipo": 7, "nombre_tipo": "Evento Cultural" },
+  { "id_tipo": 8, "nombre_tipo": "Discoteca" },
+  { "id_tipo": 9, "nombre_tipo": "Ruta Ecológica" }
+]

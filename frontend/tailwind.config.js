@@ -1,7 +1,14 @@
 module.exports = {
-  content: ["./react/src/**/*.{js,jsx}"],
+  content: [
+    "./src/**/*.{js,jsx,ts,tsx}",
+    "./public/index.html"
+  ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ['Comic Neue', 'sans-serif'],
+      },
+    },
   },
   plugins: [],
 };

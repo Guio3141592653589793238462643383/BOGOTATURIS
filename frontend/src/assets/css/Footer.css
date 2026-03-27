@@ -1,0 +1,60 @@
+/* ===== IMPORTS DE FUENTES ===== */
+@import url('https://fonts.googleapis.com/css2?family=Lobster+Two:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+/* Estilos adicionales para efectos que Tailwind no cubre completamente */
+footer {
+  background: linear-gradient(135deg, #2c3e50, #3498db);
+  color: white;
+  padding: 40px 0 0;
+  margin: 0;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  left: 0;
+  right: 0;
+}
+/* Contenido del footer */
+.footer-content {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Efecto hover mejorado para los enlaces */
+footer a {
+  position: relative;
+  display: inline-block;
+}
+
+/* Animación suave para el título */
+footer h3 {
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+footer h3:hover {
+  filter: drop-shadow(0 0 20px rgba(143, 179, 226, 0.8)) !important;
+}
+
+/* Responsive adicional */
+@media (max-width: 640px) {
+  footer {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+  
+  footer h3 {
+    font-size: 1.3rem !important;
+  }
+  
+  footer p {
+    font-size: 0.8rem !important;
+  }
+  
+  footer a {
+    font-size: 0.8rem !important;
+    padding: 0.3rem 0.6rem !important;
+  }
+}

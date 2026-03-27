@@ -1,34 +1,64 @@
-import FormSignUp from "./FormSignUp";
-export default function Navbar() {
+import React from "react";
+import { NavLink, useLocation } from "react-router-dom";
+import NavbarBase from "./NavbarBase";
+import "../assets/css/Navbar.css";
+import '@fortawesome/fontawesome-free/css/all.min.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+
+const Navbar = () => {
+  const location = useLocation();
+
+  // 👉 Ocultar navbar completamente en /login y /registro
+  if (location.pathname === "/login" || location.pathname === "/registro") {
+    return null;
+  }
+
   return (
-    <nav className="bg-gray-800 p-4 text-white">
-      <div className="container mx-auto flex justify-between items-center">
-        <div className="flex items-center space-x-4">
-          <img 
-            src="/_img/registro/Logo.png" 
-            alt="BogotaTuris Logo" 
-            className="h-8 w-auto"
-          />
-          <h1 className="text-xl font-bold">BogotaTuris</h1>
-        </div>
-        <ul className="flex space-x-4 items-center">
-          <li>
-            <a href="#" className="hover:text-gray-300">
+    <NavbarBase
+      pathKey={location.pathname}
+      onLogoClick={() => {}}
+      showTitle={false}
+      renderMenu={() => (
+        <>
+          <li className="nav-item">
+            <NavLink
+              to="/"
+              className={({ isActive }) =>
+                isActive ? "nav-link active" : "nav-link"
+              }
+            >
+              <i className="bi bi-house-door"></i>
               Inicio
-            </a>
+            </NavLink>
           </li>
-          <li>
-             <a href="/registro" component={FormSignUp} className="hover:text-gray-300 font-semibold text-blue-300">
+
+          <li className="nav-item">
+            <NavLink
+              to="/registro"
+              className={({ isActive }) =>
+                isActive ? "nav-link active" : "nav-link"
+              }
+            >
+              <i className="bi bi-person-plus"></i>
               Registro
-            </a>
+            </NavLink>
           </li>
-          <li>
-            <a href="#" className="hover:text-gray-300">
+
+          <li className="nav-item">
+            <NavLink
+              to="/login"
+              className={({ isActive }) =>
+                isActive ? "nav-link active" : "nav-link"
+              }
+            >
+              <i className="bi bi-box-arrow-in-right"></i>
               Iniciar Sesión
-            </a>
+            </NavLink>
           </li>
-        </ul>
-      </div>
-    </nav>
+        </>
+      )}
+    />
   );
-}
+};
+
+export default Navbar;
